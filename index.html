@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<meta name="theme-color" content="#0B3B5A">
+<meta name="theme-color" content="#071424">
 <title>Yaqeen Group</title>
 <link rel="manifest" href="manifest.json">
 <link rel="icon" href="icon-192.png">
@@ -171,6 +171,16 @@ button.row{width:100%;text-align:left}
 .hempty{display:flex;align-items:center;gap:12px;background:#F8FAFB;border:1px dashed #DCE3E8;border-radius:14px;padding:14px;color:var(--mut);font-size:13.5px}
 .hempty span{font-size:22px}
 .card .row{padding:12px 14px;border-bottom:1px solid #F2F5F7}.card .row:last-child{border-bottom:0}
+
+.logo img.mk{object-fit:cover;background:#071424;padding:0}
+.splash{background:radial-gradient(circle at 50% 40%,#0d2238,#071424 70%)}
+.splogo{width:240px;max-width:70%;border-radius:18px}
+.loginlogo{width:120px;border-radius:18px;display:block;box-shadow:0 8px 20px rgba(7,20,36,.25)}
+
+.avwrap{position:relative;cursor:pointer}.avwrap .av{box-shadow:0 6px 16px rgba(11,59,90,.18)}
+.avwrap .cam{position:absolute;right:-2px;bottom:-2px;width:32px;height:32px;border-radius:50%;background:var(--amber);display:flex;align-items:center;justify-content:center;font-size:15px;border:3px solid #fff}
+.editpill{font-size:12px;font-weight:700;color:var(--teal);background:#E3F1F0;padding:5px 10px;border-radius:10px}
+img.av{display:block}
 </style>
 </head>
 <body>
@@ -192,7 +202,7 @@ const state = { session: null, profile: null, companies: [], departments: [], re
 /* ---------- helpers ---------- */
 const esc = s => String(s ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 const initials = n => (n || '?').trim().split(/\s+/).slice(0,2).map(w => w[0]).join('').toUpperCase();
-const logo = (light=false) => `<div class="logo ${light?'light':''}"><span class="mk">YG</span><span><b>Yaqeen</b> Group<small>TEAM</small></span></div>`;
+const logo = (light=false) => `<div class="logo ${light?'light':''}"><img class="mk" src="mark.jpg" alt="Yaqeen Group"><span><b>Yaqeen</b> Group<small>TEAM</small></span></div>`;
 function toast(t){ const d=document.createElement('div'); d.className='toast'; d.textContent=t; document.body.appendChild(d); setTimeout(()=>d.remove(),3200); }
 function showMsg(id, text, type='err'){ const el=document.getElementById(id); if(el){ el.className='msg '+type; el.textContent=text; el.hidden=false; } }
 function busy(btn, on, label){ if(!btn) return; btn.disabled=on; if(on){ btn.dataset.l=btn.innerHTML; btn.innerHTML='<span class="spin" style="width:18px;height:18px;margin:0;border-width:2px"></span>'; } else btn.innerHTML=label||btn.dataset.l; }
@@ -241,11 +251,11 @@ async function route(){
 }
 
 /* ---------- screens ---------- */
-function renderSplash(){ $app.innerHTML = `<div class="splash">${logo(true)}<p>Team Communication App</p><div class="spin"></div></div>`; }
+function renderSplash(){ $app.innerHTML = `<div class="splash"><img src="logo-full.jpg" alt="Yaqeen Group" class="splogo"><p>Team Communication App</p><div class="spin"></div></div>`; }
 
 function renderLogin(prefill=''){
   $app.innerHTML = `<div class="pad">
-    <div style="margin-top:18px">${logo()}</div>
+    <div style="margin-top:10px"><img src="logo-full.jpg" alt="Yaqeen Group" class="loginlogo"></div>
     <h2>Welcome back</h2><p class="mut">অফিসের ইমেইল দিয়ে লগইন করুন</p>
     <label>Email</label><input id="em" class="in" type="email" autocomplete="email" inputmode="email" value="${esc(prefill)}" placeholder="name@gmail.com">
     <label>Password</label><div class="pw"><input id="pw" class="in" type="password" autocomplete="current-password" placeholder="••••••••"><button class="eye" type="button">Show</button></div>
@@ -562,7 +572,8 @@ const isAdmin = () => state.profile && state.profile.role === 'admin';
 const isMgr = () => state.profile && ['admin', 'manager'].includes(state.profile.role);
 const COLORS = ['#0F7C7A', '#C2410C', '#1D4ED8', '#7C3AED', '#0B3B5A', '#B45309', '#0E7490', '#9D174D'];
 const colorFor = id => COLORS[[...String(id || '')].reduce((a, c) => a + c.charCodeAt(0), 0) % COLORS.length];
-const avatar = (name, id, size = 44) => `<div class="av" style="width:${size}px;height:${size}px;background:${colorFor(id)};font-size:${Math.round(size / 3.2)}px">${esc(initials(name))}</div>`;
+const photoOf = id => (id && state.profile && id === state.profile.id && state.profile.avatar_url) || (ui.people[id] && ui.people[id].avatar_url) || null;
+const avatar = (name, id, size = 44) => { const u = photoOf(id); return u ? `<img class="av" src="${esc(u)}" alt="" style="width:${size}px;height:${size}px;object-fit:cover">` : `<div class="av" style="width:${size}px;height:${size}px;background:${colorFor(id)};font-size:${Math.round(size / 3.2)}px">${esc(initials(name))}</div>`; };
 const personName = id => (ui.people[id] && ui.people[id].full_name) || 'Former member';
 const isOnline = p => p && p.last_seen && (Date.now() - new Date(p.last_seen).getTime() < 4 * 60 * 1000);
 function linkify(t) {
@@ -571,7 +582,7 @@ function linkify(t) {
 const todayDhaka = () => new Date(Date.now() + 6 * 3600 * 1000).toISOString().slice(0, 10);
 
 async function loadPeople() {
-  const { data } = await sb.from('profiles').select('id,full_name,designation,company_id,department_id,role,status,last_seen,phone,email').eq('status', 'active');
+  const { data } = await sb.from('profiles').select('id,full_name,designation,company_id,department_id,role,status,last_seen,phone,email,avatar_url').eq('status', 'active');
   ui.people = {}; (data || []).forEach(p => ui.people[p.id] = p);
 }
 
@@ -630,7 +641,7 @@ async function viewHome() {
   const p = state.profile;
   const quick = [
     ['chats', '💬', 'Chats', '#E3F1F0'], ['notices', '📢', 'Notices', '#FFF3DC'], ['tasks', '✅', 'Tasks', '#E7F5EE'], ['team', '👥', 'Team', '#E8EEFF'],
-    ['report', '📝', 'Daily report', '#F3E8FF'], ['profile', '👤', 'Profile', '#FCE7EF'],
+    ['report', '📝', 'Daily report', '#F3E8FF'], ['profile', '✏️', 'My profile', '#FCE7EF'],
     ...(isAdmin() ? [['admin', '🛡️', 'Admin', '#E2E8F0'], ['group', '➕', 'New group', '#FFEDD5']] : [])
   ];
   frame(`<div class="hero">${logo(true)}<div class="hi">আসসালামু আলাইকুম,<b>${esc(p.full_name)}</b></div>
@@ -1190,8 +1201,9 @@ async function teamReports(date) {
 function viewMenu() {
   const p = state.profile;
   frame(`<div class="top"><h1>Menu</h1></div><div class="pad" style="padding-top:8px">
-    <button class="card row" id="pf" style="width:100%;text-align:left">${avatar(p.full_name, p.id, 52)}<div class="rt"><b>${esc(p.full_name)}</b><span>${esc(p.designation || p.role)}</span></div><span>›</span></button>
+    <button class="card row" id="pf" style="width:100%;text-align:left">${avatar(p.full_name, p.id, 52)}<div class="rt"><b>${esc(p.full_name)}</b><span>${esc(p.designation || p.role)}</span></div><span class="editpill">✏️ Edit</span></button>
     <div class="tiles">
+      <button class="tile" id="m-edit"><span class="ic">✏️</span><b>Edit profile</b><small>ছবি, নাম, ফোন</small></button>
       <button class="tile" id="m-team"><span class="ic">👥</span><b>Team</b><small>সব সদস্য</small></button>
       <button class="tile" id="m-rep"><span class="ic">📝</span><b>Daily report</b><small>আজকের কাজ</small></button>
       ${isAdmin() ? '<button class="tile" id="m-adm"><span class="ic">🛡️</span><b>Admin panel</b><small>নিয়ন্ত্রণ</small></button>' : ''}
@@ -1200,6 +1212,7 @@ function viewMenu() {
     <button class="btn ghost" id="lo" style="margin-top:22px">Log out</button>
     <p class="mut center" style="margin-top:14px;font-size:12px">Yaqeen Group Team App · v1.0</p></div>`);
   document.getElementById('pf').onclick = renderProfile;
+  document.getElementById('m-edit').onclick = renderProfile;
   document.getElementById('m-team').onclick = viewTeam;
   document.getElementById('m-rep').onclick = viewReport;
   const a = document.getElementById('m-adm'); if (a) a.onclick = viewAdmin;
@@ -1248,9 +1261,125 @@ async function viewAdmin() {
 // Approvals & members screens from Step 3 go back to the admin panel
 const _renderApprovals = renderApprovals, _renderMembers = renderMembers;
 renderApprovals = async function () { await _renderApprovals(); const b = document.getElementById('bk'); if (b) b.onclick = async () => { await loadPeople(); viewAdmin(); }; };
-renderMembers = async function (f) { await _renderMembers(f); const b = document.getElementById('bk'); if (b) b.onclick = async () => { await loadPeople(); viewAdmin(); }; document.querySelectorAll('.chip').forEach(c => c.onclick = () => renderMembers(c.dataset.f)); };
-const _renderProfile = renderProfile;
-renderProfile = async function () { await _renderProfile(); document.getElementById('bk').onclick = () => go('menu'); };
+renderMembers = async function (f) {
+  await _renderMembers(f);
+  const b = document.getElementById('bk'); if (b) b.onclick = async () => { await loadPeople(); viewAdmin(); };
+  document.querySelectorAll('.chip').forEach(c => c.onclick = () => renderMembers(c.dataset.f));
+  document.querySelectorAll('#list .card').forEach(card => {
+    const two = card.querySelector('.two'); if (!two) return;
+    const e = document.createElement('button'); e.className = 'btn sm ghost'; e.textContent = '✏️ Info'; e.style.maxWidth = '90px';
+    e.onclick = () => editMemberInfo(card.dataset.id, f); two.appendChild(e);
+  });
+};
+async function editMemberInfo(id, f) {
+  const { data: u } = await sb.from('profiles').select('*').eq('id', id).single();
+  if (!u) return;
+  const opt = (arr, sel) => '<option value="">—</option>' + arr.map(x => `<option value="${x.id}" ${x.id === sel ? 'selected' : ''}>${esc(x.name)}</option>`).join('');
+  sheet(`<h3>${esc(u.full_name)}</h3>
+    <label>Designation</label><input class="in" id="ed" maxlength="100" value="${esc(u.designation || '')}">
+    <label>Company</label><select class="in" id="ec">${opt(state.companies, u.company_id)}</select>
+    <label>Department</label><select class="in" id="ep">${opt(state.departments, u.department_id)}</select>
+    <button class="btn" id="es">Save</button>`, (el, close) => {
+    el.querySelector('#es').onclick = async () => {
+      const { error } = await sb.from('profiles').update({ designation: el.querySelector('#ed').value.trim() || null, company_id: el.querySelector('#ec').value || null, department_id: el.querySelector('#ep').value || null }).eq('id', id);
+      if (error) return toast(friendlyError(error));
+      close(); toast('সেভ হয়েছে ✓'); await loadPeople(); renderMembers(f);
+    };
+  });
+}
+renderProfile = async function () {
+  cleanupChannels();
+  await loadLookups();
+  const p = state.profile;
+  $app.innerHTML = `<div class="top"><button class="back" id="bk">←</button><h1>My profile</h1></div>
+  <div class="pad" style="padding-top:14px">
+    <div class="cen"><div class="avwrap" id="ph">${avatar(p.full_name, p.id, 96)}<span class="cam">📷</span></div>
+      <button class="link" id="chg" style="margin-top:10px">প্রোফাইল ছবি পরিবর্তন করুন</button>
+      ${p.avatar_url ? '<button class="link" id="rmv" style="margin-top:6px;color:var(--red)">ছবি সরিয়ে দিন</button>' : ''}
+    </div>
+    <input type="file" id="pf" accept="image/*" hidden>
+    <div class="sec">✏️ আমার তথ্য (নিজে বদলাতে পারবেন)</div>
+    <label>Full name *</label><input id="fn" class="in" maxlength="100" value="${esc(p.full_name)}">
+    <label>Designation</label><input id="ds" class="in" maxlength="100" value="${esc(p.designation || '')}" placeholder="যেমন: Visa Officer">
+    <label>Phone (ঐচ্ছিক)</label><input id="phn" class="in" maxlength="30" inputmode="tel" value="${esc(p.phone || '')}" placeholder="01XXXXXXXXX">
+    <div id="m" class="msg" hidden></div>
+    <button class="btn" id="sv">💾 Save changes</button>
+    <div class="sec">🔒 অফিসের তথ্য (শুধু অ্যাডমিন বদলাতে পারবেন)</div>
+    <div class="kv"><span>Email</span><b>${esc(p.email)}</b></div>
+    <div class="kv"><span>Company</span><b>${esc(nameOf(state.companies, p.company_id))}</b></div>
+    <div class="kv"><span>Department</span><b>${esc(nameOf(state.departments, p.department_id))}</b></div>
+    <div class="kv"><span>Role</span><b>${esc(p.role)}</b></div>
+    <button class="btn ghost" id="pw">🔑 Change password</button>
+  </div>`;
+  document.getElementById('bk').onclick = () => go(ui.tab || 'menu');
+  const fi = document.getElementById('pf');
+  document.getElementById('chg').onclick = () => fi.click();
+  document.getElementById('ph').onclick = () => fi.click();
+  fi.onchange = async () => { const f = fi.files[0]; fi.value = ''; if (f) await uploadAvatar(f); };
+  const rm = document.getElementById('rmv');
+  if (rm) rm.onclick = async () => {
+    if (!confirm('প্রোফাইল ছবি সরিয়ে দেবেন?')) return;
+    await removeOldAvatar(p.avatar_url);
+    const { error } = await sb.from('profiles').update({ avatar_url: null }).eq('id', p.id);
+    if (error) return toast(friendlyError(error));
+    await loadProfile(); await loadPeople(); toast('ছবি সরানো হয়েছে'); renderProfile();
+  };
+  document.getElementById('pw').onclick = () => { state.recovering = false; renderNewPasswordInApp(); };
+  const sv = document.getElementById('sv');
+  sv.onclick = async () => {
+    const full_name = document.getElementById('fn').value.trim();
+    if (full_name.length < 2) return showMsg('m', 'পুরো নাম দিন।');
+    busy(sv, true);
+    const { error } = await sb.from('profiles').update({
+      full_name, designation: document.getElementById('ds').value.trim() || null, phone: document.getElementById('phn').value.trim() || null
+    }).eq('id', p.id);
+    busy(sv, false, '💾 Save changes');
+    if (error) return showMsg('m', friendlyError(error));
+    await loadProfile(); await loadPeople(); showMsg('m', 'সেভ হয়েছে ✓', 'ok');
+  };
+};
+async function squareImage(file, size = 400) {
+  const bmp = await createImageBitmap(file);
+  const side = Math.min(bmp.width, bmp.height);
+  const c = document.createElement('canvas'); c.width = c.height = size;
+  c.getContext('2d').drawImage(bmp, (bmp.width - side) / 2, (bmp.height - side) / 2, side, side, 0, 0, size, size);
+  return await new Promise(r => c.toBlob(r, 'image/jpeg', 0.85));
+}
+async function removeOldAvatar(url) {
+  if (!url) return;
+  const i = url.indexOf('/avatars/'); if (i < 0) return;
+  await sb.storage.from('avatars').remove([decodeURIComponent(url.slice(i + 9).split('?')[0])]);
+}
+async function uploadAvatar(file) {
+  if (!file.type.startsWith('image/')) return toast('একটা ছবি বেছে নিন');
+  toast('ছবি আপলোড হচ্ছে…');
+  let blob;
+  try { blob = await squareImage(file); } catch (e) { return toast('এই ছবিটা খোলা যাচ্ছে না, অন্য ছবি দিন'); }
+  const p = state.profile, path = `${p.id}/avatar-${Date.now()}.jpg`;
+  const { error } = await sb.storage.from('avatars').upload(path, blob, { contentType: 'image/jpeg', upsert: false });
+  if (error) return toast(friendlyError(error));
+  const { data } = sb.storage.from('avatars').getPublicUrl(path);
+  const old = p.avatar_url;
+  const { error: e2 } = await sb.from('profiles').update({ avatar_url: data.publicUrl }).eq('id', p.id);
+  if (e2) return toast(friendlyError(e2));
+  await removeOldAvatar(old);
+  await loadProfile(); await loadPeople(); toast('প্রোফাইল ছবি পরিবর্তন হয়েছে ✓'); renderProfile();
+}
+function renderNewPasswordInApp() {
+  sheet(`<h3>🔑 Change password</h3>
+    <label>New password (কমপক্ষে ৮ অক্ষর)</label><input id="np1" class="in" type="password" autocomplete="new-password">
+    <label>Confirm new password</label><input id="np2" class="in" type="password" autocomplete="new-password">
+    <button class="btn" id="nps">Save password</button>`, (el, close) => {
+    el.querySelector('#nps').onclick = async () => {
+      const a = el.querySelector('#np1').value, b = el.querySelector('#np2').value;
+      if (a.length < 8) return toast('পাসওয়ার্ড কমপক্ষে ৮ অক্ষরের হতে হবে');
+      if (a !== b) return toast('দুইটা পাসওয়ার্ড মিলছে না');
+      const { error } = await sb.auth.updateUser({ password: a });
+      if (error) return toast(friendlyError(error));
+      close(); toast('পাসওয়ার্ড পরিবর্তন হয়েছে ✓');
+    };
+  });
+}
 
 async function adminGroups() {
   const { data } = await sb.from('conversations').select('*').eq('type', 'group').order('created_at');
