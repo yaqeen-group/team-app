@@ -181,6 +181,13 @@ button.row{width:100%;text-align:left}
 .avwrap .cam{position:absolute;right:-2px;bottom:-2px;width:32px;height:32px;border-radius:50%;background:var(--amber);display:flex;align-items:center;justify-content:center;font-size:15px;border:3px solid #fff}
 .editpill{font-size:12px;font-weight:700;color:var(--teal);background:#E3F1F0;padding:5px 10px;border-radius:10px}
 img.av{display:block}
+
+.emojipanel{display:grid;grid-template-columns:repeat(8,1fr);gap:2px;padding:8px;background:#fff;border-top:1px solid var(--line);max-height:220px;overflow-y:auto}
+.emojipanel button,.emojirow button{font-size:24px;padding:6px 0;border-radius:8px;line-height:1}
+.emojipanel button:active,.emojirow button:active{background:#EEF2F4}
+.emojirow{display:flex;gap:4px;flex-wrap:wrap;margin-top:8px}
+.msgprev{background:#F3EFE6;border-radius:10px;padding:8px 10px;font-size:13.5px;margin:6px 0 4px;color:#3d4c57;max-height:80px;overflow:hidden}
+.sheet .two .btn{margin-top:12px}
 </style>
 </head>
 <body>
@@ -725,7 +732,7 @@ async function openChat(convId) {
       <div class="act"><button id="ca" title="Audio call">📞</button><button id="cv" title="Video call">🎥</button>${conv.type === 'group' && isAdmin() ? '<button id="ginfo" title="Group settings">⚙️</button>' : ''}</div></div>
     <div id="pin"></div>
     <div class="msgs" id="ms"><div class="cen" style="padding:30px"><div class="spin dark"></div></div></div>
-    ${canPost ? `<div class="comp"><button class="cb" id="att" title="Attach">📎</button><textarea id="tx" rows="1" placeholder="Type a message…" maxlength="4000"></textarea><button class="cb snd" id="sd">➤</button></div>`
+    ${canPost ? `<div class="emojipanel" id="emp" hidden></div><div class="comp"><button class="cb" id="att" title="Attach">📎</button><button class="cb" id="emb" title="Emoji">😊</button><textarea id="tx" rows="1" placeholder="Type a message…" maxlength="4000"></textarea><button class="cb snd" id="sd">➤</button></div>`
       : `<div class="readonly">${conv.archived ? 'এই গ্রুপ আর্কাইভ করা হয়েছে' : 'এই গ্রুপে শুধু অ্যাডমিন মেসেজ দিতে পারেন'}</div>`}
     <input type="file" id="fi" hidden></div>`;
   document.getElementById('bk').onclick = () => go('chats');
@@ -763,13 +770,15 @@ async function openChat(convId) {
     tx.oninput = () => { tx.style.height = 'auto'; tx.style.height = Math.min(tx.scrollHeight, 120) + 'px'; };
     const send = async () => {
       const body = tx.value.trim(); if (!body) return;
-      tx.value = ''; tx.style.height = 'auto';
+      tx.value = ''; tx.style.height = 'auto'; const ep = document.getElementById('emp'); if (ep) ep.hidden = true;
       const { error } = await sb.from('messages').insert({ conversation_id: convId, sender_id: state.profile.id, body });
       if (error) { tx.value = body; toast(friendlyError(error)); }
     };
     sd.onclick = send;
     tx.onkeydown = e => { if (e.key === 'Enter' && !e.shiftKey && window.innerWidth > 700) { e.preventDefault(); send(); } };
     document.getElementById('att').onclick = () => attachMenu(room);
+    document.getElementById('emb').onclick = toggleEmojiPanel;
+    try { if (!localStorage.getItem('yg_hint_msg')) { setTimeout(() => toast('টিপস: কোনো মেসেজে চাপ দিলে এডিট, ডিলিট, কপি অপশন আসবে'), 900); localStorage.setItem('yg_hint_msg', '1'); } } catch (e) {}
   }
 }
 async function loadMessages(room, older) {
@@ -821,6 +830,7 @@ function drawMessages(room, scrollEnd) {
   ms.innerHTML = html;
   if (scrollEnd) ms.scrollTop = ms.scrollHeight; else ms.scrollTop = prevTop + (ms.scrollHeight - prevH) * (prevTop < 50 ? 1 : 0);
   const old = document.getElementById('old'); if (old) old.onclick = () => loadMessages(room, true);
+  ms.querySelectorAll('[data-m]').forEach(b => b.oncontextmenu = e => { e.preventDefault(); messageMenu(room, room.msgs.find(m => m.id === b.dataset.m)); });
   ms.querySelectorAll('[data-m]').forEach(b => b.onclick = e => {
     if (e.target.closest('a,video')) return;
     if (e.target.matches('img.ph')) return window.open(e.target.dataset.full, '_blank');
@@ -833,33 +843,91 @@ function messageMenu(room, m) {
   if (!m) return;
   const mine = m.sender_id === state.profile.id;
   const opts = [];
-  if (m.body) opts.push(['copy', '📋 Copy text']);
+  if (m.body && m.attachment_type !== 'link') opts.push(['copy', '📋 Copy text']);
+  if (mine && m.body && !m.attachment_type) opts.push(['edit', '✏️ Edit message']);
   if (isAdmin()) opts.push(['pin', m.pinned ? '📌 Unpin' : '📌 Pin message']);
-  if (mine && m.body && !m.attachment_type) opts.push(['edit', '✏️ Edit']);
   if (!mine) opts.push(['report', '🚩 Report message']);
-  if (mine || isAdmin()) opts.push(['del', '🗑️ Delete', 'red']);
-  sheet(`<p class="mut" style="margin-bottom:4px">${esc(personName(m.sender_id))} · ${fmtDate(m.created_at)} ${fmtTime(m.created_at)}</p>${opts.map(([k, l, c]) => `<button class="opt ${c || ''}" data-k="${k}">${l}</button>`).join('')}`, (el, close) => {
+  if (mine || isAdmin()) opts.push(['del', '🗑️ Delete message', 'red']);
+  const preview = m.body && m.attachment_type !== 'link' ? esc(m.body.slice(0, 120)) : esc(m.attachment_name || '');
+  sheet(`<p class="mut" style="margin-bottom:2px">${esc(personName(m.sender_id))} · ${fmtDate(m.created_at)} ${fmtTime(m.created_at)}</p>${preview ? `<div class="msgprev">${preview}</div>` : ''}${opts.map(([k, l, c]) => `<button class="opt ${c || ''}" data-k="${k}">${l}</button>`).join('')}`, (el, close) => {
     el.querySelectorAll('[data-k]').forEach(b => b.onclick = async () => {
       close(); const k = b.dataset.k;
-      if (k === 'copy') { try { await navigator.clipboard.writeText(m.body); toast('কপি হয়েছে'); } catch (e) { toast('কপি করা যায়নি'); } }
-      if (k === 'pin') { const { error } = await sb.from('messages').update({ pinned: !m.pinned }).eq('id', m.id); if (error) toast(friendlyError(error)); }
-      if (k === 'edit') {
-        const nb = prompt('মেসেজ এডিট করুন', m.body); if (nb === null || !nb.trim()) return;
-        const { error } = await sb.from('messages').update({ body: nb.trim() }).eq('id', m.id); if (error) toast(friendlyError(error));
+      if (k === 'copy') { try { await navigator.clipboard.writeText(m.body); toast('কপি হয়েছে ✓'); } catch (e) { toast('কপি করা যায়নি'); } }
+      if (k === 'pin') {
+        const { data, error } = await sb.from('messages').update({ pinned: !m.pinned }).eq('id', m.id).select();
+        if (error) return toast(friendlyError(error));
+        if (data && data[0]) { Object.assign(m, data[0]); drawMessages(room, false); toast(m.pinned ? 'পিন করা হয়েছে 📌' : 'আনপিন করা হয়েছে'); }
       }
-      if (k === 'report') {
-        const reason = prompt('কেন রিপোর্ট করছেন? (ঐচ্ছিক)') ; if (reason === null) return;
-        const { error } = await sb.from('message_reports').insert({ message_id: m.id, reported_by: state.profile.id, reason: reason.slice(0, 500) || null });
-        toast(error ? (/duplicate|unique/i.test(error.message) ? 'আগেই রিপোর্ট করা হয়েছে' : friendlyError(error)) : 'রিপোর্ট পাঠানো হয়েছে, অ্যাডমিন দেখবেন');
-      }
-      if (k === 'del') {
-        if (!confirm('মেসেজটা মুছে ফেলবেন?')) return;
-        if (m.attachment_path) await sb.storage.from('chat-files').remove([m.attachment_path]);
-        const { error } = await sb.from('messages').delete().eq('id', m.id);
-        if (error) toast(friendlyError(error)); else { room.msgs = room.msgs.filter(x => x.id !== m.id); drawMessages(room, false); }
-      }
+      if (k === 'edit') editMessageSheet(room, m);
+      if (k === 'report') reportSheet(m);
+      if (k === 'del') deleteMessageSheet(room, m);
     });
   });
+}
+function editMessageSheet(room, m) {
+  sheet(`<h3>✏️ মেসেজ এডিট করুন</h3><textarea class="in" id="eb" maxlength="4000" style="min-height:110px">${esc(m.body)}</textarea>
+    <div class="emojirow" id="eem"></div>
+    <div class="two"><button class="btn ghost" id="ec">Cancel</button><button class="btn" id="es">Save</button></div>`, (el, close) => {
+    const t = el.querySelector('#eb'); t.focus(); t.setSelectionRange(t.value.length, t.value.length);
+    fillEmojiRow(el.querySelector('#eem'), t, QUICK_EMOJI);
+    el.querySelector('#ec').onclick = close;
+    el.querySelector('#es').onclick = async () => {
+      const body = t.value.trim(); if (!body) return toast('মেসেজ খালি রাখা যাবে না');
+      if (body === m.body) return close();
+      const { data, error } = await sb.from('messages').update({ body }).eq('id', m.id).select();
+      if (error) return toast(friendlyError(error));
+      if (!data || !data.length) return toast('এডিট হয়নি। অ্যাডমিনকে জানান (ডাটাবেস আপডেট দরকার হতে পারে)।');
+      Object.assign(m, data[0]); close(); drawMessages(room, false); toast('এডিট হয়েছে ✓');
+    };
+  });
+}
+function deleteMessageSheet(room, m) {
+  sheet(`<h3>🗑️ মেসেজ মুছবেন?</h3><p class="mut">মুছে ফেললে সবার কাছ থেকেই মেসেজটা চলে যাবে। এটা আর ফেরত আনা যাবে না।</p>
+    <div class="two" style="margin-top:14px"><button class="btn ghost" id="dc">Cancel</button><button class="btn" id="dd" style="background:var(--red)">Delete</button></div>`, (el, close) => {
+    el.querySelector('#dc').onclick = close;
+    el.querySelector('#dd').onclick = async () => {
+      const { data, error } = await sb.from('messages').delete().eq('id', m.id).select('id');
+      if (error) return toast(friendlyError(error));
+      if (!data || !data.length) { close(); return toast('মুছে ফেলা যায়নি। অ্যাডমিনকে জানান (ডাটাবেস আপডেট দরকার হতে পারে)।'); }
+      if (m.attachment_path) sb.storage.from('chat-files').remove([m.attachment_path]);
+      room.msgs = room.msgs.filter(x => x.id !== m.id); close(); drawMessages(room, false); toast('মুছে ফেলা হয়েছে');
+    };
+  });
+}
+function reportSheet(m) {
+  sheet(`<h3>🚩 মেসেজ রিপোর্ট</h3><p class="mut">অ্যাডমিন রিপোর্টটা দেখবেন।</p><label>কারণ (ঐচ্ছিক)</label><textarea class="in" id="rr" maxlength="500" style="min-height:70px"></textarea>
+    <div class="two"><button class="btn ghost" id="rc">Cancel</button><button class="btn" id="rs">Send report</button></div>`, (el, close) => {
+    el.querySelector('#rc').onclick = close;
+    el.querySelector('#rs').onclick = async () => {
+      const { error } = await sb.from('message_reports').insert({ message_id: m.id, reported_by: state.profile.id, reason: el.querySelector('#rr').value.trim() || null });
+      close(); toast(error ? (/duplicate|unique/i.test(error.message) ? 'আগেই রিপোর্ট করা হয়েছে' : friendlyError(error)) : 'রিপোর্ট পাঠানো হয়েছে ✓');
+    };
+  });
+}
+
+/* ---------- EMOJI ---------- */
+const QUICK_EMOJI = ['👍','🙏','❤️','😊','😂','🎉','✅','👌'];
+const EMOJI = ['😀','😁','😂','🤣','😊','😇','🙂','😉','😍','🥰','😘','😋','😎','🤩','🥳','🤗','🤔','🤫','😐','😴','😌','😔','😢','😭','😤','😡','😱','😳','🥺','🙄','😅','😬',
+  '👍','👎','👌','✌️','🤝','🙏','👏','🙌','💪','👋','☝️','👉','✊','🤲','🫡','👀',
+  '❤️','💚','💙','💛','🧡','💜','🤍','💯','🔥','✨','⭐','🌟','🎉','🎊','🎁','🏆',
+  '✅','❌','⚠️','❗','❓','📌','📎','📄','📝','📅','⏰','📞','💬','📢','💰','💵',
+  '✈️','🛫','🛬','🧳','🛂','🎓','🏫','🏨','🕋','🕌','🌙','☪️','🌴','🏝️','🚌','🚗',
+  '🇧🇩','🇲🇾','🇹🇭','🇸🇦','🇦🇪','🇸🇬','🇮🇳','🇬🇧'];
+function insertAtCursor(t, text) {
+  const s = t.selectionStart ?? t.value.length, e = t.selectionEnd ?? t.value.length;
+  t.value = t.value.slice(0, s) + text + t.value.slice(e);
+  const p = s + text.length; t.setSelectionRange(p, p); t.dispatchEvent(new Event('input'));
+}
+function fillEmojiRow(box, t, list) {
+  box.innerHTML = list.map(e => `<button type="button" data-e="${e}">${e}</button>`).join('');
+  box.querySelectorAll('[data-e]').forEach(b => { b.onmousedown = ev => ev.preventDefault(); b.onclick = () => insertAtCursor(t, b.dataset.e); });
+}
+function toggleEmojiPanel() {
+  const panel = document.getElementById('emp'), t = document.getElementById('tx');
+  if (!panel || !t) return;
+  if (!panel.hidden) { panel.hidden = true; return; }
+  if (!panel.dataset.ready) { fillEmojiRow(panel, t, EMOJI); panel.dataset.ready = '1'; }
+  panel.hidden = false;
 }
 
 /* ---------- FILES ---------- */

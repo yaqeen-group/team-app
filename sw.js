@@ -1,5 +1,5 @@
 // Minimal service worker: makes the app installable and caches the app shell.
-const CACHE = 'yaqeen-shell-v5';
+const CACHE = 'yaqeen-shell-v6';
 const SHELL = ['./', './index.html', './manifest.json', './icon-192.png', './icon-512.png', './mark.jpg', './logo-full.jpg'];
 self.addEventListener('install', e => {
   e.waitUntil(caches.open(CACHE).then(c => c.addAll(SHELL)).then(() => self.skipWaiting()));
