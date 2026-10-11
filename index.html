@@ -1,0 +1,467 @@
+<!doctype html>
+<html lang="bn">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#0B3B5A">
+<title>Yaqeen Group</title>
+<link rel="manifest" href="manifest.json">
+<link rel="icon" href="icon-192.png">
+<link rel="apple-touch-icon" href="icon-192.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Noto+Sans+Bengali:wght@400;500;600;700&display=swap" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.min.js"></script>
+<style>
+:root{
+  --navy:#0B3B5A; --teal:#0F7C7A; --amber:#E9A23B; --sand:#F6F1E7; --ink:#14222E;
+  --mut:#6b7a86; --line:#E3E9ED; --bg:#fff; --field:#FAFCFD; --red:#DC2626; --ok:#15803D;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+html,body{height:100%}
+body{font-family:'Inter','Noto Sans Bengali',system-ui,sans-serif;color:var(--ink);background:var(--sand);
+  -webkit-font-smoothing:antialiased;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+#app{max-width:480px;margin:0 auto;min-height:100%;background:var(--bg);position:relative;display:flex;flex-direction:column}
+button{font:inherit;cursor:pointer;border:0;background:none;color:inherit}
+input,select,textarea{font:inherit;color:inherit}
+.logo{display:flex;align-items:center;gap:10px;font-weight:600;letter-spacing:-.2px;color:var(--navy)}
+.logo .mk{width:38px;height:38px;border-radius:11px;background:var(--amber);color:var(--navy);font-weight:800;display:flex;align-items:center;justify-content:center;font-size:15px}
+.logo b{font-weight:800}.logo small{display:block;font-size:9px;letter-spacing:2.5px;font-weight:700;opacity:.6}
+.logo.light{color:#fff}
+.splash{flex:1;background:linear-gradient(160deg,var(--navy),var(--teal));display:flex;flex-direction:column;align-items:center;justify-content:center;color:#fff;min-height:100vh}
+.splash .logo{transform:scale(1.5)}
+.splash p{margin-top:28px;opacity:.75;font-size:13px}
+.spin{width:26px;height:26px;border:3px solid rgba(255,255,255,.3);border-top-color:#fff;border-radius:50%;animation:sp 0.8s linear infinite;margin-top:24px}
+.spin.dark{border-color:#dfe6ea;border-top-color:var(--teal)}
+@keyframes sp{to{transform:rotate(360deg)}}
+.pad{padding:22px 22px 32px}
+.top{display:flex;align-items:center;gap:10px;padding:14px 16px;border-bottom:1px solid var(--line);position:sticky;top:0;background:#fff;z-index:2}
+.top h1{font-size:17px;color:var(--navy);flex:1}
+.top .back{width:34px;height:34px;display:flex;align-items:center;justify-content:center;border-radius:10px}
+h2{font-size:24px;color:var(--navy);margin:28px 0 4px;letter-spacing:-.3px}
+h3{font-size:18px;color:var(--navy);margin:14px 0 6px}
+.mut{color:var(--mut);font-size:13.5px;line-height:1.6}
+label{display:block;font-size:12.5px;font-weight:600;color:#45545f;margin:14px 0 6px}
+.in{width:100%;border:1.5px solid var(--line);border-radius:12px;padding:12px 13px;font-size:15px;background:var(--field);outline:none;transition:border .15s}
+.in:focus{border-color:var(--teal);background:#fff}
+.pw{position:relative}.pw .eye{position:absolute;right:8px;top:50%;transform:translateY(-50%);font-size:12px;color:var(--teal);font-weight:600;padding:6px}
+.btn{width:100%;background:var(--teal);color:#fff;border-radius:12px;padding:13px;font-weight:700;font-size:15px;margin-top:18px;display:flex;align-items:center;justify-content:center;gap:8px}
+.btn:disabled{opacity:.6}
+.btn.ghost{background:#fff;color:var(--navy);border:1.5px solid var(--line)}
+.btn.red{background:#fff;color:var(--red);border:1.5px solid #F3CACA}
+.btn.sm{padding:9px;font-size:13px;margin-top:0}
+.link{color:var(--teal);font-weight:600;font-size:13.5px}
+.right{text-align:right;margin-top:10px}.center{text-align:center}
+.msg{margin-top:14px;border-radius:12px;padding:11px 13px;font-size:13.5px;line-height:1.55}
+.msg.err{background:#FDECEC;color:#991B1B}.msg.ok{background:#E7F5EE;color:#166534}.msg.info{background:#FFF6E5;color:#92400E}
+.cen{display:flex;flex-direction:column;align-items:center;text-align:center}
+.bigic{width:92px;height:92px;border-radius:50%;display:flex;align-items:center;justify-content:center;margin-top:30px;font-size:40px}
+.steps{width:100%;margin-top:22px;text-align:left}
+.st{display:flex;align-items:center;gap:12px;padding:8px 0;font-size:14px}
+.dot{width:24px;height:24px;border-radius:50%;display:flex;align-items:center;justify-content:center;color:#fff;font-size:13px;font-weight:700}
+.dot.ok{background:var(--teal)}.dot.wait{border:3px solid var(--amber)}
+.hero{background:linear-gradient(150deg,var(--navy),var(--teal));color:#fff;padding:20px 20px 22px;border-radius:0 0 24px 24px}
+.hero .hi{margin-top:18px;font-size:14px;opacity:.95}.hero .hi b{display:block;font-size:24px;margin-top:2px}
+.card{background:#fff;border:1px solid var(--line);border-radius:14px;padding:14px;margin-top:12px}
+.row{display:flex;align-items:center;gap:12px}
+.av{width:44px;height:44px;border-radius:50%;background:var(--teal);color:#fff;font-weight:700;display:flex;align-items:center;justify-content:center;flex-shrink:0;font-size:14px}
+.rt{flex:1;min-width:0}.rt b{display:block;font-size:15px}.rt span{font-size:12.5px;color:var(--mut);display:block;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.tag{font-size:11px;font-weight:700;padding:3px 8px;border-radius:8px;background:#EEF4F4;color:var(--teal)}
+.tag.pending{background:#FFF3DC;color:#92400E}.tag.suspended,.tag.rejected{background:#FDECEC;color:#991B1B}
+.two{display:flex;gap:8px;margin-top:12px}
+.tiles{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:14px}
+.tile{background:#fff;border:1px solid var(--line);border-radius:14px;padding:16px 14px;text-align:left}
+.tile b{display:block;color:var(--navy);font-size:15px;margin-top:6px}.tile small{color:var(--mut);font-size:12px}
+.tile .ic{font-size:22px}.tile.soon{opacity:.55}
+.badge{background:var(--red);color:#fff;border-radius:10px;font-size:11px;font-weight:700;padding:1px 7px;margin-left:6px}
+.empty{text-align:center;color:var(--mut);padding:40px 10px;font-size:14px}
+.kv{display:flex;justify-content:space-between;padding:11px 0;border-bottom:1px solid #F0F3F5;font-size:14px}.kv span{color:var(--mut)}
+.toast{position:fixed;left:50%;bottom:calc(24px + env(safe-area-inset-bottom,0px));transform:translateX(-50%);background:var(--navy);color:#fff;padding:11px 16px;border-radius:12px;font-size:13.5px;z-index:50;max-width:90%;box-shadow:0 8px 20px rgba(0,0,0,.2)}
+.chips{display:flex;gap:8px;padding:12px 16px 0}.chip{padding:7px 13px;border-radius:16px;background:#EEF2F4;color:#53626e;font-size:13px;font-weight:600}.chip.on{background:var(--navy);color:#fff}
+select.in{appearance:none;background-image:linear-gradient(45deg,transparent 50%,#7a8a96 50%),linear-gradient(135deg,#7a8a96 50%,transparent 50%);background-position:calc(100% - 18px) 50%,calc(100% - 13px) 50%;background-size:5px 5px;background-repeat:no-repeat}
+</style>
+</head>
+<body>
+<div id="app"></div>
+
+<script>
+/* =========================================================
+   YAQEEN GROUP TEAM APP — Step 3: Login, sign-up, approval
+   ========================================================= */
+const SUPABASE_URL = 'https://tflnmzklgnvzmtwwmfpj.supabase.co';
+const SUPABASE_KEY = 'sb_publishable_C9ZIJrtRUlA5Ye31L6hi5w_pMzzB4ik'; // publishable key — safe in the app
+const sb = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY, {
+  auth: { persistSession: true, autoRefreshToken: true, detectSessionInUrl: true }
+});
+const APP_URL = location.origin + location.pathname;
+const $app = document.getElementById('app');
+const state = { session: null, profile: null, companies: [], departments: [], recovering: false };
+
+/* ---------- helpers ---------- */
+const esc = s => String(s ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const initials = n => (n || '?').trim().split(/\s+/).slice(0,2).map(w => w[0]).join('').toUpperCase();
+const logo = (light=false) => `<div class="logo ${light?'light':''}"><span class="mk">YG</span><span><b>Yaqeen</b> Group<small>TEAM</small></span></div>`;
+function toast(t){ const d=document.createElement('div'); d.className='toast'; d.textContent=t; document.body.appendChild(d); setTimeout(()=>d.remove(),3200); }
+function showMsg(id, text, type='err'){ const el=document.getElementById(id); if(el){ el.className='msg '+type; el.textContent=text; el.hidden=false; } }
+function busy(btn, on, label){ if(!btn) return; btn.disabled=on; if(on){ btn.dataset.l=btn.innerHTML; btn.innerHTML='<span class="spin" style="width:18px;height:18px;margin:0;border-width:2px"></span>'; } else btn.innerHTML=label||btn.dataset.l; }
+const validEmail = e => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(e);
+
+function friendlyError(err){
+  const m = (err && (err.message || err.error_description || String(err))) || '';
+  if (/Invalid login credentials/i.test(m)) return 'ইমেইল বা পাসওয়ার্ড ভুল হয়েছে।';
+  if (/Email not confirmed/i.test(m)) return 'ইমেইল এখনো যাচাই হয়নি। ইমেইলে পাঠানো লিংকে ক্লিক করুন।';
+  if (/already registered|already been registered/i.test(m)) return 'এই ইমেইলে আগেই অ্যাকাউন্ট আছে। লগইন করুন।';
+  if (/rate limit|too many|security purposes/i.test(m)) return 'অল্প সময়ে অনেকবার চেষ্টা হয়েছে। কিছুক্ষণ পর আবার চেষ্টা করুন।';
+  if (/Password should be|weak/i.test(m)) return 'পাসওয়ার্ড কমপক্ষে ৮ অক্ষরের হতে হবে।';
+  if (/Failed to fetch|NetworkError|network/i.test(m)) return 'ইন্টারনেট সংযোগ নেই। সংযোগ চেক করে আবার চেষ্টা করুন।';
+  if (/same as the old|different from the old/i.test(m)) return 'নতুন পাসওয়ার্ড আগেরটা থেকে আলাদা হতে হবে।';
+  return 'কিছু একটা সমস্যা হয়েছে। আবার চেষ্টা করুন।';
+}
+function pwToggle(){ document.querySelectorAll('.pw .eye').forEach(b=>b.onclick=()=>{ const i=b.previousElementSibling; i.type=i.type==='password'?'text':'password'; b.textContent=i.type==='password'?'Show':'Hide'; }); }
+
+async function loadLookups(){
+  if (state.companies.length) return;
+  const [c, d] = await Promise.all([
+    sb.from('companies').select('id,name').order('name'),
+    sb.from('departments').select('id,name').order('name')
+  ]);
+  state.companies = c.data || []; state.departments = d.data || [];
+}
+async function loadProfile(){
+  const { data, error } = await sb.from('profiles').select('*').eq('id', state.session.user.id).maybeSingle();
+  if (error) throw error;
+  state.profile = data;
+}
+
+/* ---------- router ---------- */
+async function route(){
+  if (state.recovering) return renderNewPassword();
+  const { data } = await sb.auth.getSession();
+  state.session = data.session;
+  if (!state.session) return renderLogin();
+  try { await loadProfile(); } catch(e){ return renderError(friendlyError(e)); }
+  const p = state.profile;
+  if (!p) return renderError('প্রোফাইল পাওয়া যায়নি। অ্যাডমিনের সাথে যোগাযোগ করুন।');
+  if (p.status === 'pending')   return renderPending();
+  if (p.status === 'rejected')  return renderBlocked('অ্যাকাউন্ট গ্রহণ করা হয়নি', 'আপনার রেজিস্ট্রেশন অনুরোধ অ্যাডমিন বাতিল করেছেন। ভুল হলে অ্যাডমিনের সাথে যোগাযোগ করুন।');
+  if (p.status === 'suspended') return renderBlocked('অ্যাকাউন্ট বন্ধ আছে', 'আপনার অ্যাকাউন্ট সাময়িকভাবে বন্ধ করা হয়েছে। বিস্তারিত জানতে অ্যাডমিনের সাথে যোগাযোগ করুন।');
+  renderHome();
+}
+
+/* ---------- screens ---------- */
+function renderSplash(){ $app.innerHTML = `<div class="splash">${logo(true)}<p>Team Communication App</p><div class="spin"></div></div>`; }
+
+function renderLogin(prefill=''){
+  $app.innerHTML = `<div class="pad">
+    <div style="margin-top:18px">${logo()}</div>
+    <h2>Welcome back</h2><p class="mut">অফিসের ইমেইল দিয়ে লগইন করুন</p>
+    <label>Email</label><input id="em" class="in" type="email" autocomplete="email" inputmode="email" value="${esc(prefill)}" placeholder="name@gmail.com">
+    <label>Password</label><div class="pw"><input id="pw" class="in" type="password" autocomplete="current-password" placeholder="••••••••"><button class="eye" type="button">Show</button></div>
+    <div class="right"><button class="link" id="forgot">Forgot password?</button></div>
+    <div id="m" class="msg" hidden></div>
+    <button class="btn" id="go">Log in</button>
+    <p class="mut center" style="margin-top:20px">অ্যাকাউন্ট নেই? <button class="link" id="reg">Register</button></p>
+  </div>`;
+  pwToggle();
+  document.getElementById('forgot').onclick = () => renderForgot(document.getElementById('em').value.trim());
+  document.getElementById('reg').onclick = renderRegister;
+  const go = document.getElementById('go');
+  const submit = async () => {
+    const email = document.getElementById('em').value.trim().toLowerCase();
+    const password = document.getElementById('pw').value;
+    if (!validEmail(email)) return showMsg('m','সঠিক ইমেইল দিন।');
+    if (!password) return showMsg('m','পাসওয়ার্ড দিন।');
+    busy(go,true);
+    const { error } = await sb.auth.signInWithPassword({ email, password });
+    busy(go,false,'Log in');
+    if (error) {
+      if (/Email not confirmed/i.test(error.message)) return renderVerify(email);
+      return showMsg('m', friendlyError(error));
+    }
+    route();
+  };
+  go.onclick = submit;
+  document.getElementById('pw').onkeydown = e => { if (e.key === 'Enter') submit(); };
+}
+
+async function renderRegister(){
+  $app.innerHTML = `<div class="top"><button class="back" id="bk">←</button><h1>Create account</h1></div><div class="pad cen"><div class="spin dark"></div></div>`;
+  document.getElementById('bk').onclick = () => renderLogin();
+  try { await loadLookups(); } catch(e){}
+  const opt = (arr) => arr.map(x=>`<option value="${x.id}">${esc(x.name)}</option>`).join('');
+  $app.innerHTML = `<div class="top"><button class="back" id="bk">←</button><h1>Create account</h1></div>
+  <div class="pad" style="padding-top:8px">
+    <label>Full name *</label><input id="fn" class="in" maxlength="100" autocomplete="name" placeholder="আপনার পুরো নাম">
+    <label>Email *</label><input id="em" class="in" type="email" autocomplete="email" inputmode="email" placeholder="name@gmail.com">
+    <label>Designation</label><input id="ds" class="in" maxlength="100" placeholder="যেমন: Visa Officer">
+    <label>Company *</label><select id="co" class="in"><option value="">বেছে নিন</option>${opt(state.companies)}</select>
+    <label>Department *</label><select id="dp" class="in"><option value="">বেছে নিন</option>${opt(state.departments)}</select>
+    <label>Password * (কমপক্ষে ৮ অক্ষর)</label><div class="pw"><input id="pw" class="in" type="password" autocomplete="new-password"><button class="eye" type="button">Show</button></div>
+    <label>Confirm password *</label><input id="pw2" class="in" type="password" autocomplete="new-password">
+    <div id="m" class="msg" hidden></div>
+    <button class="btn" id="go">Register</button>
+    <p class="mut center" style="margin-top:14px;font-size:12.5px">রেজিস্ট্রেশনের পর ইমেইল যাচাই ও অ্যাডমিনের অনুমোদন লাগবে।</p>
+  </div>`;
+  pwToggle();
+  document.getElementById('bk').onclick = () => renderLogin();
+  if (!state.companies.length) showMsg('m','কোম্পানির তালিকা লোড হয়নি। ইন্টারনেট চেক করে আবার খুলুন।');
+  const go = document.getElementById('go');
+  go.onclick = async () => {
+    const v = id => document.getElementById(id).value.trim();
+    const full_name=v('fn'), email=v('em').toLowerCase(), designation=v('ds'), company_id=v('co'), department_id=v('dp');
+    const pw=document.getElementById('pw').value, pw2=document.getElementById('pw2').value;
+    if (full_name.length < 2) return showMsg('m','পুরো নাম দিন।');
+    if (!validEmail(email)) return showMsg('m','সঠিক ইমেইল দিন।');
+    if (!company_id) return showMsg('m','কোম্পানি বেছে নিন।');
+    if (!department_id) return showMsg('m','বিভাগ বেছে নিন।');
+    if (pw.length < 8) return showMsg('m','পাসওয়ার্ড কমপক্ষে ৮ অক্ষরের হতে হবে।');
+    if (pw !== pw2) return showMsg('m','দুইটা পাসওয়ার্ড মিলছে না।');
+    busy(go,true);
+    const { data, error } = await sb.auth.signUp({
+      email, password: pw,
+      options: { emailRedirectTo: APP_URL, data: { full_name, designation, company_id, department_id } }
+    });
+    busy(go,false,'Register');
+    if (error) return showMsg('m', friendlyError(error));
+    // Supabase hides duplicates: an existing email returns a user with no identities
+    if (data.user && Array.isArray(data.user.identities) && data.user.identities.length === 0)
+      return showMsg('m','এই ইমেইলে আগেই অ্যাকাউন্ট আছে। লগইন করুন বা পাসওয়ার্ড রিসেট করুন।');
+    if (data.session) await sb.auth.signOut(); // never enter before verification
+    renderVerify(email);
+  };
+}
+
+function renderVerify(email){
+  $app.innerHTML = `<div class="top"><button class="back" id="bk">←</button><h1>Verify email</h1></div>
+  <div class="pad cen">
+    <div class="bigic" style="background:#E3F1F0">✉️</div>
+    <h3>ইমেইল চেক করুন</h3>
+    <p class="mut"><b>${esc(email)}</b> ঠিকানায় একটা যাচাইয়ের লিংক পাঠানো হয়েছে। লিংকে ক্লিক করুন, তারপর এখানে এসে লগইন করুন।<br><br>ইমেইল না পেলে Spam/Promotions ফোল্ডার দেখুন।</p>
+    <div id="m" class="msg" hidden></div>
+    <button class="btn" id="li">Go to login</button>
+    <button class="btn ghost" id="rs">Resend email</button>
+  </div>`;
+  document.getElementById('bk').onclick = () => renderLogin(email);
+  document.getElementById('li').onclick = () => renderLogin(email);
+  const rs = document.getElementById('rs');
+  rs.onclick = async () => {
+    busy(rs,true);
+    const { error } = await sb.auth.resend({ type:'signup', email, options:{ emailRedirectTo: APP_URL } });
+    busy(rs,false,'Resend email');
+    if (error) showMsg('m', friendlyError(error)); else showMsg('m','আবার ইমেইল পাঠানো হয়েছে।','ok');
+  };
+}
+
+function renderForgot(prefill=''){
+  $app.innerHTML = `<div class="top"><button class="back" id="bk">←</button><h1>Reset password</h1></div>
+  <div class="pad">
+    <p class="mut" style="margin-top:6px">আপনার ইমেইল দিন। পাসওয়ার্ড রিসেট করার লিংক পাঠানো হবে।</p>
+    <label>Email</label><input id="em" class="in" type="email" inputmode="email" value="${esc(prefill)}">
+    <div id="m" class="msg" hidden></div>
+    <button class="btn" id="go">Send reset link</button>
+  </div>`;
+  document.getElementById('bk').onclick = () => renderLogin(prefill);
+  const go = document.getElementById('go');
+  go.onclick = async () => {
+    const email = document.getElementById('em').value.trim().toLowerCase();
+    if (!validEmail(email)) return showMsg('m','সঠিক ইমেইল দিন।');
+    busy(go,true);
+    const { error } = await sb.auth.resetPasswordForEmail(email, { redirectTo: APP_URL });
+    busy(go,false,'Send reset link');
+    if (error) return showMsg('m', friendlyError(error));
+    showMsg('m','এই ইমেইলে অ্যাকাউন্ট থাকলে রিসেট লিংক পাঠানো হয়েছে। ইমেইল চেক করুন।','ok');
+  };
+}
+
+function renderNewPassword(){
+  $app.innerHTML = `<div class="top"><h1>Set new password</h1></div>
+  <div class="pad">
+    <label>New password (কমপক্ষে ৮ অক্ষর)</label><div class="pw"><input id="pw" class="in" type="password" autocomplete="new-password"><button class="eye" type="button">Show</button></div>
+    <label>Confirm new password</label><input id="pw2" class="in" type="password" autocomplete="new-password">
+    <div id="m" class="msg" hidden></div>
+    <button class="btn" id="go">Save password</button>
+  </div>`;
+  pwToggle();
+  const go = document.getElementById('go');
+  go.onclick = async () => {
+    const pw=document.getElementById('pw').value, pw2=document.getElementById('pw2').value;
+    if (pw.length < 8) return showMsg('m','পাসওয়ার্ড কমপক্ষে ৮ অক্ষরের হতে হবে।');
+    if (pw !== pw2) return showMsg('m','দুইটা পাসওয়ার্ড মিলছে না।');
+    busy(go,true);
+    const { error } = await sb.auth.updateUser({ password: pw });
+    busy(go,false,'Save password');
+    if (error) return showMsg('m', friendlyError(error));
+    state.recovering = false; toast('পাসওয়ার্ড পরিবর্তন হয়েছে ✓'); route();
+  };
+}
+
+function renderPending(){
+  $app.innerHTML = `<div class="pad cen">
+    <div class="bigic" style="background:#FCF1DF">⏳</div>
+    <h3>অনুমোদনের অপেক্ষায়</h3>
+    <p class="mut">আপনার ইমেইল যাচাই হয়েছে। অ্যাডমিন অনুমোদন দিলেই অ্যাপ ব্যবহার করতে পারবেন।</p>
+    <div class="steps">
+      <div class="st"><span class="dot ok">✓</span>Registered</div>
+      <div class="st"><span class="dot ok">✓</span>Email verified</div>
+      <div class="st"><span class="dot wait"></span><span><b>Admin approval</b> — pending</span></div>
+    </div>
+    <button class="btn" id="rf">Check again</button>
+    <button class="btn ghost" id="lo">Log out</button>
+  </div>`;
+  document.getElementById('rf').onclick = route;
+  document.getElementById('lo').onclick = logout;
+}
+
+function renderBlocked(title, text){
+  $app.innerHTML = `<div class="pad cen"><div class="bigic" style="background:#FDECEC">🚫</div><h3>${esc(title)}</h3><p class="mut">${esc(text)}</p><button class="btn ghost" id="lo">Log out</button></div>`;
+  document.getElementById('lo').onclick = logout;
+}
+function renderError(text){
+  $app.innerHTML = `<div class="pad cen"><div class="bigic" style="background:#FDECEC">⚠️</div><h3>সমস্যা হয়েছে</h3><p class="mut">${esc(text)}</p><button class="btn" id="rt">Try again</button><button class="btn ghost" id="lo">Log out</button></div>`;
+  document.getElementById('rt').onclick = route;
+  document.getElementById('lo').onclick = logout;
+}
+
+async function renderHome(){
+  const p = state.profile, isAdmin = p.role === 'admin';
+  let pendingCount = 0;
+  if (isAdmin) {
+    const { count } = await sb.from('profiles').select('id', { count:'exact', head:true }).eq('status','pending');
+    pendingCount = count || 0;
+  }
+  $app.innerHTML = `<div class="hero">${logo(true)}<div class="hi">আসসালামু আলাইকুম,<b>${esc(p.full_name)}</b></div></div>
+  <div class="pad" style="padding-top:6px">
+    <div class="tiles">
+      ${isAdmin ? `<button class="tile" id="t-ap"><span class="ic">✅</span><b>Approvals${pendingCount?`<span class="badge">${pendingCount}</span>`:''}</b><small>নতুন অ্যাকাউন্ট</small></button>
+                   <button class="tile" id="t-mb"><span class="ic">👥</span><b>Members</b><small>রোল ও স্ট্যাটাস</small></button>` : ''}
+      <button class="tile" id="t-pf"><span class="ic">👤</span><b>My profile</b><small>আমার তথ্য</small></button>
+      <div class="tile soon"><span class="ic">💬</span><b>Chats</b><small>পরের ধাপে আসছে</small></div>
+      <div class="tile soon"><span class="ic">📢</span><b>Notices</b><small>পরের ধাপে আসছে</small></div>
+      <div class="tile soon"><span class="ic">✔️</span><b>Tasks</b><small>পরের ধাপে আসছে</small></div>
+    </div>
+    <button class="btn ghost" id="lo" style="margin-top:22px">Log out</button>
+  </div>`;
+  if (isAdmin) {
+    document.getElementById('t-ap').onclick = renderApprovals;
+    document.getElementById('t-mb').onclick = renderMembers;
+  }
+  document.getElementById('t-pf').onclick = renderProfile;
+  document.getElementById('lo').onclick = logout;
+}
+
+function nameOf(list, id){ const x = list.find(i=>i.id===id); return x ? x.name : '—'; }
+
+async function renderProfile(){
+  await loadLookups();
+  const p = state.profile;
+  $app.innerHTML = `<div class="top"><button class="back" id="bk">←</button><h1>My profile</h1></div>
+  <div class="pad">
+    <div class="cen"><div class="av" style="width:76px;height:76px;font-size:24px">${esc(initials(p.full_name))}</div></div>
+    <label>Full name</label><input id="fn" class="in" maxlength="100" value="${esc(p.full_name)}">
+    <label>Designation</label><input id="ds" class="in" maxlength="100" value="${esc(p.designation||'')}">
+    <label>Phone (ঐচ্ছিক)</label><input id="ph" class="in" maxlength="30" inputmode="tel" value="${esc(p.phone||'')}">
+    <div style="margin-top:16px">
+      <div class="kv"><span>Email</span><b>${esc(p.email)}</b></div>
+      <div class="kv"><span>Company</span><b>${esc(nameOf(state.companies,p.company_id))}</b></div>
+      <div class="kv"><span>Department</span><b>${esc(nameOf(state.departments,p.department_id))}</b></div>
+      <div class="kv"><span>Role</span><b>${esc(p.role)} 🔒</b></div>
+    </div>
+    <div id="m" class="msg" hidden></div>
+    <button class="btn" id="sv">Save</button>
+  </div>`;
+  document.getElementById('bk').onclick = renderHome;
+  const sv = document.getElementById('sv');
+  sv.onclick = async () => {
+    const full_name = document.getElementById('fn').value.trim();
+    if (full_name.length < 2) return showMsg('m','পুরো নাম দিন।');
+    busy(sv,true);
+    const { error } = await sb.from('profiles').update({
+      full_name, designation: document.getElementById('ds').value.trim() || null, phone: document.getElementById('ph').value.trim() || null
+    }).eq('id', p.id);
+    busy(sv,false,'Save');
+    if (error) return showMsg('m', friendlyError(error));
+    await loadProfile(); toast('সেভ হয়েছে ✓');
+  };
+}
+
+/* ---------- admin: approvals ---------- */
+async function renderApprovals(){
+  $app.innerHTML = `<div class="top"><button class="back" id="bk">←</button><h1>Approval requests</h1></div><div class="pad cen"><div class="spin dark"></div></div>`;
+  document.getElementById('bk').onclick = renderHome;
+  await loadLookups();
+  const { data, error } = await sb.from('profiles').select('*').eq('status','pending').order('created_at');
+  const box = document.querySelector('.pad');
+  if (error) { box.innerHTML = `<div class="msg err">${esc(friendlyError(error))}</div>`; return; }
+  if (!data.length) { box.innerHTML = `<div class="empty">কোনো অপেক্ষমাণ অনুরোধ নেই ✓</div>`; return; }
+  box.className = 'pad'; box.style.paddingTop = '4px';
+  box.innerHTML = data.map(u => `<div class="card" data-id="${u.id}">
+    <div class="row"><div class="av">${esc(initials(u.full_name))}</div><div class="rt"><b>${esc(u.full_name)}</b><span>${esc(u.email)}</span></div></div>
+    <p class="mut" style="margin-top:8px;font-size:12.5px">${esc(nameOf(state.companies,u.company_id))} · ${esc(nameOf(state.departments,u.department_id))}${u.designation?' · '+esc(u.designation):''}</p>
+    <div class="two"><button class="btn sm" data-a="active">Approve</button><button class="btn sm ghost" data-a="rejected">Reject</button></div>
+  </div>`).join('');
+  box.querySelectorAll('button[data-a]').forEach(b => b.onclick = async () => {
+    const card = b.closest('.card'), id = card.dataset.id, status = b.dataset.a;
+    if (status === 'rejected' && !confirm('এই অনুরোধ বাতিল করবেন?')) return;
+    b.disabled = true;
+    const { error } = await sb.from('profiles').update({ status }).eq('id', id);
+    if (error) { b.disabled = false; return toast(friendlyError(error)); }
+    card.remove(); toast(status === 'active' ? 'অনুমোদন দেওয়া হয়েছে ✓' : 'অনুরোধ বাতিল করা হয়েছে');
+    if (!box.querySelector('.card')) box.innerHTML = `<div class="empty">কোনো অপেক্ষমাণ অনুরোধ নেই ✓</div>`;
+  });
+}
+
+/* ---------- admin: members (role & status) ---------- */
+async function renderMembers(filter='active'){
+  $app.innerHTML = `<div class="top"><button class="back" id="bk">←</button><h1>Members</h1></div>
+    <div class="chips">${[['active','Active'],['suspended','Suspended'],['rejected','Rejected']].map(([k,l])=>`<button class="chip ${k===filter?'on':''}" data-f="${k}">${l}</button>`).join('')}</div>
+    <div class="pad cen" id="list"><div class="spin dark"></div></div>`;
+  document.getElementById('bk').onclick = renderHome;
+  document.querySelectorAll('.chip').forEach(c => c.onclick = () => renderMembers(c.dataset.f));
+  await loadLookups();
+  const { data, error } = await sb.from('profiles').select('*').eq('status', filter).order('full_name');
+  const box = document.getElementById('list'); box.className = 'pad'; box.style.paddingTop = '4px';
+  if (error) { box.innerHTML = `<div class="msg err">${esc(friendlyError(error))}</div>`; return; }
+  if (!data.length) { box.innerHTML = `<div class="empty">কেউ নেই</div>`; return; }
+  const me = state.profile.id;
+  box.innerHTML = data.map(u => `<div class="card" data-id="${u.id}">
+    <div class="row"><div class="av">${esc(initials(u.full_name))}</div>
+      <div class="rt"><b>${esc(u.full_name)}${u.id===me?' (আপনি)':''}</b><span>${esc(u.designation||'')} · ${esc(nameOf(state.companies,u.company_id))}</span></div>
+      <span class="tag ${u.status}">${u.status}</span></div>
+    ${u.id===me ? '' : `<div class="two">
+      <select class="in" data-role style="padding:8px 10px;font-size:13px">${['member','manager','admin'].map(r=>`<option ${r===u.role?'selected':''}>${r}</option>`).join('')}</select>
+      ${u.status==='active' ? `<button class="btn sm red" data-s="suspended">Suspend</button>` : `<button class="btn sm" data-s="active">Activate</button>`}
+    </div>`}
+  </div>`).join('');
+  box.querySelectorAll('select[data-role]').forEach(s => s.onchange = async () => {
+    const id = s.closest('.card').dataset.id;
+    if (s.value === 'admin' && !confirm('এই সদস্যকে অ্যাডমিন বানাবেন? অ্যাডমিন সব সদস্য নিয়ন্ত্রণ করতে পারে।')) return renderMembers(filter);
+    const { error } = await sb.from('profiles').update({ role: s.value }).eq('id', id);
+    toast(error ? friendlyError(error) : 'রোল পরিবর্তন হয়েছে ✓');
+  });
+  box.querySelectorAll('button[data-s]').forEach(b => b.onclick = async () => {
+    const id = b.closest('.card').dataset.id, status = b.dataset.s;
+    if (status === 'suspended' && !confirm('অ্যাকাউন্ট বন্ধ করবেন? সাথে সাথে তার সব অ্যাক্সেস বন্ধ হয়ে যাবে।')) return;
+    const { error } = await sb.from('profiles').update({ status }).eq('id', id);
+    if (error) return toast(friendlyError(error));
+    toast(status==='active' ? 'চালু করা হয়েছে ✓' : 'বন্ধ করা হয়েছে'); renderMembers(filter);
+  });
+}
+
+async function logout(){ await sb.auth.signOut(); state.profile = null; renderLogin(); }
+
+/* ---------- start ---------- */
+const initialHash = location.hash + location.search;
+let fromSignupLink = /type=(signup|email)/.test(initialHash);
+if (/type=recovery/.test(initialHash)) state.recovering = true;
+sb.auth.onAuthStateChange((event) => {
+  if (event === 'PASSWORD_RECOVERY') { state.recovering = true; renderNewPassword(); }
+  if (event === 'SIGNED_IN' && fromSignupLink) {
+    fromSignupLink = false; history.replaceState(null, '', location.pathname);
+    toast('ইমেইল যাচাই হয়েছে ✓'); route();
+  }
+});
+if ('serviceWorker' in navigator) navigator.serviceWorker.register('sw.js').catch(()=>{});
+renderSplash();
+setTimeout(route, 600);
+</script>
+</body>
+</html>
