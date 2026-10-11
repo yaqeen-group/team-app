@@ -155,6 +155,22 @@ textarea.in{min-height:96px;resize:vertical;line-height:1.55}
 .upd small{display:block;color:#8794a0;font-size:11.5px}
 .hero .kp{display:flex;gap:8px;margin-top:14px}.hero .kp div{flex:1;background:rgba(255,255,255,.14);border-radius:12px;padding:9px 10px}
 .hero .kp b{display:block;font-size:20px}.hero .kp span{font-size:11px;opacity:.85}
+
+/* ===== home v2 ===== */
+button.row{width:100%;text-align:left}
+.qgrid{display:grid;grid-template-columns:repeat(4,1fr);gap:6px 4px}
+.qi{display:flex;flex-direction:column;align-items:center;gap:6px;font-size:11.5px;font-weight:600;color:#3d4c57;padding:6px 0}
+.qic{width:54px;height:54px;border-radius:17px;display:flex;align-items:center;justify-content:center;font-size:25px;box-shadow:0 2px 6px rgba(11,59,90,.08)}
+.hero .kp .ki{display:block;font-size:15px;margin-bottom:2px}
+.hsec{display:flex;align-items:center;gap:8px;margin:22px 0 8px}
+.hsec b{flex:1;font-size:15px;color:var(--navy)}
+.hsi{width:28px;height:28px;border-radius:9px;background:#EEF4F4;display:flex;align-items:center;justify-content:center;font-size:15px}
+.see{font-size:12.5px;font-weight:600;color:var(--teal)}
+.hcard{width:100%;text-align:left;display:flex;align-items:center;gap:12px;margin-top:8px}
+.hci{width:42px;height:42px;border-radius:13px;display:flex;align-items:center;justify-content:center;font-size:20px;flex-shrink:0}
+.hempty{display:flex;align-items:center;gap:12px;background:#F8FAFB;border:1px dashed #DCE3E8;border-radius:14px;padding:14px;color:var(--mut);font-size:13.5px}
+.hempty span{font-size:22px}
+.card .row{padding:12px 14px;border-bottom:1px solid #F2F5F7}.card .row:last-child{border-bottom:0}
 </style>
 </head>
 <body>
@@ -612,9 +628,19 @@ function go(tab) {
 /* ---------- HOME ---------- */
 async function viewHome() {
   const p = state.profile;
+  const quick = [
+    ['chats', '💬', 'Chats', '#E3F1F0'], ['notices', '📢', 'Notices', '#FFF3DC'], ['tasks', '✅', 'Tasks', '#E7F5EE'], ['team', '👥', 'Team', '#E8EEFF'],
+    ['report', '📝', 'Daily report', '#F3E8FF'], ['profile', '👤', 'Profile', '#FCE7EF'],
+    ...(isAdmin() ? [['admin', '🛡️', 'Admin', '#E2E8F0'], ['group', '➕', 'New group', '#FFEDD5']] : [])
+  ];
   frame(`<div class="hero">${logo(true)}<div class="hi">আসসালামু আলাইকুম,<b>${esc(p.full_name)}</b></div>
-    <div class="kp"><div><b id="k1">–</b><span>unread chats</span></div><div><b id="k2">–</b><span>my open tasks</span></div><div><b id="k3">–</b><span>online now</span></div></div></div>
-    <div class="pad" style="padding-top:4px" id="hb"><div class="cen"><div class="spin dark"></div></div></div>`);
+    <div class="kp"><div><span class="ki">💬</span><b id="k1">–</b><span>unread chats</span></div><div><span class="ki">✅</span><b id="k2">–</b><span>my open tasks</span></div><div><span class="ki">🟢</span><b id="k3">–</b><span>online now</span></div></div></div>
+    <div class="pad" style="padding-top:14px">
+      <div class="qgrid">${quick.map(([k, i, l, c]) => `<button class="qi" data-q="${k}"><span class="qic" style="background:${c}">${i}</span><span>${l}</span></button>`).join('')}</div>
+      <div id="hb"><div class="cen" style="padding:20px"><div class="spin dark"></div></div></div>
+    </div>`);
+  const qa = { chats: () => go('chats'), notices: () => go('notices'), tasks: () => go('tasks'), team: viewTeam, report: viewReport, profile: renderProfile, admin: viewAdmin, group: createGroup };
+  document.querySelectorAll('[data-q]').forEach(b => b.onclick = () => qa[b.dataset.q]());
   const [notices, tasks] = await Promise.all([
     sb.from('notices').select('*').order('pinned', { ascending: false }).order('publish_at', { ascending: false }).limit(3),
     sb.from('tasks').select('*').eq('assigned_to', p.id).neq('status', 'completed').order('due_date', { ascending: true, nullsFirst: false }).limit(5)
@@ -622,19 +648,19 @@ async function viewHome() {
   await refreshUnread();
   document.getElementById('k1').textContent = ui.unread;
   document.getElementById('k2').textContent = (tasks.data || []).length;
-  document.getElementById('k3').textContent = Object.values(ui.people).filter(isOnline).length;
-  const hb = document.getElementById('hb');
+  document.getElementById('k3').textContent = Object.values(ui.people).filter(p2 => p2.id === p.id || isOnline(p2)).length;
   const n = notices.data || [], t = tasks.data || [], c = ui.convs.slice(0, 3);
-  hb.innerHTML = `
-    ${isAdmin() ? `<button class="card row" id="adm" style="width:100%;text-align:left"><span style="font-size:22px">🛡️</span><div class="rt"><b>Admin panel</b><span>অনুমোদন, সদস্য, গ্রুপ, রিপোর্ট</span></div><span>›</span></button>` : ''}
-    <div class="sec">📢 Latest notices</div>
-    ${n.length ? n.map(x => `<button class="card ${x.pinned ? 'amb' : ''}" style="width:100%;text-align:left" data-go="notices">${x.pinned ? '<div class="nh">📌 PINNED</div>' : ''}<h4>${esc(x.title)}</h4><div class="mut" style="font-size:13px">${esc(x.body.slice(0, 90))}${x.body.length > 90 ? '…' : ''}</div></button>`).join('') : '<div class="mut">কোনো নোটিশ নেই</div>'}
-    <div class="sec">✔️ My tasks</div>
-    ${t.length ? t.map(x => `<button class="card" style="width:100%;text-align:left" data-task="${x.id}"><span class="pri ${x.priority}">● ${x.priority.toUpperCase()}</span><h4>${esc(x.title)}</h4><div class="meta"><span class="${x.due_date && new Date(x.due_date) < new Date() ? 'overdue' : ''}">${x.due_date ? 'Due ' + fmtDate(x.due_date) : 'No due date'}</span><span class="stt ${x.status}">${x.status.replace('_', ' ')}</span></div></button>`).join('') : '<div class="mut">কোনো খোলা টাস্ক নেই 🎉</div>'}
-    <div class="sec">💬 Recent chats</div>
-    ${c.length ? c.map(chatRow).join('') : '<div class="mut">এখনো কোনো চ্যাট নেই</div>'}`;
-  const a = document.getElementById('adm'); if (a) a.onclick = viewAdmin;
-  hb.querySelectorAll('[data-go]').forEach(b => b.onclick = () => go('notices'));
+  const head = (icon, title, to) => `<div class="hsec"><span class="hsi">${icon}</span><b>${title}</b><button class="see" data-to="${to}">সব দেখুন ›</button></div>`;
+  const empty = (icon, text) => `<div class="hempty"><span>${icon}</span>${text}</div>`;
+  document.getElementById('hb').innerHTML = `
+    ${head('📢', 'Latest notices', 'notices')}
+    ${n.length ? n.map(x => `<button class="card hcard ${x.pinned ? 'amb' : ''}" data-to="notices"><span class="hci" style="background:${x.pinned ? '#FDE7B8' : '#FFF3DC'}">${x.pinned ? '📌' : '📢'}</span><div class="rt"><b>${esc(x.title)}</b><span>${esc(x.body.slice(0, 70))}</span></div></button>`).join('') : empty('📭', 'কোনো নোটিশ নেই')}
+    ${head('✅', 'My tasks', 'tasks')}
+    ${t.length ? t.map(x => `<button class="card hcard" data-task="${x.id}"><span class="hci" style="background:#E7F5EE">${x.priority === 'urgent' ? '🔥' : x.priority === 'high' ? '⚡' : '📋'}</span><div class="rt"><b>${esc(x.title)}</b><span class="${x.due_date && new Date(x.due_date) < new Date() ? 'overdue' : ''}">${x.due_date ? '⏰ ' + fmtDate(x.due_date) : 'No due date'} · ${x.status.replace('_', ' ')}</span></div></button>`).join('') : empty('🎉', 'কোনো খোলা টাস্ক নেই')}
+    ${head('💬', 'Recent chats', 'chats')}
+    ${c.length ? `<div class="card" style="padding:0;overflow:hidden">${c.map(chatRow).join('')}</div>` : empty('💭', 'এখনো কোনো চ্যাট নেই')}`;
+  const hb = document.getElementById('hb');
+  hb.querySelectorAll('[data-to]').forEach(b => b.onclick = () => go(b.dataset.to));
   hb.querySelectorAll('[data-task]').forEach(b => b.onclick = () => viewTask(b.dataset.task));
   hb.querySelectorAll('[data-conv]').forEach(b => b.onclick = () => openChat(b.dataset.conv));
 }
@@ -996,7 +1022,7 @@ function noticeForm(n) {
 /* ---------- TEAM DIRECTORY ---------- */
 let teamFilter = 'all';
 function viewTeam() {
-  ui.tab = 'menu';
+  ui.tab = ui.tab === 'home' ? 'home' : 'menu';
   const ppl = Object.values(ui.people).filter(p => teamFilter === 'all' || p.company_id === teamFilter).sort((a, b) => a.full_name.localeCompare(b.full_name));
   $app.innerHTML = `<div class="shell"><div class="view"><div class="top"><button class="back" id="bk">←</button><h1>Team (${Object.keys(ui.people).length})</h1></div>
     <div class="chips"><button class="chip ${teamFilter === 'all' ? 'on' : ''}" data-f="all">All</button>${state.companies.map(c => `<button class="chip ${teamFilter === c.id ? 'on' : ''}" data-f="${c.id}">${esc(c.name)}</button>`).join('')}</div>
