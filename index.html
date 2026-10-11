@@ -78,6 +78,83 @@ label{display:block;font-size:12.5px;font-weight:600;color:#45545f;margin:14px 0
 .toast{position:fixed;left:50%;bottom:calc(24px + env(safe-area-inset-bottom,0px));transform:translateX(-50%);background:var(--navy);color:#fff;padding:11px 16px;border-radius:12px;font-size:13.5px;z-index:50;max-width:90%;box-shadow:0 8px 20px rgba(0,0,0,.2)}
 .chips{display:flex;gap:8px;padding:12px 16px 0}.chip{padding:7px 13px;border-radius:16px;background:#EEF2F4;color:#53626e;font-size:13px;font-weight:600}.chip.on{background:var(--navy);color:#fff}
 select.in{appearance:none;background-image:linear-gradient(45deg,transparent 50%,#7a8a96 50%),linear-gradient(135deg,#7a8a96 50%,transparent 50%);background-position:calc(100% - 18px) 50%,calc(100% - 13px) 50%;background-size:5px 5px;background-repeat:no-repeat}
+
+/* ===== app shell ===== */
+.shell{display:flex;flex-direction:column;min-height:100vh}
+.view{flex:1;padding-bottom:calc(70px + env(safe-area-inset-bottom,0px))}
+.tabbar{position:fixed;bottom:0;left:50%;transform:translateX(-50%);width:100%;max-width:480px;display:flex;background:#fff;border-top:1px solid var(--line);padding:6px 4px calc(8px + env(safe-area-inset-bottom,0px));z-index:10}
+.tb{flex:1;display:flex;flex-direction:column;align-items:center;gap:2px;color:#98a5af;font-size:11px;font-weight:600;position:relative;padding:4px 0}
+.tb .ti{font-size:20px;line-height:1;filter:grayscale(1);opacity:.7}.tb.on{color:var(--teal)}.tb.on .ti{filter:none;opacity:1}
+.tb .bd{position:absolute;top:0;left:calc(50% + 6px);background:var(--red);color:#fff;border-radius:9px;font-size:10px;padding:0 5px;min-width:16px;text-align:center}
+.top .act{display:flex;gap:4px}.top .act button{width:36px;height:36px;border-radius:10px;font-size:18px;display:flex;align-items:center;justify-content:center}
+.top .sub{display:block;font-size:12px;color:var(--mut);font-weight:500}
+.list .row{padding:12px 16px;border-bottom:1px solid #F2F5F7;width:100%;text-align:left}
+.row em{font-style:normal;font-size:11.5px;color:#8794a0}.rr{display:flex;flex-direction:column;align-items:flex-end;gap:4px}
+.cnt{background:var(--teal);color:#fff;font-size:11px;font-weight:700;border-radius:10px;padding:1px 7px}
+.fab{position:fixed;right:calc(50% - 224px);bottom:calc(84px + env(safe-area-inset-bottom,0px));width:52px;height:52px;border-radius:16px;background:var(--amber);color:var(--navy);font-size:26px;font-weight:700;display:flex;align-items:center;justify-content:center;box-shadow:0 8px 18px rgba(233,162,59,.45);z-index:9}
+@media (max-width:480px){.fab{right:16px}}
+.sec{font-size:12.5px;font-weight:700;color:#53626e;margin:18px 0 6px}
+.dotonline{display:inline-block;width:8px;height:8px;border-radius:50%;background:#22C55E;margin-left:6px}
+/* ===== chat ===== */
+.chatwrap{display:flex;flex-direction:column;height:100vh;height:100dvh}
+.msgs{flex:1;overflow-y:auto;background:#F3EFE6;padding:10px 10px 14px;display:flex;flex-direction:column;gap:6px}
+.day{align-self:center;font-size:11px;background:#fff;padding:3px 10px;border-radius:9px;color:#6b7a86;margin:6px 0}
+.bw{display:flex}.bw.me{justify-content:flex-end}
+.bb{max-width:82%;background:#fff;border-radius:14px 14px 14px 4px;padding:7px 10px;font-size:14.5px;line-height:1.45;display:flex;flex-direction:column;gap:3px;word-wrap:break-word;overflow-wrap:anywhere;text-align:left}
+.me .bb{background:#D7EFEC;border-radius:14px 14px 4px 14px}
+.who{font-size:11.5px;color:#C2410C;font-weight:700}
+.tk{align-self:flex-end;font-size:10.5px;color:#7a8a96;white-space:nowrap}.tk.read{color:var(--teal);font-weight:700}
+.bb img.ph{max-width:220px;max-height:260px;border-radius:10px;display:block;background:#e6ecef;min-height:80px;min-width:120px;object-fit:cover}
+.bb video{max-width:230px;border-radius:10px;background:#000}
+.file{display:flex;gap:9px;align-items:center;background:#F6F8F9;border-radius:10px;padding:8px 10px;color:inherit;text-decoration:none}
+.file b{font-size:13px;display:block}.file small{font-size:11px;color:#7a8a96}
+.bb a{color:var(--teal);word-break:break-all}
+.callcard{background:#0B3B5A;color:#fff;border-radius:12px;padding:10px 12px;display:flex;flex-direction:column;gap:8px}
+.callcard .btn{margin-top:0;background:var(--amber);color:var(--navy);padding:8px}
+.pinbar{background:#FFF8EC;border-bottom:1px solid #F3DDB4;padding:8px 14px;font-size:13px;display:flex;gap:8px;align-items:center}
+.pinbar span{flex:1;overflow:hidden;white-space:nowrap;text-overflow:ellipsis}
+.comp{display:flex;align-items:flex-end;gap:8px;padding:8px 10px calc(10px + env(safe-area-inset-bottom,0px));background:#fff;border-top:1px solid var(--line)}
+.comp textarea{flex:1;border:0;background:#F1F4F6;border-radius:18px;padding:10px 14px;font-size:15px;resize:none;max-height:120px;outline:none}
+.comp .cb{width:40px;height:40px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:20px;flex-shrink:0}
+.comp .snd{background:var(--teal);color:#fff;font-size:18px}
+.readonly{padding:14px;text-align:center;color:var(--mut);font-size:13px;background:#fff;border-top:1px solid var(--line)}
+.older{align-self:center;font-size:12.5px;color:var(--teal);font-weight:600;padding:6px 12px;background:#fff;border-radius:12px}
+.upl{align-self:flex-end;font-size:12px;color:var(--mut);background:#fff;padding:6px 10px;border-radius:10px}
+/* ===== sheet ===== */
+.sheetbg{position:fixed;inset:0;background:rgba(10,20,30,.45);z-index:40;display:flex;align-items:flex-end;justify-content:center}
+.sheet{background:#fff;width:100%;max-width:480px;border-radius:20px 20px 0 0;padding:10px 16px calc(18px + env(safe-area-inset-bottom,0px));max-height:85vh;overflow-y:auto}
+.sheet .grab{width:40px;height:4px;border-radius:2px;background:#d5dde2;margin:4px auto 10px}
+.sheet h3{margin-top:4px}
+.sheet .opt{display:flex;align-items:center;gap:12px;width:100%;padding:13px 4px;border-bottom:1px solid #F0F3F5;font-size:15px;text-align:left}
+.sheet .opt:last-child{border-bottom:0}.sheet .opt.red{color:var(--red)}
+.attgrid{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin:6px 0 4px}
+.attgrid button{display:flex;flex-direction:column;align-items:center;gap:6px;font-size:12px;font-weight:600;color:#45545f;padding:10px 0}
+.attgrid .ai{width:48px;height:48px;border-radius:14px;background:#E3F1F0;display:flex;align-items:center;justify-content:center;font-size:22px}
+/* ===== notices / tasks ===== */
+.card.amb{background:#FFF8EC;border-color:#F3DDB4}
+.nh{font-size:11px;font-weight:700;color:var(--teal);letter-spacing:.5px;display:flex;gap:6px;align-items:center}
+.card h4{font-size:15.5px;color:var(--navy);margin:4px 0}
+.card .body{font-size:14px;color:#3d4c57;line-height:1.6;white-space:pre-wrap}
+.meta{display:flex;justify-content:space-between;gap:8px;font-size:12px;color:#8794a0;margin-top:8px;flex-wrap:wrap}
+.pri{font-size:11px;font-weight:800;letter-spacing:.4px}
+.pri.urgent{color:#DC2626}.pri.high{color:#EA580C}.pri.medium{color:var(--teal)}.pri.low{color:#64748B}
+.stt{font-size:11.5px;font-weight:700;padding:3px 8px;border-radius:8px;background:#EEF2F4;color:#45545f}
+.stt.completed{background:#E7F5EE;color:#166534}.stt.in_progress{background:#E0EEFF;color:#1D4ED8}.stt.under_review{background:#FFF3DC;color:#92400E}
+.overdue{color:var(--red);font-weight:700}
+.chips{overflow-x:auto;scrollbar-width:none}.chips::-webkit-scrollbar{display:none}.chip{white-space:nowrap}
+textarea.in{min-height:96px;resize:vertical;line-height:1.55}
+.check{display:flex;align-items:center;gap:10px;font-size:14px;margin-top:12px}
+.check input{width:20px;height:20px;accent-color:var(--teal)}
+.meter{height:10px;background:#EEF2F4;border-radius:6px;overflow:hidden;margin-top:6px}.meter i{display:block;height:100%;background:var(--teal)}
+.meter i.warn{background:var(--amber)}.meter i.bad{background:var(--red)}
+.member{display:flex;align-items:center;gap:10px;padding:10px 0;border-bottom:1px solid #F0F3F5}
+.member .rt b{font-size:14px}
+.smallbtn{font-size:12.5px;font-weight:700;padding:6px 10px;border-radius:9px;border:1.5px solid var(--line);color:var(--navy);background:#fff}
+.smallbtn.red{color:var(--red);border-color:#F3CACA}.smallbtn.ok{background:var(--teal);color:#fff;border-color:var(--teal)}
+.upd{border-left:3px solid var(--line);padding:4px 0 4px 10px;margin-top:10px;font-size:13.5px}
+.upd small{display:block;color:#8794a0;font-size:11.5px}
+.hero .kp{display:flex;gap:8px;margin-top:14px}.hero .kp div{flex:1;background:rgba(255,255,255,.14);border-radius:12px;padding:9px 10px}
+.hero .kp b{display:block;font-size:20px}.hero .kp span{font-size:11px;opacity:.85}
 </style>
 </head>
 <body>
@@ -447,6 +524,753 @@ async function renderMembers(filter='active'){
 }
 
 async function logout(){ await sb.auth.signOut(); state.profile = null; renderLogin(); }
+
+
+/* =========================================================
+   STEP 4–8: App shell, chat, files, calls, notices, team,
+   tasks, daily reports, admin tools
+   ========================================================= */
+const ui = { tab: 'home', unread: 0, channels: [], people: {}, convs: [], heartbeat: null };
+const MAX_FILE = 25 * 1024 * 1024;
+const fmtTime = d => new Date(d).toLocaleTimeString([], { hour: 'numeric', minute: '2-digit' });
+const fmtDate = d => new Date(d).toLocaleDateString([], { day: 'numeric', month: 'short', year: 'numeric' });
+const fmtShort = d => {
+  const x = new Date(d), now = new Date();
+  if (x.toDateString() === now.toDateString()) return fmtTime(x);
+  const y = new Date(now); y.setDate(now.getDate() - 1);
+  if (x.toDateString() === y.toDateString()) return 'Yesterday';
+  return x.toLocaleDateString([], { day: 'numeric', month: 'short' });
+};
+const fmtSize = b => b > 1048576 ? (b / 1048576).toFixed(1) + ' MB' : Math.max(1, Math.round(b / 1024)) + ' KB';
+const isAdmin = () => state.profile && state.profile.role === 'admin';
+const isMgr = () => state.profile && ['admin', 'manager'].includes(state.profile.role);
+const COLORS = ['#0F7C7A', '#C2410C', '#1D4ED8', '#7C3AED', '#0B3B5A', '#B45309', '#0E7490', '#9D174D'];
+const colorFor = id => COLORS[[...String(id || '')].reduce((a, c) => a + c.charCodeAt(0), 0) % COLORS.length];
+const avatar = (name, id, size = 44) => `<div class="av" style="width:${size}px;height:${size}px;background:${colorFor(id)};font-size:${Math.round(size / 3.2)}px">${esc(initials(name))}</div>`;
+const personName = id => (ui.people[id] && ui.people[id].full_name) || 'Former member';
+const isOnline = p => p && p.last_seen && (Date.now() - new Date(p.last_seen).getTime() < 4 * 60 * 1000);
+function linkify(t) {
+  return esc(t).replace(/(https?:\/\/[^\s<]+)/g, '<a href="$1" target="_blank" rel="noopener noreferrer">$1</a>').replace(/\n/g, '<br>');
+}
+const todayDhaka = () => new Date(Date.now() + 6 * 3600 * 1000).toISOString().slice(0, 10);
+
+async function loadPeople() {
+  const { data } = await sb.from('profiles').select('id,full_name,designation,company_id,department_id,role,status,last_seen,phone,email').eq('status', 'active');
+  ui.people = {}; (data || []).forEach(p => ui.people[p.id] = p);
+}
+
+function cleanupChannels() { ui.channels.forEach(c => sb.removeChannel(c)); ui.channels = []; }
+
+function sheet(html, onMount) {
+  const bg = document.createElement('div'); bg.className = 'sheetbg';
+  bg.innerHTML = `<div class="sheet"><div class="grab"></div>${html}</div>`;
+  bg.onclick = e => { if (e.target === bg) bg.remove(); };
+  document.body.appendChild(bg);
+  if (onMount) onMount(bg.querySelector('.sheet'), () => bg.remove());
+  return () => bg.remove();
+}
+
+/* ---------- shell ---------- */
+async function renderHome() { await startShell(); }
+async function startShell() {
+  await Promise.all([loadLookups(), loadPeople()]);
+  if (!ui.heartbeat) {
+    const beat = () => sb.from('profiles').update({ last_seen: new Date().toISOString() }).eq('id', state.profile.id);
+    beat(); ui.heartbeat = setInterval(beat, 120000);
+  }
+  if (!ui.globalCh) {
+    ui.globalCh = sb.channel('global-msgs')
+      .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'messages' }, payload => {
+        if (ui.openConv === payload.new.conversation_id) return;
+        refreshUnread();
+        if (ui.tab === 'chats' && !ui.openConv) drawChatList();
+      }).subscribe();
+  }
+  refreshUnread();
+  go(ui.tab || 'home');
+}
+async function refreshUnread() {
+  const { data } = await sb.rpc('my_conversations');
+  ui.convs = data || [];
+  ui.unread = ui.convs.reduce((a, c) => a + Number(c.unread || 0), 0);
+  const b = document.querySelector('.tb[data-t="chats"] .bd');
+  if (b) { b.textContent = ui.unread; b.hidden = !ui.unread; }
+}
+function tabbar() {
+  const t = [['home', '🏠', 'Home'], ['chats', '💬', 'Chats'], ['notices', '📢', 'Notices'], ['tasks', '✔️', 'Tasks'], ['menu', '☰', 'Menu']];
+  return `<nav class="tabbar">${t.map(([k, i, l]) => `<button class="tb ${ui.tab === k ? 'on' : ''}" data-t="${k}"><span class="ti">${i}</span>${l}${k === 'chats' ? `<span class="bd" ${ui.unread ? '' : 'hidden'}>${ui.unread}</span>` : ''}</button>`).join('')}</nav>`;
+}
+function frame(inner) {
+  $app.innerHTML = `<div class="shell"><div class="view">${inner}</div>${tabbar()}</div>`;
+  document.querySelectorAll('.tb').forEach(b => b.onclick = () => go(b.dataset.t));
+}
+function go(tab) {
+  cleanupChannels(); ui.openConv = null; ui.tab = tab;
+  ({ home: viewHome, chats: viewChats, notices: viewNotices, tasks: viewTasks, menu: viewMenu })[tab]();
+}
+
+/* ---------- HOME ---------- */
+async function viewHome() {
+  const p = state.profile;
+  frame(`<div class="hero">${logo(true)}<div class="hi">আসসালামু আলাইকুম,<b>${esc(p.full_name)}</b></div>
+    <div class="kp"><div><b id="k1">–</b><span>unread chats</span></div><div><b id="k2">–</b><span>my open tasks</span></div><div><b id="k3">–</b><span>online now</span></div></div></div>
+    <div class="pad" style="padding-top:4px" id="hb"><div class="cen"><div class="spin dark"></div></div></div>`);
+  const [notices, tasks] = await Promise.all([
+    sb.from('notices').select('*').order('pinned', { ascending: false }).order('publish_at', { ascending: false }).limit(3),
+    sb.from('tasks').select('*').eq('assigned_to', p.id).neq('status', 'completed').order('due_date', { ascending: true, nullsFirst: false }).limit(5)
+  ]);
+  await refreshUnread();
+  document.getElementById('k1').textContent = ui.unread;
+  document.getElementById('k2').textContent = (tasks.data || []).length;
+  document.getElementById('k3').textContent = Object.values(ui.people).filter(isOnline).length;
+  const hb = document.getElementById('hb');
+  const n = notices.data || [], t = tasks.data || [], c = ui.convs.slice(0, 3);
+  hb.innerHTML = `
+    ${isAdmin() ? `<button class="card row" id="adm" style="width:100%;text-align:left"><span style="font-size:22px">🛡️</span><div class="rt"><b>Admin panel</b><span>অনুমোদন, সদস্য, গ্রুপ, রিপোর্ট</span></div><span>›</span></button>` : ''}
+    <div class="sec">📢 Latest notices</div>
+    ${n.length ? n.map(x => `<button class="card ${x.pinned ? 'amb' : ''}" style="width:100%;text-align:left" data-go="notices">${x.pinned ? '<div class="nh">📌 PINNED</div>' : ''}<h4>${esc(x.title)}</h4><div class="mut" style="font-size:13px">${esc(x.body.slice(0, 90))}${x.body.length > 90 ? '…' : ''}</div></button>`).join('') : '<div class="mut">কোনো নোটিশ নেই</div>'}
+    <div class="sec">✔️ My tasks</div>
+    ${t.length ? t.map(x => `<button class="card" style="width:100%;text-align:left" data-task="${x.id}"><span class="pri ${x.priority}">● ${x.priority.toUpperCase()}</span><h4>${esc(x.title)}</h4><div class="meta"><span class="${x.due_date && new Date(x.due_date) < new Date() ? 'overdue' : ''}">${x.due_date ? 'Due ' + fmtDate(x.due_date) : 'No due date'}</span><span class="stt ${x.status}">${x.status.replace('_', ' ')}</span></div></button>`).join('') : '<div class="mut">কোনো খোলা টাস্ক নেই 🎉</div>'}
+    <div class="sec">💬 Recent chats</div>
+    ${c.length ? c.map(chatRow).join('') : '<div class="mut">এখনো কোনো চ্যাট নেই</div>'}`;
+  const a = document.getElementById('adm'); if (a) a.onclick = viewAdmin;
+  hb.querySelectorAll('[data-go]').forEach(b => b.onclick = () => go('notices'));
+  hb.querySelectorAll('[data-task]').forEach(b => b.onclick = () => viewTask(b.dataset.task));
+  hb.querySelectorAll('[data-conv]').forEach(b => b.onclick = () => openChat(b.dataset.conv));
+}
+
+/* ---------- CHAT LIST ---------- */
+function convTitle(c) { return c.type === 'direct' ? (c.other_name || 'Direct chat') : (c.name || 'Group'); }
+function chatRow(c) {
+  const last = c.last_type === 'image' ? '📷 Photo' : c.last_type === 'video' ? '🎬 Video' : c.last_type === 'document' ? '📎 Document' : c.last_type === 'link' ? '📞 Call' : (c.last_body || 'এখনো কোনো মেসেজ নেই');
+  const who = c.type === 'group' && c.last_sender ? esc(c.last_sender.split(' ')[0]) + ': ' : '';
+  const online = c.type === 'direct' && isOnline(ui.people[c.other_id]) ? '<span class="dotonline"></span>' : '';
+  return `<button class="row" data-conv="${c.id}">${avatar(convTitle(c), c.type === 'direct' ? c.other_id : c.id)}<div class="rt"><b>${esc(convTitle(c))}${online}</b><span>${who}${esc(last)}</span></div><div class="rr"><em>${c.last_at ? fmtShort(c.last_at) : ''}</em>${Number(c.unread) ? `<span class="cnt">${c.unread}</span>` : ''}</div></button>`;
+}
+let chatFilter = 'all';
+async function viewChats() {
+  frame(`<div class="top"><h1>Chats</h1></div>
+    <div class="chips">${[['all', 'All'], ['group', 'Groups'], ['direct', 'Direct']].map(([k, l]) => `<button class="chip ${chatFilter === k ? 'on' : ''}" data-f="${k}">${l}</button>`).join('')}</div>
+    <div class="list" id="cl" style="margin-top:8px"><div class="pad cen"><div class="spin dark"></div></div></div>
+    <button class="fab" id="newchat" title="New chat">+</button>`);
+  document.querySelectorAll('.chip').forEach(b => b.onclick = () => { chatFilter = b.dataset.f; viewChats(); });
+  document.getElementById('newchat').onclick = pickPersonForChat;
+  await drawChatList();
+}
+async function drawChatList() {
+  await refreshUnread();
+  const el = document.getElementById('cl'); if (!el) return;
+  const list = ui.convs.filter(c => !c.archived && (chatFilter === 'all' || c.type === chatFilter));
+  el.innerHTML = list.length ? list.map(chatRow).join('') : `<div class="empty">কোনো চ্যাট নেই। + চেপে নতুন চ্যাট শুরু করুন।</div>`;
+  el.querySelectorAll('[data-conv]').forEach(b => b.onclick = () => openChat(b.dataset.conv));
+}
+function pickPersonForChat() {
+  const people = Object.values(ui.people).filter(p => p.id !== state.profile.id).sort((a, b) => a.full_name.localeCompare(b.full_name));
+  sheet(`<h3>নতুন চ্যাট</h3>${people.length ? people.map(p => `<button class="opt" data-u="${p.id}">${avatar(p.full_name, p.id, 36)}<div class="rt"><b>${esc(p.full_name)}</b><span>${esc(p.designation || nameOf(state.companies, p.company_id))}</span></div></button>`).join('') : '<p class="mut">অন্য কোনো সক্রিয় সদস্য নেই।</p>'}`,
+    (el, close) => el.querySelectorAll('[data-u]').forEach(b => b.onclick = async () => { close(); await startDM(b.dataset.u); }));
+}
+async function startDM(uid) {
+  const { data, error } = await sb.rpc('start_direct_chat', { other_user: uid });
+  if (error) return toast(friendlyError(error));
+  await refreshUnread(); openChat(data);
+}
+
+/* ---------- CHAT ROOM ---------- */
+async function openChat(convId) {
+  cleanupChannels(); ui.openConv = convId;
+  let conv = ui.convs.find(c => c.id === convId);
+  if (!conv) { await refreshUnread(); conv = ui.convs.find(c => c.id === convId); }
+  if (!conv) return toast('চ্যাট পাওয়া যায়নি');
+  const canPost = !conv.archived && (!conv.only_admins_post || isAdmin());
+  const sub = conv.type === 'direct' ? (isOnline(ui.people[conv.other_id]) ? 'Online' : (ui.people[conv.other_id] && ui.people[conv.other_id].designation) || '') : `${conv.member_count} members`;
+  $app.innerHTML = `<div class="chatwrap">
+    <div class="top"><button class="back" id="bk">←</button><h1>${esc(convTitle(conv))}<span class="sub">${esc(sub)}</span></h1>
+      <div class="act"><button id="ca" title="Audio call">📞</button><button id="cv" title="Video call">🎥</button>${conv.type === 'group' && isAdmin() ? '<button id="ginfo" title="Group settings">⚙️</button>' : ''}</div></div>
+    <div id="pin"></div>
+    <div class="msgs" id="ms"><div class="cen" style="padding:30px"><div class="spin dark"></div></div></div>
+    ${canPost ? `<div class="comp"><button class="cb" id="att" title="Attach">📎</button><textarea id="tx" rows="1" placeholder="Type a message…" maxlength="4000"></textarea><button class="cb snd" id="sd">➤</button></div>`
+      : `<div class="readonly">${conv.archived ? 'এই গ্রুপ আর্কাইভ করা হয়েছে' : 'এই গ্রুপে শুধু অ্যাডমিন মেসেজ দিতে পারেন'}</div>`}
+    <input type="file" id="fi" hidden></div>`;
+  document.getElementById('bk').onclick = () => go('chats');
+  document.getElementById('ca').onclick = () => startCall(conv, 'audio');
+  document.getElementById('cv').onclick = () => startCall(conv, 'video');
+  const gi = document.getElementById('ginfo'); if (gi) gi.onclick = () => groupSettings(conv.id);
+
+  const room = { conv, msgs: [], members: [], urls: {}, oldest: null };
+  ui.room = room;
+  const ms = document.getElementById('ms');
+
+  const { data: mem } = await sb.from('conversation_members').select('user_id,last_read_at').eq('conversation_id', convId);
+  room.members = mem || [];
+  await loadMessages(room, false);
+  sb.rpc('mark_read', { conv: convId }).then(refreshUnread);
+
+  const ch = sb.channel('room-' + convId)
+    .on('postgres_changes', { event: '*', schema: 'public', table: 'messages', filter: `conversation_id=eq.${convId}` }, async payload => {
+      if (payload.eventType === 'INSERT') {
+        if (!room.msgs.find(m => m.id === payload.new.id)) { room.msgs.push(payload.new); await signUrls(room, [payload.new]); drawMessages(room, true); }
+        if (payload.new.sender_id !== state.profile.id) sb.rpc('mark_read', { conv: convId });
+      } else if (payload.eventType === 'UPDATE') {
+        const i = room.msgs.findIndex(m => m.id === payload.new.id); if (i > -1) { room.msgs[i] = payload.new; drawMessages(room, false); }
+      } else if (payload.eventType === 'DELETE') {
+        room.msgs = room.msgs.filter(m => m.id !== (payload.old && payload.old.id)); drawMessages(room, false);
+      }
+    })
+    .on('postgres_changes', { event: 'UPDATE', schema: 'public', table: 'conversation_members', filter: `conversation_id=eq.${convId}` }, payload => {
+      const i = room.members.findIndex(m => m.user_id === payload.new.user_id); if (i > -1) { room.members[i] = payload.new; drawMessages(room, false); }
+    }).subscribe();
+  ui.channels.push(ch);
+
+  if (canPost) {
+    const tx = document.getElementById('tx'), sd = document.getElementById('sd');
+    tx.oninput = () => { tx.style.height = 'auto'; tx.style.height = Math.min(tx.scrollHeight, 120) + 'px'; };
+    const send = async () => {
+      const body = tx.value.trim(); if (!body) return;
+      tx.value = ''; tx.style.height = 'auto';
+      const { error } = await sb.from('messages').insert({ conversation_id: convId, sender_id: state.profile.id, body });
+      if (error) { tx.value = body; toast(friendlyError(error)); }
+    };
+    sd.onclick = send;
+    tx.onkeydown = e => { if (e.key === 'Enter' && !e.shiftKey && window.innerWidth > 700) { e.preventDefault(); send(); } };
+    document.getElementById('att').onclick = () => attachMenu(room);
+  }
+}
+async function loadMessages(room, older) {
+  let q = sb.from('messages').select('*').eq('conversation_id', room.conv.id).order('created_at', { ascending: false }).limit(40);
+  if (older && room.oldest) q = q.lt('created_at', room.oldest);
+  const { data, error } = await q;
+  if (error) { document.getElementById('ms').innerHTML = `<div class="msg err">${esc(friendlyError(error))}</div>`; return; }
+  const batch = (data || []).reverse();
+  room.hasMore = (data || []).length === 40;
+  if (batch.length) room.oldest = batch[0].created_at;
+  room.msgs = older ? batch.concat(room.msgs) : batch;
+  await signUrls(room, batch);
+  drawMessages(room, !older);
+}
+async function signUrls(room, list) {
+  const paths = list.filter(m => m.attachment_path && !room.urls[m.attachment_path]).map(m => m.attachment_path);
+  if (!paths.length) return;
+  const { data } = await sb.storage.from('chat-files').createSignedUrls(paths, 3600 * 6);
+  (data || []).forEach(d => { if (d.signedUrl) room.urls[d.path] = d.signedUrl; });
+}
+function readBy(room, m) {
+  const others = room.members.filter(x => x.user_id !== state.profile.id);
+  return others.length && others.every(x => new Date(x.last_read_at) >= new Date(m.created_at));
+}
+function drawMessages(room, scrollEnd) {
+  const ms = document.getElementById('ms'); if (!ms) return;
+  const prevH = ms.scrollHeight, prevTop = ms.scrollTop;
+  let html = room.hasMore ? '<button class="older" id="old">Load older messages</button>' : '';
+  let lastDay = '';
+  for (const m of room.msgs) {
+    const d = new Date(m.created_at).toDateString();
+    if (d !== lastDay) { html += `<div class="day">${d === new Date().toDateString() ? 'Today' : fmtDate(m.created_at)}</div>`; lastDay = d; }
+    const me = m.sender_id === state.profile.id;
+    const who = !me && room.conv.type === 'group' ? `<span class="who">${esc(personName(m.sender_id))}</span>` : '';
+    let content = '';
+    const url = m.attachment_path ? room.urls[m.attachment_path] : null;
+    if (m.attachment_type === 'image') content += url ? `<img class="ph" src="${url}" data-full="${url}" loading="lazy" alt="photo">` : '<div class="file">📷 Photo</div>';
+    else if (m.attachment_type === 'video') content += url ? `<video src="${url}" controls preload="metadata" playsinline></video>` : '<div class="file">🎬 Video</div>';
+    else if (m.attachment_type === 'document') content += `<a class="file" ${url ? `href="${url}" target="_blank" rel="noopener"` : ''}><span style="font-size:24px">📄</span><div><b>${esc(m.attachment_name || 'Document')}</b><small>${m.attachment_size ? fmtSize(m.attachment_size) : ''} · tap to open</small></div></a>`;
+    if (m.attachment_type === 'link' && /^call:/.test(m.attachment_name || '')) {
+      const kind = m.attachment_name === 'call:video' ? 'Video' : 'Audio';
+      const link = (m.body || '').match(/https:\/\/meet\.jit\.si\/[^\s]+/);
+      content += `<div class="callcard"><b>${kind === 'Video' ? '🎥' : '📞'} ${kind} call</b><span style="font-size:12.5px;opacity:.85">${esc(personName(m.sender_id))} কল শুরু করেছেন</span>${link ? `<a class="btn" href="${link[0]}" target="_blank" rel="noopener">Join call</a>` : ''}</div>`;
+    } else if (m.body) content += `<div>${linkify(m.body)}</div>`;
+    const tick = me ? `<span class="tk ${readBy(room, m) ? 'read' : ''}">${m.pinned ? '📌 ' : ''}${m.edited_at ? 'edited · ' : ''}${fmtTime(m.created_at)} ${readBy(room, m) ? '✓✓' : '✓'}</span>` : `<span class="tk">${m.pinned ? '📌 ' : ''}${fmtTime(m.created_at)}</span>`;
+    html += `<div class="bw ${me ? 'me' : ''}"><button class="bb" data-m="${m.id}">${who}${content}${tick}</button></div>`;
+  }
+  if (!room.msgs.length) html += '<div class="empty">এখনো কোনো মেসেজ নেই। প্রথম মেসেজটা পাঠান 👋</div>';
+  ms.innerHTML = html;
+  if (scrollEnd) ms.scrollTop = ms.scrollHeight; else ms.scrollTop = prevTop + (ms.scrollHeight - prevH) * (prevTop < 50 ? 1 : 0);
+  const old = document.getElementById('old'); if (old) old.onclick = () => loadMessages(room, true);
+  ms.querySelectorAll('[data-m]').forEach(b => b.onclick = e => {
+    if (e.target.closest('a,video')) return;
+    if (e.target.matches('img.ph')) return window.open(e.target.dataset.full, '_blank');
+    messageMenu(room, room.msgs.find(m => m.id === b.dataset.m));
+  });
+  const pinned = room.msgs.filter(m => m.pinned).pop();
+  document.getElementById('pin').innerHTML = pinned ? `<div class="pinbar">📌<span>${esc(pinned.body || pinned.attachment_name || 'Pinned file')}</span></div>` : '';
+}
+function messageMenu(room, m) {
+  if (!m) return;
+  const mine = m.sender_id === state.profile.id;
+  const opts = [];
+  if (m.body) opts.push(['copy', '📋 Copy text']);
+  if (isAdmin()) opts.push(['pin', m.pinned ? '📌 Unpin' : '📌 Pin message']);
+  if (mine && m.body && !m.attachment_type) opts.push(['edit', '✏️ Edit']);
+  if (!mine) opts.push(['report', '🚩 Report message']);
+  if (mine || isAdmin()) opts.push(['del', '🗑️ Delete', 'red']);
+  sheet(`<p class="mut" style="margin-bottom:4px">${esc(personName(m.sender_id))} · ${fmtDate(m.created_at)} ${fmtTime(m.created_at)}</p>${opts.map(([k, l, c]) => `<button class="opt ${c || ''}" data-k="${k}">${l}</button>`).join('')}`, (el, close) => {
+    el.querySelectorAll('[data-k]').forEach(b => b.onclick = async () => {
+      close(); const k = b.dataset.k;
+      if (k === 'copy') { try { await navigator.clipboard.writeText(m.body); toast('কপি হয়েছে'); } catch (e) { toast('কপি করা যায়নি'); } }
+      if (k === 'pin') { const { error } = await sb.from('messages').update({ pinned: !m.pinned }).eq('id', m.id); if (error) toast(friendlyError(error)); }
+      if (k === 'edit') {
+        const nb = prompt('মেসেজ এডিট করুন', m.body); if (nb === null || !nb.trim()) return;
+        const { error } = await sb.from('messages').update({ body: nb.trim() }).eq('id', m.id); if (error) toast(friendlyError(error));
+      }
+      if (k === 'report') {
+        const reason = prompt('কেন রিপোর্ট করছেন? (ঐচ্ছিক)') ; if (reason === null) return;
+        const { error } = await sb.from('message_reports').insert({ message_id: m.id, reported_by: state.profile.id, reason: reason.slice(0, 500) || null });
+        toast(error ? (/duplicate|unique/i.test(error.message) ? 'আগেই রিপোর্ট করা হয়েছে' : friendlyError(error)) : 'রিপোর্ট পাঠানো হয়েছে, অ্যাডমিন দেখবেন');
+      }
+      if (k === 'del') {
+        if (!confirm('মেসেজটা মুছে ফেলবেন?')) return;
+        if (m.attachment_path) await sb.storage.from('chat-files').remove([m.attachment_path]);
+        const { error } = await sb.from('messages').delete().eq('id', m.id);
+        if (error) toast(friendlyError(error)); else { room.msgs = room.msgs.filter(x => x.id !== m.id); drawMessages(room, false); }
+      }
+    });
+  });
+}
+
+/* ---------- FILES ---------- */
+function attachMenu(room) {
+  sheet(`<h3>Share</h3><div class="attgrid">
+    <button data-a="image"><span class="ai">📷</span>Photo</button>
+    <button data-a="video"><span class="ai">🎬</span>Video</button>
+    <button data-a="document"><span class="ai">📄</span>Document</button>
+    <button data-a="link"><span class="ai">🔗</span>Drive link</button></div>
+    <p class="mut" style="font-size:12px">সর্বোচ্চ ২৫ MB। বড় ফাইল Google Drive-এ রেখে লিংক পাঠান।</p>`, (el, close) => {
+    el.querySelectorAll('[data-a]').forEach(b => b.onclick = () => {
+      close(); const a = b.dataset.a;
+      if (a === 'link') { const t = document.getElementById('tx'); t.value = 'https://drive.google.com/…'; t.focus(); t.select(); return; }
+      const fi = document.getElementById('fi');
+      fi.accept = a === 'image' ? 'image/*' : a === 'video' ? 'video/*' : '.pdf,.doc,.docx,.xls,.xlsx';
+      fi.onchange = () => { const f = fi.files[0]; fi.value = ''; if (f) uploadFile(room, f, a); };
+      fi.click();
+    });
+  });
+}
+async function compressImage(file) {
+  if (!/^image\/(jpeg|png|webp)$/.test(file.type)) return file;
+  try {
+    const bmp = await createImageBitmap(file);
+    const scale = Math.min(1, 1600 / Math.max(bmp.width, bmp.height));
+    const c = document.createElement('canvas'); c.width = Math.round(bmp.width * scale); c.height = Math.round(bmp.height * scale);
+    c.getContext('2d').drawImage(bmp, 0, 0, c.width, c.height);
+    const blob = await new Promise(r => c.toBlob(r, 'image/jpeg', 0.82));
+    if (!blob || blob.size >= file.size) return file;
+    return new File([blob], file.name.replace(/\.\w+$/, '') + '.jpg', { type: 'image/jpeg' });
+  } catch (e) { return file; }
+}
+async function uploadFile(room, file, kind) {
+  if (kind === 'image') file = await compressImage(file);
+  if (file.size > MAX_FILE) return toast('ফাইলটা ২৫ MB-এর বেশি। Google Drive-এ রেখে লিংক পাঠান।');
+  const ms = document.getElementById('ms');
+  const note = document.createElement('div'); note.className = 'upl'; note.textContent = '⏫ Uploading ' + file.name + '…'; ms.appendChild(note); ms.scrollTop = ms.scrollHeight;
+  const safe = file.name.replace(/[^\w.\-]+/g, '_').slice(-80);
+  const path = `${room.conv.id}/${Date.now()}-${Math.random().toString(36).slice(2, 8)}-${safe}`;
+  const { error: upErr } = await sb.storage.from('chat-files').upload(path, file, { contentType: file.type, upsert: false });
+  if (upErr) { note.remove(); return toast(/mime|type/i.test(upErr.message) ? 'এই ধরনের ফাইল পাঠানো যায় না।' : /size|large/i.test(upErr.message) ? 'ফাইলটা খুব বড়।' : friendlyError(upErr)); }
+  const { error } = await sb.from('messages').insert({
+    conversation_id: room.conv.id, sender_id: state.profile.id, attachment_path: path,
+    attachment_name: file.name.slice(0, 200), attachment_type: kind, attachment_size: file.size
+  });
+  note.remove();
+  if (error) { await sb.storage.from('chat-files').remove([path]); toast(friendlyError(error)); }
+}
+
+/* ---------- CALLS (free Jitsi Meet rooms) ---------- */
+async function startCall(conv, kind) {
+  const roomName = 'YaqeenGroup-' + conv.id.slice(0, 8) + '-' + Math.random().toString(36).slice(2, 10);
+  const url = `https://meet.jit.si/${roomName}${kind === 'audio' ? '#config.startWithVideoMuted=true' : ''}`;
+  if (!conv.only_admins_post || isAdmin()) {
+    const { error } = await sb.from('messages').insert({ conversation_id: conv.id, sender_id: state.profile.id, body: url, attachment_type: 'link', attachment_name: 'call:' + kind });
+    if (error) return toast(friendlyError(error));
+  }
+  window.open(url, '_blank', 'noopener');
+}
+
+/* ---------- GROUP SETTINGS (admin) ---------- */
+async function groupSettings(convId) {
+  const { data: c } = await sb.from('conversations').select('*').eq('id', convId).single();
+  const { data: mem } = await sb.from('conversation_members').select('user_id').eq('conversation_id', convId);
+  const ids = new Set((mem || []).map(m => m.user_id));
+  const people = Object.values(ui.people).sort((a, b) => a.full_name.localeCompare(b.full_name));
+  sheet(`<h3>Group settings</h3>
+    <label>Group name</label><input class="in" id="gn" maxlength="80" value="${esc(c.name || '')}">
+    <label class="check"><input type="checkbox" id="oa" ${c.only_admins_post ? 'checked' : ''}> শুধু অ্যাডমিন মেসেজ দিতে পারবে (Announcement)</label>
+    <label class="check"><input type="checkbox" id="ar" ${c.archived ? 'checked' : ''}> গ্রুপ আর্কাইভ করুন</label>
+    <div class="sec">Members (${ids.size})</div>
+    ${people.map(p => `<div class="member">${avatar(p.full_name, p.id, 34)}<div class="rt"><b>${esc(p.full_name)}</b><span>${esc(p.designation || '')}</span></div>
+      <button class="smallbtn ${ids.has(p.id) ? 'red' : 'ok'}" data-u="${p.id}" data-in="${ids.has(p.id) ? 1 : 0}">${ids.has(p.id) ? 'Remove' : 'Add'}</button></div>`).join('')}
+    <button class="btn" id="gs">Save</button>
+    ${c.is_default ? '' : '<button class="btn red" id="gd">Delete group</button>'}`, (el, close) => {
+    el.querySelectorAll('[data-u]').forEach(b => b.onclick = async () => {
+      b.disabled = true; const uid = b.dataset.u, inside = b.dataset.in === '1';
+      const { error } = inside
+        ? await sb.from('conversation_members').delete().eq('conversation_id', convId).eq('user_id', uid)
+        : await sb.from('conversation_members').insert({ conversation_id: convId, user_id: uid });
+      b.disabled = false;
+      if (error) return toast(friendlyError(error));
+      b.dataset.in = inside ? '0' : '1'; b.textContent = inside ? 'Add' : 'Remove'; b.className = 'smallbtn ' + (inside ? 'ok' : 'red');
+    });
+    el.querySelector('#gs').onclick = async () => {
+      const name = el.querySelector('#gn').value.trim(); if (!name) return toast('গ্রুপের নাম দিন');
+      const { error } = await sb.from('conversations').update({ name, only_admins_post: el.querySelector('#oa').checked, archived: el.querySelector('#ar').checked }).eq('id', convId);
+      if (error) return toast(friendlyError(error));
+      close(); toast('সেভ হয়েছে ✓'); await refreshUnread(); openChat(convId);
+    };
+    const gd = el.querySelector('#gd');
+    if (gd) gd.onclick = async () => {
+      if (!confirm('গ্রুপ ও এর সব মেসেজ চিরতরে মুছে যাবে। নিশ্চিত?')) return;
+      const { error } = await sb.from('conversations').delete().eq('id', convId);
+      if (error) return toast(friendlyError(error));
+      close(); toast('গ্রুপ মুছে ফেলা হয়েছে'); go('chats');
+    };
+  });
+}
+function createGroup() {
+  const people = Object.values(ui.people).filter(p => p.id !== state.profile.id).sort((a, b) => a.full_name.localeCompare(b.full_name));
+  sheet(`<h3>নতুন গ্রুপ</h3><label>Group name</label><input class="in" id="gn" maxlength="80" placeholder="যেমন: Halal Safaar – Visa">
+    <label class="check"><input type="checkbox" id="oa"> শুধু অ্যাডমিন মেসেজ দিতে পারবে (Announcement)</label>
+    <div class="sec">সদস্য বাছুন</div>
+    ${people.map(p => `<label class="check"><input type="checkbox" value="${p.id}" class="pm"> ${esc(p.full_name)} <span class="mut" style="font-size:12px">${esc(p.designation || '')}</span></label>`).join('') || '<p class="mut">অন্য কোনো সদস্য নেই</p>'}
+    <button class="btn" id="gc">Create group</button>`, (el, close) => {
+    el.querySelector('#gc').onclick = async () => {
+      const name = el.querySelector('#gn').value.trim(); if (!name) return toast('গ্রুপের নাম দিন');
+      const { data: c, error } = await sb.from('conversations').insert({ type: 'group', name, only_admins_post: el.querySelector('#oa').checked, created_by: state.profile.id }).select().single();
+      if (error) return toast(friendlyError(error));
+      const rows = [state.profile.id, ...[...el.querySelectorAll('.pm:checked')].map(i => i.value)].map(u => ({ conversation_id: c.id, user_id: u }));
+      const { error: e2 } = await sb.from('conversation_members').insert(rows);
+      if (e2) toast(friendlyError(e2));
+      close(); toast('গ্রুপ তৈরি হয়েছে ✓'); await refreshUnread(); openChat(c.id);
+    };
+  });
+}
+
+/* ---------- NOTICES ---------- */
+async function viewNotices() {
+  frame(`<div class="top"><h1>Notices</h1></div><div class="pad" id="nl" style="padding-top:6px"><div class="cen"><div class="spin dark"></div></div></div>${isAdmin() ? '<button class="fab" id="nn">+</button>' : ''}`);
+  if (isAdmin()) document.getElementById('nn').onclick = () => noticeForm();
+  const { data, error } = await sb.from('notices').select('*').order('pinned', { ascending: false }).order('publish_at', { ascending: false }).limit(50);
+  const el = document.getElementById('nl');
+  if (error) return el.innerHTML = `<div class="msg err">${esc(friendlyError(error))}</div>`;
+  const list = data || [];
+  if (!list.length) return el.innerHTML = '<div class="empty">এখনো কোনো নোটিশ নেই</div>';
+  const { data: reads } = await sb.from('notice_reads').select('notice_id,user_id').in('notice_id', list.map(n => n.id));
+  const readMap = {}; (reads || []).forEach(r => (readMap[r.notice_id] = readMap[r.notice_id] || new Set()).add(r.user_id));
+  const total = Object.keys(ui.people).length;
+  const me = state.profile.id;
+  el.innerHTML = list.map(n => {
+    const rs = readMap[n.id] || new Set(), read = rs.has(me), future = new Date(n.publish_at) > new Date();
+    return `<div class="card ${n.pinned ? 'amb' : ''}">
+      <div class="nh">${n.pinned ? '📌 PINNED' : ''}${n.important ? ' · ❗ IMPORTANT' : ''}${!read ? ' · NEW' : ''}${future ? ' · ⏰ SCHEDULED' : ''}</div>
+      <h4>${esc(n.title)}</h4><div class="body">${linkify(n.body)}</div>
+      <div class="meta"><span>${esc(personName(n.created_by))} · ${fmtDate(n.publish_at)}</span><span>👁 ${rs.size}/${total}</span></div>
+      <div class="two">${!read ? `<button class="smallbtn ok" data-r="${n.id}">✓ Mark as read</button>` : ''}${isAdmin() ? `<button class="smallbtn" data-e="${n.id}">Edit</button><button class="smallbtn red" data-d="${n.id}">Delete</button>` : ''}</div></div>`;
+  }).join('');
+  el.querySelectorAll('[data-r]').forEach(b => b.onclick = async () => {
+    const { error } = await sb.from('notice_reads').upsert({ notice_id: b.dataset.r, user_id: me }, { onConflict: 'notice_id,user_id', ignoreDuplicates: true });
+    if (error) toast(friendlyError(error)); else viewNotices();
+  });
+  el.querySelectorAll('[data-e]').forEach(b => b.onclick = () => noticeForm(list.find(n => n.id === b.dataset.e)));
+  el.querySelectorAll('[data-d]').forEach(b => b.onclick = async () => {
+    if (!confirm('নোটিশটা মুছে ফেলবেন?')) return;
+    const { error } = await sb.from('notices').delete().eq('id', b.dataset.d);
+    if (error) toast(friendlyError(error)); else viewNotices();
+  });
+}
+function noticeForm(n) {
+  const local = d => { const x = new Date(d); x.setMinutes(x.getMinutes() - x.getTimezoneOffset()); return x.toISOString().slice(0, 16); };
+  sheet(`<h3>${n ? 'Edit notice' : 'New notice'}</h3>
+    <label>Title</label><input class="in" id="nt" maxlength="150" value="${esc(n ? n.title : '')}">
+    <label>Details</label><textarea class="in" id="nb" maxlength="5000">${esc(n ? n.body : '')}</textarea>
+    <label>Publish time</label><input class="in" type="datetime-local" id="np" value="${local(n ? n.publish_at : new Date())}">
+    <label class="check"><input type="checkbox" id="pn" ${n && n.pinned ? 'checked' : ''}> 📌 Pin on top</label>
+    <label class="check"><input type="checkbox" id="im" ${n && n.important ? 'checked' : ''}> ❗ Important</label>
+    <button class="btn" id="ns">${n ? 'Save' : 'Publish'}</button>`, (el, close) => {
+    el.querySelector('#ns').onclick = async () => {
+      const title = el.querySelector('#nt').value.trim(), body = el.querySelector('#nb').value.trim();
+      if (!title || !body) return toast('শিরোনাম ও বিস্তারিত দিন');
+      const row = { title, body, pinned: el.querySelector('#pn').checked, important: el.querySelector('#im').checked, publish_at: new Date(el.querySelector('#np').value || Date.now()).toISOString(), updated_at: new Date().toISOString() };
+      const { error } = n ? await sb.from('notices').update(row).eq('id', n.id) : await sb.from('notices').insert({ ...row, created_by: state.profile.id });
+      if (error) return toast(friendlyError(error));
+      close(); toast('সেভ হয়েছে ✓'); viewNotices();
+    };
+  });
+}
+
+/* ---------- TEAM DIRECTORY ---------- */
+let teamFilter = 'all';
+function viewTeam() {
+  ui.tab = 'menu';
+  const ppl = Object.values(ui.people).filter(p => teamFilter === 'all' || p.company_id === teamFilter).sort((a, b) => a.full_name.localeCompare(b.full_name));
+  $app.innerHTML = `<div class="shell"><div class="view"><div class="top"><button class="back" id="bk">←</button><h1>Team (${Object.keys(ui.people).length})</h1></div>
+    <div class="chips"><button class="chip ${teamFilter === 'all' ? 'on' : ''}" data-f="all">All</button>${state.companies.map(c => `<button class="chip ${teamFilter === c.id ? 'on' : ''}" data-f="${c.id}">${esc(c.name)}</button>`).join('')}</div>
+    <div class="list" style="margin-top:8px">${ppl.map(p => `<button class="row" data-u="${p.id}">${avatar(p.full_name, p.id)}<div class="rt"><b>${esc(p.full_name)}${isOnline(p) ? '<span class="dotonline"></span>' : ''}</b><span>${esc(p.designation || '')}${p.designation ? ' · ' : ''}${esc(nameOf(state.departments, p.department_id))}</span></div><span class="tag">${esc(nameOf(state.companies, p.company_id))}</span></button>`).join('') || '<div class="empty">কেউ নেই</div>'}</div></div>${tabbar()}</div>`;
+  document.querySelectorAll('.tb').forEach(b => b.onclick = () => go(b.dataset.t));
+  document.getElementById('bk').onclick = () => go('menu');
+  document.querySelectorAll('.chip').forEach(b => b.onclick = () => { teamFilter = b.dataset.f; viewTeam(); });
+  document.querySelectorAll('[data-u]').forEach(b => b.onclick = () => memberCard(b.dataset.u));
+}
+function memberCard(id) {
+  const p = ui.people[id]; if (!p) return;
+  sheet(`<div class="cen">${avatar(p.full_name, p.id, 76)}<h3>${esc(p.full_name)}</h3><p class="mut">${esc(p.designation || '')}</p></div>
+    <div class="kv"><span>Company</span><b>${esc(nameOf(state.companies, p.company_id))}</b></div>
+    <div class="kv"><span>Department</span><b>${esc(nameOf(state.departments, p.department_id))}</b></div>
+    ${p.phone ? `<div class="kv"><span>Phone</span><b>${esc(p.phone)}</b></div>` : ''}
+    <div class="kv"><span>Status</span><b>${isOnline(p) ? '🟢 Online' : (p.last_seen ? 'Last seen ' + fmtShort(p.last_seen) : 'Offline')}</b></div>
+    ${p.id !== state.profile.id ? '<button class="btn" id="dm">💬 Message</button>' : ''}`, (el, close) => {
+    const b = el.querySelector('#dm'); if (b) b.onclick = () => { close(); startDM(p.id); };
+  });
+}
+
+/* ---------- TASKS ---------- */
+let taskFilter = 'mine';
+async function viewTasks() {
+  const f = [['mine', 'My tasks'], ['pending', 'Pending'], ['overdue', 'Overdue'], ['completed', 'Completed']];
+  if (isMgr()) f.push(['all', 'All tasks']);
+  frame(`<div class="top"><h1>Tasks</h1></div>
+    <div class="chips">${f.map(([k, l]) => `<button class="chip ${taskFilter === k ? 'on' : ''}" data-f="${k}">${l}</button>`).join('')}</div>
+    <div class="pad" id="tl" style="padding-top:8px"><div class="cen"><div class="spin dark"></div></div></div>${isMgr() ? '<button class="fab" id="nt">+</button>' : ''}`);
+  document.querySelectorAll('.chip').forEach(b => b.onclick = () => { taskFilter = b.dataset.f; viewTasks(); });
+  if (isMgr()) document.getElementById('nt').onclick = () => taskForm();
+  let q = sb.from('tasks').select('*').order('due_date', { ascending: true, nullsFirst: false }).limit(100);
+  const me = state.profile.id;
+  if (taskFilter === 'mine') q = q.eq('assigned_to', me).neq('status', 'completed');
+  if (taskFilter === 'pending') q = q.neq('status', 'completed');
+  if (taskFilter === 'overdue') q = q.neq('status', 'completed').lt('due_date', new Date().toISOString());
+  if (taskFilter === 'completed') q = q.eq('status', 'completed');
+  const { data, error } = await q;
+  const el = document.getElementById('tl');
+  if (error) return el.innerHTML = `<div class="msg err">${esc(friendlyError(error))}</div>`;
+  const list = data || [];
+  let summary = '';
+  if (isMgr() && taskFilter === 'all') {
+    const by = s => list.filter(t => t.status === s).length;
+    summary = `<div class="card"><b>Overall progress</b><div class="meta"><span>To do: ${by('todo')}</span><span>In progress: ${by('in_progress')}</span><span>Review: ${by('under_review')}</span><span>Done: ${by('completed')}</span></div>
+      <div class="meter"><i style="width:${list.length ? Math.round(by('completed') / list.length * 100) : 0}%"></i></div></div>`;
+  }
+  el.innerHTML = summary + (list.length ? list.map(taskCard).join('') : '<div class="empty">কোনো টাস্ক নেই</div>');
+  el.querySelectorAll('[data-task]').forEach(b => b.onclick = () => viewTask(b.dataset.task));
+}
+function taskCard(t) {
+  const od = t.due_date && t.status !== 'completed' && new Date(t.due_date) < new Date();
+  return `<button class="card" style="width:100%;text-align:left" data-task="${t.id}"><span class="pri ${t.priority}">● ${t.priority.toUpperCase()}</span><h4>${esc(t.title)}</h4>
+    <div class="meta"><span>👤 ${esc(personName(t.assigned_to))}</span><span class="${od ? 'overdue' : ''}">${t.due_date ? (od ? 'Overdue · ' : 'Due ') + fmtDate(t.due_date) : 'No due date'}</span><span class="stt ${t.status}">${t.status.replace('_', ' ')}</span></div></button>`;
+}
+async function viewTask(id) {
+  cleanupChannels();
+  const [{ data: t, error }, { data: ups }] = await Promise.all([
+    sb.from('tasks').select('*').eq('id', id).single(),
+    sb.from('task_updates').select('*').eq('task_id', id).order('created_at')
+  ]);
+  if (error || !t) return toast('টাস্ক পাওয়া যায়নি');
+  const canStatus = t.assigned_to === state.profile.id || isMgr();
+  const st = [['todo', 'To Do'], ['in_progress', 'In Progress'], ['under_review', 'Under Review'], ['completed', 'Completed']];
+  $app.innerHTML = `<div class="top"><button class="back" id="bk">←</button><h1>Task</h1>${isMgr() ? '<div class="act"><button id="ed">✏️</button>' + (isAdmin() ? '<button id="dl">🗑️</button>' : '') + '</div>' : ''}</div>
+  <div class="pad" style="padding-top:10px">
+    <span class="pri ${t.priority}">● ${t.priority.toUpperCase()}</span><h2 style="margin-top:6px;font-size:21px">${esc(t.title)}</h2>
+    ${t.description ? `<div class="body" style="margin-top:10px;white-space:pre-wrap;font-size:14.5px;line-height:1.6">${linkify(t.description)}</div>` : ''}
+    <div style="margin-top:14px">
+      <div class="kv"><span>Assigned to</span><b>${esc(personName(t.assigned_to))}</b></div>
+      <div class="kv"><span>Created by</span><b>${esc(personName(t.created_by))}</b></div>
+      <div class="kv"><span>Due</span><b>${t.due_date ? fmtDate(t.due_date) + ' ' + fmtTime(t.due_date) : '—'}</b></div>
+      ${t.completed_at ? `<div class="kv"><span>Completed</span><b>${fmtDate(t.completed_at)}</b></div>` : ''}
+    </div>
+    <label>Status</label><select class="in" id="ss" ${canStatus ? '' : 'disabled'}>${st.map(([k, l]) => `<option value="${k}" ${t.status === k ? 'selected' : ''}>${l}</option>`).join('')}</select>
+    <div class="sec">Progress updates</div>
+    ${(ups || []).map(u => `<div class="upd">${u.new_status ? `<b>→ ${esc(u.new_status.replace('_', ' '))}</b> ` : ''}${u.comment ? linkify(u.comment) : ''}<small>${esc(personName(u.user_id))} · ${fmtDate(u.created_at)} ${fmtTime(u.created_at)}</small></div>`).join('') || '<p class="mut">এখনো কোনো আপডেট নেই</p>'}
+    <label>Add a comment</label><textarea class="in" id="cm" maxlength="2000" placeholder="কাজের অগ্রগতি লিখুন…" style="min-height:70px"></textarea>
+    <button class="btn" id="sv">Save update</button>
+  </div>`;
+  document.getElementById('bk').onclick = () => go('tasks');
+  const ed = document.getElementById('ed'); if (ed) ed.onclick = () => taskForm(t);
+  const dl = document.getElementById('dl'); if (dl) dl.onclick = async () => {
+    if (!confirm('টাস্কটা মুছে ফেলবেন?')) return;
+    const { error } = await sb.from('tasks').delete().eq('id', t.id); if (error) return toast(friendlyError(error)); go('tasks');
+  };
+  document.getElementById('sv').onclick = async () => {
+    const ns = document.getElementById('ss').value, cm = document.getElementById('cm').value.trim();
+    if (ns === t.status && !cm) return toast('কিছু পরিবর্তন করা হয়নি');
+    if (ns !== t.status) { const { error } = await sb.from('tasks').update({ status: ns }).eq('id', t.id); if (error) return toast(friendlyError(error)); }
+    const { error: e2 } = await sb.from('task_updates').insert({ task_id: t.id, user_id: state.profile.id, comment: cm || null, new_status: ns !== t.status ? ns : null });
+    if (e2) return toast(friendlyError(e2));
+    toast('আপডেট সেভ হয়েছে ✓'); viewTask(t.id);
+  };
+}
+function taskForm(t) {
+  const local = d => { if (!d) return ''; const x = new Date(d); x.setMinutes(x.getMinutes() - x.getTimezoneOffset()); return x.toISOString().slice(0, 16); };
+  const people = Object.values(ui.people).sort((a, b) => a.full_name.localeCompare(b.full_name));
+  sheet(`<h3>${t ? 'Edit task' : 'New task'}</h3>
+    <label>Title</label><input class="in" id="tt" maxlength="150" value="${esc(t ? t.title : '')}">
+    <label>Description</label><textarea class="in" id="td" maxlength="5000">${esc(t ? t.description || '' : '')}</textarea>
+    <label>Assign to</label><select class="in" id="ta"><option value="">বেছে নিন</option>${people.map(p => `<option value="${p.id}" ${t && t.assigned_to === p.id ? 'selected' : ''}>${esc(p.full_name)}</option>`).join('')}</select>
+    <label>Priority</label><select class="in" id="tp">${['low', 'medium', 'high', 'urgent'].map(p => `<option value="${p}" ${(t ? t.priority : 'medium') === p ? 'selected' : ''}>${p[0].toUpperCase() + p.slice(1)}</option>`).join('')}</select>
+    <label>Due date</label><input class="in" type="datetime-local" id="tdd" value="${local(t && t.due_date)}">
+    <button class="btn" id="ts">${t ? 'Save' : 'Create task'}</button>`, (el, close) => {
+    el.querySelector('#ts').onclick = async () => {
+      const title = el.querySelector('#tt').value.trim(), assigned_to = el.querySelector('#ta').value;
+      if (!title) return toast('টাস্কের নাম দিন'); if (!assigned_to) return toast('কাকে দেবেন বেছে নিন');
+      const dd = el.querySelector('#tdd').value;
+      const row = { title, description: el.querySelector('#td').value.trim() || null, assigned_to, priority: el.querySelector('#tp').value, due_date: dd ? new Date(dd).toISOString() : null, department_id: (ui.people[assigned_to] || {}).department_id || null };
+      const { error } = t ? await sb.from('tasks').update(row).eq('id', t.id) : await sb.from('tasks').insert({ ...row, created_by: state.profile.id });
+      if (error) return toast(friendlyError(error));
+      close(); toast('সেভ হয়েছে ✓'); t ? viewTask(t.id) : viewTasks();
+    };
+  });
+}
+
+/* ---------- DAILY REPORTS ---------- */
+async function viewReport() {
+  const today = todayDhaka();
+  const { data: r } = await sb.from('daily_reports').select('*').eq('user_id', state.profile.id).eq('report_date', today).maybeSingle();
+  $app.innerHTML = `<div class="top"><button class="back" id="bk">←</button><h1>Daily work report<span class="sub">${fmtDate(today)}</span></h1>${isMgr() ? '<div class="act"><button id="all" title="Team reports">📋</button></div>' : ''}</div>
+  <div class="pad" style="padding-top:6px">
+    ${r ? '<div class="msg ok">আজকের রিপোর্ট জমা হয়েছে। চাইলে আপডেট করতে পারেন।</div>' : ''}
+    <label>আজকে কী কী কাজ করেছেন *</label><textarea class="in" id="wd" maxlength="5000" placeholder="• ৩টা ভিসা ফাইল জমা&#10;• ২ জন ক্লায়েন্ট ফলো-আপ">${esc(r ? r.work_done : '')}</textarea>
+    <label>Leads / clients handled</label><input class="in" id="lc" type="number" min="0" max="10000" inputmode="numeric" value="${r && r.leads_count != null ? r.leads_count : ''}">
+    <label>কোনো সমস্যা বা সাহায্য লাগবে?</label><textarea class="in" id="is" maxlength="2000" style="min-height:64px">${esc(r ? r.issues || '' : '')}</textarea>
+    <label>Drive link (ঐচ্ছিক)</label><input class="in" id="al" maxlength="500" placeholder="https://drive.google.com/…" value="${esc(r ? r.attachment_link || '' : '')}">
+    <button class="btn" id="sb">${r ? 'Update report' : 'Submit report'}</button>
+    <div class="sec">My recent reports</div><div id="mine"></div>
+  </div>`;
+  document.getElementById('bk').onclick = () => go('menu');
+  const all = document.getElementById('all'); if (all) all.onclick = () => teamReports(today);
+  document.getElementById('sb').onclick = async () => {
+    const work_done = document.getElementById('wd').value.trim(); if (!work_done) return toast('কাজের বিবরণ লিখুন');
+    const lc = document.getElementById('lc').value;
+    const row = { user_id: state.profile.id, report_date: today, work_done, leads_count: lc === '' ? null : Math.max(0, parseInt(lc, 10) || 0), issues: document.getElementById('is').value.trim() || null, attachment_link: document.getElementById('al').value.trim() || null, updated_at: new Date().toISOString() };
+    const { error } = await sb.from('daily_reports').upsert(row, { onConflict: 'user_id,report_date' });
+    if (error) return toast(friendlyError(error));
+    toast('রিপোর্ট জমা হয়েছে ✓'); viewReport();
+  };
+  const { data: mine } = await sb.from('daily_reports').select('*').eq('user_id', state.profile.id).order('report_date', { ascending: false }).limit(7);
+  document.getElementById('mine').innerHTML = (mine || []).map(reportCard).join('') || '<p class="mut">এখনো কোনো রিপোর্ট নেই</p>';
+}
+function reportCard(r, showName) {
+  return `<div class="card"><div class="meta" style="margin-top:0"><b style="color:var(--navy)">${showName ? esc(personName(r.user_id)) : fmtDate(r.report_date)}</b>${r.leads_count != null ? `<span>Leads: ${r.leads_count}</span>` : ''}</div>
+    <div class="body" style="margin-top:6px">${linkify(r.work_done)}</div>${r.issues ? `<div class="msg info" style="margin-top:8px">⚠️ ${linkify(r.issues)}</div>` : ''}${r.attachment_link ? `<div style="margin-top:6px;font-size:13px">${linkify(r.attachment_link)}</div>` : ''}</div>`;
+}
+async function teamReports(date) {
+  $app.innerHTML = `<div class="top"><button class="back" id="bk">←</button><h1>Team reports</h1></div>
+    <div class="pad" style="padding-top:6px"><label>Date</label><input class="in" type="date" id="dt" value="${date}"><div id="rl" style="margin-top:6px"></div></div>`;
+  document.getElementById('bk').onclick = viewReport;
+  const load = async d => {
+    const { data } = await sb.from('daily_reports').select('*').eq('report_date', d);
+    const got = new Set((data || []).map(r => r.user_id));
+    const missing = Object.values(ui.people).filter(p => !got.has(p.id));
+    document.getElementById('rl').innerHTML = `<p class="mut" style="margin:8px 0">জমা: ${got.size} / ${Object.keys(ui.people).length}</p>` + (data || []).map(r => reportCard(r, true)).join('') +
+      (missing.length ? `<div class="sec">এখনো জমা দেননি</div><p class="mut">${missing.map(p => esc(p.full_name)).join(', ')}</p>` : '');
+  };
+  document.getElementById('dt').onchange = e => load(e.target.value);
+  load(date);
+}
+
+/* ---------- MENU ---------- */
+function viewMenu() {
+  const p = state.profile;
+  frame(`<div class="top"><h1>Menu</h1></div><div class="pad" style="padding-top:8px">
+    <button class="card row" id="pf" style="width:100%;text-align:left">${avatar(p.full_name, p.id, 52)}<div class="rt"><b>${esc(p.full_name)}</b><span>${esc(p.designation || p.role)}</span></div><span>›</span></button>
+    <div class="tiles">
+      <button class="tile" id="m-team"><span class="ic">👥</span><b>Team</b><small>সব সদস্য</small></button>
+      <button class="tile" id="m-rep"><span class="ic">📝</span><b>Daily report</b><small>আজকের কাজ</small></button>
+      ${isAdmin() ? '<button class="tile" id="m-adm"><span class="ic">🛡️</span><b>Admin panel</b><small>নিয়ন্ত্রণ</small></button>' : ''}
+      ${isAdmin() ? '<button class="tile" id="m-grp"><span class="ic">➕</span><b>New group</b><small>গ্রুপ তৈরি</small></button>' : ''}
+    </div>
+    <button class="btn ghost" id="lo" style="margin-top:22px">Log out</button>
+    <p class="mut center" style="margin-top:14px;font-size:12px">Yaqeen Group Team App · v1.0</p></div>`);
+  document.getElementById('pf').onclick = renderProfile;
+  document.getElementById('m-team').onclick = viewTeam;
+  document.getElementById('m-rep').onclick = viewReport;
+  const a = document.getElementById('m-adm'); if (a) a.onclick = viewAdmin;
+  const g = document.getElementById('m-grp'); if (g) g.onclick = createGroup;
+  document.getElementById('lo').onclick = async () => { clearInterval(ui.heartbeat); ui.heartbeat = null; if (ui.globalCh) { sb.removeChannel(ui.globalCh); ui.globalCh = null; } cleanupChannels(); logout(); };
+}
+
+/* ---------- ADMIN PANEL ---------- */
+async function viewAdmin() {
+  cleanupChannels();
+  $app.innerHTML = `<div class="hero" style="background:linear-gradient(150deg,#1a2b3a,var(--navy))"><div class="row"><button class="back" id="bk" style="color:#fff;font-size:20px">←</button><div class="hi" style="margin-top:0"><small style="letter-spacing:1.5px;font-size:10px;opacity:.7">ADMIN PANEL</small><b>Dashboard</b></div></div>
+    <div class="kp"><div><b id="a1">–</b><span>members</span></div><div><b id="a2">–</b><span>pending</span></div><div><b id="a3">–</b><span>open reports</span></div></div></div>
+    <div class="pad" style="padding-top:4px">
+      <div class="tiles">
+        <button class="tile" id="x-ap"><span class="ic">✅</span><b>Approvals</b><small>নতুন অ্যাকাউন্ট</small></button>
+        <button class="tile" id="x-mb"><span class="ic">👥</span><b>Members</b><small>রোল ও স্ট্যাটাস</small></button>
+        <button class="tile" id="x-gr"><span class="ic">💬</span><b>Groups</b><small>গ্রুপ ও সদস্য</small></button>
+        <button class="tile" id="x-rp"><span class="ic">🚩</span><b>Reports</b><small>রিপোর্ট করা মেসেজ</small></button>
+        <button class="tile" id="x-co"><span class="ic">🏢</span><b>Companies</b><small>কোম্পানি ও বিভাগ</small></button>
+        <button class="tile" id="x-nt"><span class="ic">📢</span><b>Notices</b><small>নোটিশ দিন</small></button>
+      </div>
+      <div class="card" id="stor"><b>Storage</b><p class="mut" style="font-size:12.5px">লোড হচ্ছে…</p></div>
+    </div>`;
+  document.getElementById('bk').onclick = () => go('menu');
+  document.getElementById('x-ap').onclick = renderApprovals;
+  document.getElementById('x-mb').onclick = () => renderMembers();
+  document.getElementById('x-gr').onclick = adminGroups;
+  document.getElementById('x-rp').onclick = adminReports;
+  document.getElementById('x-co').onclick = adminLookups;
+  document.getElementById('x-nt').onclick = () => go('notices');
+  const [pend, reps, use] = await Promise.all([
+    sb.from('profiles').select('id', { count: 'exact', head: true }).eq('status', 'pending'),
+    sb.from('message_reports').select('id', { count: 'exact', head: true }).eq('status', 'open'),
+    sb.rpc('get_storage_usage')
+  ]);
+  document.getElementById('a1').textContent = Object.keys(ui.people).length;
+  document.getElementById('a2').textContent = pend.count || 0;
+  document.getElementById('a3').textContent = reps.count || 0;
+  const u = use.data;
+  if (u) {
+    const bar = (used, lim, label) => { const pc = Math.min(100, Math.round(used / lim * 100)); return `<div style="margin-top:10px;font-size:13px">${label}: ${fmtSize(used)} / ${fmtSize(lim)} (${pc}%)</div><div class="meter"><i class="${pc >= 90 ? 'bad' : pc >= 80 ? 'warn' : ''}" style="width:${pc}%"></i></div>`; };
+    const warn = (u.file_bytes / u.file_limit_bytes >= 0.8 || u.db_bytes / u.db_limit_bytes >= 0.8) ? '<div class="msg info">⚠️ জায়গা ৮০% পার হয়েছে। পুরনো বড় ফাইল Drive-এ সরিয়ে অ্যাপ থেকে মুছে ফেলুন।</div>' : '';
+    document.getElementById('stor').innerHTML = `<b>Storage (free plan)</b>${bar(u.file_bytes, u.file_limit_bytes, '📁 Files')}${bar(u.db_bytes, u.db_limit_bytes, '💬 Messages & data')}${warn}`;
+  }
+}
+// Approvals & members screens from Step 3 go back to the admin panel
+const _renderApprovals = renderApprovals, _renderMembers = renderMembers;
+renderApprovals = async function () { await _renderApprovals(); const b = document.getElementById('bk'); if (b) b.onclick = async () => { await loadPeople(); viewAdmin(); }; };
+renderMembers = async function (f) { await _renderMembers(f); const b = document.getElementById('bk'); if (b) b.onclick = async () => { await loadPeople(); viewAdmin(); }; document.querySelectorAll('.chip').forEach(c => c.onclick = () => renderMembers(c.dataset.f)); };
+const _renderProfile = renderProfile;
+renderProfile = async function () { await _renderProfile(); document.getElementById('bk').onclick = () => go('menu'); };
+
+async function adminGroups() {
+  const { data } = await sb.from('conversations').select('*').eq('type', 'group').order('created_at');
+  $app.innerHTML = `<div class="top"><button class="back" id="bk">←</button><h1>Groups</h1><div class="act"><button id="ng">➕</button></div></div>
+    <div class="list">${(data || []).map(c => `<button class="row" data-g="${c.id}">${avatar(c.name, c.id)}<div class="rt"><b>${esc(c.name)}</b><span>${c.is_default ? 'Default · সবাই অটো যুক্ত হয়' : ''}${c.only_admins_post ? ' · Announcement' : ''}${c.archived ? ' · Archived' : ''}</span></div><span>⚙️</span></button>`).join('') || '<div class="empty">কোনো গ্রুপ নেই</div>'}</div>`;
+  document.getElementById('bk').onclick = viewAdmin;
+  document.getElementById('ng').onclick = createGroup;
+  document.querySelectorAll('[data-g]').forEach(b => b.onclick = () => groupSettings(b.dataset.g));
+}
+async function adminReports() {
+  const { data, error } = await sb.from('message_reports').select('*, messages(id, body, attachment_type, attachment_name, sender_id, conversation_id, created_at)').eq('status', 'open').order('created_at', { ascending: false });
+  $app.innerHTML = `<div class="top"><button class="back" id="bk">←</button><h1>Reported messages</h1></div><div class="pad" id="rl" style="padding-top:6px"></div>`;
+  document.getElementById('bk').onclick = viewAdmin;
+  const el = document.getElementById('rl');
+  if (error) return el.innerHTML = `<div class="msg err">${esc(friendlyError(error))}</div>`;
+  if (!(data || []).length) return el.innerHTML = '<div class="empty">কোনো খোলা রিপোর্ট নেই ✓</div>';
+  el.innerHTML = data.map(r => { const m = r.messages || {}; return `<div class="card">
+    <div class="nh" style="color:var(--red)">🚩 REPORTED by ${esc(personName(r.reported_by))}</div>
+    <div class="body" style="margin-top:6px;background:#F6F8F9;border-radius:10px;padding:8px">${m.body ? esc(m.body) : esc(m.attachment_name || '(file)')}</div>
+    <div class="meta"><span>Sender: ${esc(personName(m.sender_id))}</span><span>${m.created_at ? fmtDate(m.created_at) : ''}</span></div>
+    ${r.reason ? `<p class="mut" style="margin-top:6px">কারণ: ${esc(r.reason)}</p>` : ''}
+    <div class="two"><button class="smallbtn red" data-del="${m.id}" data-r="${r.id}">Delete message</button><button class="smallbtn" data-ok="${r.id}">Keep (resolve)</button></div></div>`; }).join('');
+  el.querySelectorAll('[data-ok]').forEach(b => b.onclick = async () => { await sb.from('message_reports').update({ status: 'resolved' }).eq('id', b.dataset.ok); adminReports(); });
+  el.querySelectorAll('[data-del]').forEach(b => b.onclick = async () => {
+    if (!confirm('মেসেজটা সবার জন্য মুছে ফেলবেন?')) return;
+    const { error } = await sb.from('messages').delete().eq('id', b.dataset.del);
+    if (error) return toast(friendlyError(error)); toast('মুছে ফেলা হয়েছে'); adminReports();
+  });
+}
+async function adminLookups() {
+  state.companies = []; await loadLookups();
+  const block = (title, table, list) => `<div class="sec">${title}</div>${list.map(x => `<div class="member"><div class="rt"><b>${esc(x.name)}</b></div><button class="smallbtn red" data-t="${table}" data-id="${x.id}">Remove</button></div>`).join('')}
+    <div class="two"><input class="in" id="new-${table}" maxlength="80" placeholder="নতুন নাম"><button class="smallbtn ok" data-add="${table}">Add</button></div>`;
+  $app.innerHTML = `<div class="top"><button class="back" id="bk">←</button><h1>Companies & departments</h1></div><div class="pad" style="padding-top:0">
+    ${block('Companies', 'companies', state.companies)}${block('Departments', 'departments', state.departments)}
+    <p class="mut" style="margin-top:16px;font-size:12px">কোনো কোম্পানি/বিভাগ মুছলে সেখানকার সদস্যদের প্রোফাইলে সেটা খালি দেখাবে।</p></div>`;
+  document.getElementById('bk').onclick = viewAdmin;
+  document.querySelectorAll('[data-add]').forEach(b => b.onclick = async () => {
+    const t = b.dataset.add, name = document.getElementById('new-' + t).value.trim(); if (!name) return;
+    const { error } = await sb.from(t).insert({ name }); if (error) return toast(/duplicate|unique/i.test(error.message) ? 'এই নাম আগেই আছে' : friendlyError(error)); adminLookups();
+  });
+  document.querySelectorAll('[data-id]').forEach(b => b.onclick = async () => {
+    if (!confirm('মুছে ফেলবেন?')) return;
+    const { error } = await sb.from(b.dataset.t).delete().eq('id', b.dataset.id); if (error) return toast(friendlyError(error)); adminLookups();
+  });
+}
 
 /* ---------- start ---------- */
 const initialHash = location.hash + location.search;
