@@ -1,5 +1,5 @@
 // Service worker: installable app shell + phone notifications
-const CACHE = 'yaqeen-shell-v9';
+const CACHE = 'yaqeen-shell-v14';
 const SHELL = ['./', './index.html', './manifest.json', './icon-192.png', './icon-512.png', './mark.jpg', './logo-full.jpg'];
 self.addEventListener('install', e => {
   e.waitUntil(caches.open(CACHE).then(c => c.addAll(SHELL)).then(() => self.skipWaiting()));
@@ -34,7 +34,8 @@ self.addEventListener('notificationclick', e => {
   e.notification.close();
   const target = new URL((e.notification.data && e.notification.data.url) || './', self.registration.scope).href;
   e.waitUntil(self.clients.matchAll({ type: 'window', includeUncontrolled: true }).then(list => {
-    for (const c of list) { if (c.url.startsWith(self.registration.scope) && 'focus' in c) return c.focus(); }
+    for (const c of list) { if (c.url.startsWith(self.registration.scope) && 'focus' in c) { c.postMessage({ type: 'open', url: target }); return c.focus(); } }
     return self.clients.openWindow(target);
   }));
 });
+
