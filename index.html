@@ -266,6 +266,42 @@ img.av{display:block}
 .sst{display:grid;grid-template-columns:repeat(4,1fr);gap:6px;margin-top:14px}
 .sst div{background:#F6F8F9;border-radius:12px;padding:9px 4px;text-align:center}.sst b{display:block;font-size:16px;color:var(--navy)}.sst span{font-size:10.5px;color:var(--mut)}
 .pad .trt.sal th,.pad .trt.sal td{font-size:11px;padding:6px 2px}
+.attcard{background:linear-gradient(150deg,#0B3B5A,#0F7C7A);color:#fff;border-radius:20px;padding:18px 16px;text-align:center}
+.attcard.done{background:linear-gradient(150deg,#14532D,#16A34A)}
+.attclock{font-size:40px;font-weight:800;letter-spacing:-1px}
+.attrow{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:14px}
+.attrow div{background:rgba(255,255,255,.13);border-radius:12px;padding:9px;display:flex;flex-direction:column;gap:2px}
+.attrow span{font-size:11.5px;opacity:.8}.attrow b{font-size:18px}.attrow em{font-style:normal;font-size:11.5px;color:#FDE68A}.attrow em.ok{color:#BBF7D0}
+.attbtn{margin-top:14px;width:100%;background:var(--amber);color:var(--navy);border-radius:14px;padding:14px;font-size:16px;font-weight:800}
+.attbtn:disabled{opacity:.6}.attdone{margin-top:14px;font-weight:700;font-size:15px}
+.attstep{margin-top:8px;font-size:13px;min-height:18px}
+.arow{display:flex;align-items:center;gap:12px;background:#fff;border:1px solid var(--line);border-left:4px solid #CBD5DC;border-radius:12px;padding:9px 12px;margin-top:7px}
+.arow .ad{width:54px;text-align:center}.arow .ad b{display:block;font-size:13px}.arow .ad span{font-size:11px;color:var(--mut)}
+.arow .rt b{font-size:14px}.arow.ok{border-left-color:#16A34A}.arow.late{border-left-color:var(--amber)}.arow.abs{border-left-color:var(--red)}.arow.leave{border-left-color:#0EA5E9}.arow.off{opacity:.6}.arow.wait{border-left-color:#CBD5DC;border-style:dashed}
+.camov{position:fixed;inset:0;z-index:80;background:#000;display:flex;flex-direction:column;color:#fff;padding:calc(12px + env(safe-area-inset-top,0px)) 0 calc(20px + env(safe-area-inset-bottom,0px))}
+.camtop{text-align:center;display:flex;flex-direction:column;gap:2px;padding:4px 0 10px}.camtop span{font-size:12.5px;opacity:.8}
+.camwrap{flex:1;position:relative;overflow:hidden}.camwrap video{width:100%;height:100%;object-fit:cover;transform:scaleX(-1)}
+.camframe{position:absolute;left:50%;top:46%;width:62%;aspect-ratio:3/4;transform:translate(-50%,-50%);border:3px dashed rgba(255,255,255,.7);border-radius:50%}
+.cambtns{display:flex;justify-content:space-around;align-items:center;padding-top:16px}
+.camshot{width:74px;height:74px;border-radius:50%;background:#fff;border:6px solid rgba(255,255,255,.35);background-clip:padding-box}
+.camx{width:52px;height:52px;border-radius:50%;background:rgba(255,255,255,.15);font-size:22px;color:#fff}
+.selfies{display:flex;gap:8px;margin-top:10px;flex-wrap:wrap}.selfies a{position:relative;display:block}
+.selfies img{width:74px;height:96px;object-fit:cover;border-radius:10px;border:1px solid var(--line)}
+.selfies a span{position:absolute;left:4px;bottom:4px;background:rgba(0,0,0,.55);color:#fff;font-size:10.5px;padding:1px 6px;border-radius:6px}
+.card.aadm.abs{border-left:4px solid var(--red)}.card.aadm.late{border-left:4px solid var(--amber)}.card.aadm.ok{border-left:4px solid #16A34A}.card.aadm.leave{border-left:4px solid #0EA5E9}
+.lcard .lic{font-size:26px;width:44px;height:44px;border-radius:13px;background:#F3F6F8;display:flex;align-items:center;justify-content:center}
+.lst{font-size:11.5px;font-weight:700;padding:4px 8px;border-radius:9px;white-space:nowrap}
+.lst.pending{background:#FFF3DC;color:#92400E}.lst.ok{background:#E7F5EE;color:#166534}.lst.bad{background:#FDECEC;color:#991B1B}.lst.gray{background:#EEF2F4;color:#64748B}
+.lq{margin-top:10px;font-size:13.5px;line-height:1.6;background:#F8FAFB;border-radius:10px;padding:8px 10px}
+.ltags{display:flex;flex-wrap:wrap;gap:6px;margin-top:8px}.ltags span,.ltags a{font-size:11.5px;background:#EEF2F4;border-radius:8px;padding:3px 8px;color:#45545f}
+.ltags .urgent{background:#FDECEC;color:#991B1B;font-weight:700}.ltags .important{background:#FFF3DC;color:#92400E;font-weight:700}
+.lchips{display:flex;flex-wrap:wrap;gap:6px}.lchip{padding:8px 12px;border-radius:12px;border:1.5px solid var(--line);font-size:13px;font-weight:600;background:#fff}
+.lchip.on{border-color:var(--teal);background:#E3F1F0;color:var(--teal)}
+.scard2{width:100%;text-align:left;display:flex;align-items:center;gap:12px;background:#FFF8EC;border-color:#F3DDB4}
+.hrow2{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:10px}
+.hmini{display:flex;align-items:center;gap:10px;background:#fff;border:1.5px solid var(--line);border-radius:14px;padding:10px 12px;text-align:left}
+.hmini>span{font-size:24px}.hmini .rt b{font-size:14px;color:var(--navy)}.hmini .rt span{font-size:11.5px}
+.hmini.warn{border-color:#F3C77A;background:#FFF8EC}
 </style>
 </head>
 <body>
@@ -2217,6 +2253,320 @@ handleDeepLink = function (href) {
   let u; try { u = new URL(href || location.href); } catch (e) { return _hdlSalah(href); }
   if (u.searchParams.get('s')) { if (location.search) history.replaceState(null, '', location.pathname); return viewSalah(); }
   return _hdlSalah(href);
+};
+
+/* =========================================================
+   🕒 SELFIE + GPS ATTENDANCE  ·  🏖️ LEAVE REQUESTS
+   ========================================================= */
+const LEAVE_TYPES = { sick: ['🤒', 'অসুস্থতা'], casual: ['🌴', 'সাধারণ ছুটি'], emergency: ['🚨', 'জরুরি কাজ'], family: ['👨‍👩‍👧', 'পারিবারিক'], other: ['📝', 'অন্যান্য'] };
+const URGENCY = { normal: 'সাধারণ', important: 'গুরুত্বপূর্ণ', urgent: 'খুব জরুরি' };
+const LSTATUS = { pending: ['⏳', 'অপেক্ষমাণ', 'pending'], approved: ['✅', 'মঞ্জুর', 'ok'], rejected: ['❌', 'নামঞ্জুর', 'bad'], cancelled: ['↩️', 'বাতিল', 'gray'] };
+const dateAdd = (d, n) => new Date(new Date(d + 'T00:00:00Z').getTime() + n * 86400000).toISOString().slice(0, 10);
+const daysBetween = (a, b) => Math.round((new Date(b + 'T00:00:00Z') - new Date(a + 'T00:00:00Z')) / 86400000) + 1;
+const lateText = m => m >= 60 ? `${Math.floor(m / 60)} ঘ ${m % 60} মি দেরি` : `${m} মি দেরি`;
+let officesCache = null;
+async function loadOffices(force) { if (officesCache && !force) return officesCache; const { data } = await sb.from('offices').select('*').order('created_at'); officesCache = data || []; return officesCache; }
+function distM(a, b, c, d) { const R = 6371000, r = x => x * Math.PI / 180; const h = Math.sin(r(c - a) / 2) ** 2 + Math.cos(r(a)) * Math.cos(r(c)) * Math.sin(r(d - b) / 2) ** 2; return 2 * R * Math.asin(Math.sqrt(h)); }
+function getGPS() {
+  return new Promise((res, rej) => {
+    if (!navigator.geolocation) return rej(new Error('NO_GPS_SUPPORT'));
+    navigator.geolocation.getCurrentPosition(p => res(p.coords), e => rej(new Error(e.code === 1 ? 'GPS_DENIED' : e.code === 3 ? 'GPS_TIMEOUT' : 'GPS_FAIL')), { enableHighAccuracy: true, timeout: 20000, maximumAge: 0 });
+  });
+}
+function gpsErr(m) {
+  if (/GPS_DENIED/.test(m)) return 'লোকেশনের অনুমতি দিন: ফোনের Settings → Apps → Yaqeen Group (বা Chrome) → Permissions → Location → Allow';
+  if (/GPS_TIMEOUT|GPS_FAIL/.test(m)) return 'লোকেশন পাওয়া যায়নি। ফোনের Location (GPS) চালু করে জানালার কাছে গিয়ে আবার চেষ্টা করুন।';
+  if (/GPS_WEAK/.test(m)) return 'GPS সিগন্যাল দুর্বল। Location চালু রেখে কয়েক সেকেন্ড পর আবার চেষ্টা করুন।';
+  if (/NOT_IN_OFFICE:(\d+):(.*)/.test(m)) { const [, d, n] = m.match(/NOT_IN_OFFICE:(\d+):([^"]*)/); return `আপনি অফিসের লোকেশনে নেই (${n} থেকে প্রায় ${Number(d) >= 1000 ? (d / 1000).toFixed(1) + ' কিমি' : d + ' মিটার'} দূরে)। অফিসে পৌঁছে হাজিরা দিন।`; }
+  if (/NO_OFFICE/.test(m)) return 'অফিসের লোকেশন এখনো সেট করা হয়নি। অ্যাডমিনকে জানান।';
+  if (/ALREADY_IN/.test(m)) return 'আজকের ঢোকার হাজিরা আগেই দেওয়া হয়েছে।';
+  if (/ALREADY_OUT/.test(m)) return 'আজকের বের হওয়ার হাজিরা আগেই দেওয়া হয়েছে।';
+  if (/NOT_IN_YET/.test(m)) return 'আগে অফিসে ঢোকার হাজিরা দিন।';
+  if (/NOT_ACTIVE/.test(m)) return 'অ্যাকাউন্ট সক্রিয় নয়।';
+  return null;
+}
+
+/* ---- live selfie camera ---- */
+function takeSelfie(label) {
+  return new Promise(async (resolve, reject) => {
+    let stream;
+    try { stream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: 'user', width: { ideal: 720 }, height: { ideal: 960 } }, audio: false }); }
+    catch (e) { return reject(new Error(/NotAllowed|Permission/i.test(e.name + e.message) ? 'CAM_DENIED' : 'CAM_FAIL')); }
+    const ov = document.createElement('div'); ov.className = 'camov';
+    ov.innerHTML = `<div class="camtop"><b>📸 ${esc(label)}</b><span>মুখ ফ্রেমের মাঝে রাখুন</span></div><div class="camwrap"><video autoplay playsinline muted></video><div class="camframe"></div></div>
+      <div class="cambtns"><button class="camx" id="camx">✕</button><button class="camshot" id="camshot"></button><span style="width:52px"></span></div>`;
+    document.body.appendChild(ov);
+    const v = ov.querySelector('video'); v.srcObject = stream;
+    const stop = () => { stream.getTracks().forEach(t => t.stop()); ov.remove(); };
+    ov.querySelector('#camx').onclick = () => { stop(); reject(new Error('CANCEL')); };
+    ov.querySelector('#camshot').onclick = () => {
+      const w = 480, h = Math.round(w * (v.videoHeight || 640) / (v.videoWidth || 480));
+      const c = document.createElement('canvas'); c.width = w; c.height = h; const g = c.getContext('2d');
+      g.translate(w, 0); g.scale(-1, 1); g.drawImage(v, 0, 0, w, h); g.setTransform(1, 0, 0, 1, 0, 0);
+      g.fillStyle = 'rgba(0,0,0,.55)'; g.fillRect(0, h - 46, w, 46); g.fillStyle = '#fff'; g.font = '600 15px Inter, "Noto Sans Bengali", sans-serif';
+      g.fillText(state.profile.full_name, 12, h - 26); g.font = '13px Inter, sans-serif'; g.fillText(new Date().toLocaleString('en-GB') + ' · Yaqeen Group', 12, h - 9);
+      c.toBlob(b => { stop(); b ? resolve(b) : reject(new Error('CAM_FAIL')); }, 'image/jpeg', 0.72);
+    };
+  });
+}
+
+/* ---- attendance screen ---- */
+async function viewAttendance() {
+  cleanupChannels();
+  $app.innerHTML = `<div class="shell"><div class="view"><div class="top"><button class="back" id="bk">←</button><h1>🕒 হাজিরা</h1>${isAdmin() ? '<div class="act"><button id="aadm" title="সবার হাজিরা">👥</button><button id="aoff" title="অফিস লোকেশন">📍</button></div>' : ''}</div>
+    <div class="pad" id="atb" style="padding-top:10px"><div class="cen"><div class="spin dark"></div></div></div></div>${tabbar()}</div>`;
+  document.querySelectorAll('.tb').forEach(b => b.onclick = () => go(b.dataset.t));
+  document.getElementById('bk').onclick = () => go('home');
+  if (isAdmin()) { document.getElementById('aadm').onclick = () => viewAttendanceAdmin(); document.getElementById('aoff').onclick = viewOffices; }
+  const from = dateAdd(todayDhaka(), -13);
+  const [{ data: rows, error }, { data: leaves }] = await Promise.all([
+    sb.from('attendance').select('*').eq('user_id', state.profile.id).gte('work_date', from).order('work_date', { ascending: false }),
+    sb.from('leave_requests').select('*').eq('user_id', state.profile.id).eq('status', 'approved').gte('end_date', from),
+    loadOffices(true)
+  ]);
+  const el = document.getElementById('atb');
+  if (error) { el.innerHTML = `<div class="msg err">হাজিরা লোড হয়নি। অ্যাডমিন <b>yaqeen_step9_attendance_leave.sql</b> চালিয়েছেন কিনা দেখুন।</div>`; return; }
+  const today = todayDhaka(), t = (rows || []).find(r => r.work_date === today);
+  const onLeave = d => (leaves || []).some(l => d >= l.start_date && d <= l.end_date);
+  const office = officesCache && officesCache[0];
+  const stage = !t ? 'in' : !t.check_out_at ? 'out' : 'done';
+  el.innerHTML = `
+    <div class="attcard ${stage}">
+      <div class="attclock" id="aclock">${new Date().toLocaleTimeString([], { hour: 'numeric', minute: '2-digit' })}</div>
+      <div class="mut" style="color:rgba(255,255,255,.85)">${new Date().toLocaleDateString('bn-BD', { weekday: 'long', day: 'numeric', month: 'long' })}${office ? ' · অফিস শুরু ' + office.start_time.slice(0, 5) : ''}</div>
+      <div class="attrow"><div><span>ঢোকা</span><b>${t ? fmtTime(t.check_in_at) : '—'}</b>${t && t.late_minutes ? `<em>${lateText(t.late_minutes)}</em>` : t ? '<em class="ok">সময়মতো ✓</em>' : ''}</div><div><span>বের হওয়া</span><b>${t && t.check_out_at ? fmtTime(t.check_out_at) : '—'}</b>${t && t.check_out_at ? `<em class="ok">${Math.round((new Date(t.check_out_at) - new Date(t.check_in_at)) / 3600000 * 10) / 10} ঘণ্টা</em>` : ''}</div></div>
+      ${stage === 'done' ? '<div class="attdone">✅ আজকের হাজিরা সম্পূর্ণ</div>' : `<button class="attbtn" id="amark">📸 ${stage === 'in' ? 'অফিসে ঢোকার হাজিরা দিন' : 'বের হওয়ার হাজিরা দিন'}</button>`}
+      <div class="attstep" id="astep"></div>
+    </div>
+    ${onLeave(today) ? '<div class="msg ok" style="margin-top:10px">🏖️ আজ আপনার ছুটি মঞ্জুর আছে।</div>' : ''}
+    <div class="msg info" style="margin-top:12px;font-size:12.5px">📍 হাজিরা দিতে অফিসের ভেতরে থাকতে হবে। ফোনের <b>Location</b> চালু রাখুন, আর ক্যামেরা দিয়ে সাথে সাথে সেলফি তুলতে হবে।</div>
+    <div class="hsec"><span class="hsi">📅</span><b>শেষ ১৪ দিন</b></div>
+    ${[...Array(14)].map((_, i) => dateAdd(today, -i)).map(d => { const r = (rows || []).find(x => x.work_date === d); const fri = new Date(d + 'T00:00:00Z').getUTCDay() === 5;
+      const st = r ? (r.late_minutes ? ['late', '⏰', lateText(r.late_minutes)] : ['ok', '✅', 'সময়মতো']) : onLeave(d) ? ['leave', '🏖️', 'ছুটি'] : d === today ? ['wait', '⏳', 'বাকি'] : fri ? ['off', '🕌', 'শুক্রবার'] : ['abs', '❌', 'অনুপস্থিত'];
+      return `<div class="arow ${st[0]}"><div class="ad"><b>${shortDay(d)}</b><span>${new Date(d + 'T00:00:00').toLocaleDateString('bn-BD', { weekday: 'short' })}</span></div><div class="rt"><b>${st[1]} ${st[2]}</b><span>${r ? `ঢোকা ${fmtTime(r.check_in_at)}${r.check_out_at ? ' · বের ' + fmtTime(r.check_out_at) : ' · বের হওয়ার হাজিরা নেই'}` : ''}</span></div></div>`; }).join('')}`;
+  const mk = document.getElementById('amark'); if (mk) mk.onclick = () => markAttendance(stage);
+}
+async function markAttendance(kind) {
+  const step = document.getElementById('astep'), btn = document.getElementById('amark');
+  const say = t => { if (step) step.innerHTML = t; };
+  btn.disabled = true;
+  try {
+    say('📍 লোকেশন যাচাই হচ্ছে…');
+    const pos = await getGPS();
+    await loadOffices(true);
+    if (!officesCache.length) throw new Error('NO_OFFICE');
+    const near = officesCache.map(o => ({ o, d: distM(pos.latitude, pos.longitude, o.lat, o.lng) })).sort((a, b) => a.d - b.d)[0];
+    if (near.d > near.o.radius_m + Math.min(pos.accuracy || 0, 60)) throw new Error(`NOT_IN_OFFICE:${Math.round(near.d)}:${near.o.name}`);
+    say(`✅ ${esc(near.o.name)}-এ আছেন। এবার সেলফি তুলুন…`);
+    const blob = await takeSelfie(kind === 'in' ? 'অফিসে ঢোকার হাজিরা' : 'বের হওয়ার হাজিরা');
+    say('⏫ সেলফি আপলোড হচ্ছে…');
+    const path = `${state.profile.id}/${todayDhaka()}-${kind}-${Date.now()}.jpg`;
+    const { error: ue } = await sb.storage.from('attendance').upload(path, blob, { contentType: 'image/jpeg', upsert: false });
+    if (ue) throw ue;
+    say('📝 হাজিরা সেভ হচ্ছে…');
+    const { data, error } = await sb.rpc('attendance_mark', { p_kind: kind, p_lat: pos.latitude, p_lng: pos.longitude, p_acc: pos.accuracy || null, p_selfie: path });
+    if (error) throw error;
+    toast(kind === 'in' ? (data.late_minutes ? `হাজিরা হয়েছে · ${lateText(data.late_minutes)}` : 'হাজিরা হয়েছে · সময়মতো ✅') : 'বের হওয়ার হাজিরা হয়েছে ✅');
+    viewAttendance();
+  } catch (e) {
+    const m = (e && (e.message || '')) + '';
+    btn.disabled = false; say('');
+    if (/CANCEL/.test(m)) return;
+    if (/CAM_DENIED/.test(m)) return toast('ক্যামেরার অনুমতি দিন: Settings → Apps → Yaqeen Group (বা Chrome) → Permissions → Camera → Allow');
+    if (/CAM_FAIL/.test(m)) return toast('ক্যামেরা চালু করা যায়নি। অ্যাপ বন্ধ করে আবার চেষ্টা করুন।');
+    toast(gpsErr(m) || friendlyError(e));
+  }
+}
+
+/* ---- admin: offices ---- */
+async function viewOffices() {
+  await loadOffices(true);
+  $app.innerHTML = `<div class="top"><button class="back" id="bk">←</button><h1>📍 অফিস লোকেশন</h1></div><div class="pad" style="padding-top:8px">
+    <div class="msg info" style="font-size:12.5px">অফিসের ভেতরে দাঁড়িয়ে নিচের বাটন চাপুন। ফোনের বর্তমান লোকেশনটাই অফিস হিসেবে সেভ হবে। একাধিক অফিস (যেমন বাংলাদেশ ও মালয়েশিয়া) যোগ করা যাবে।</div>
+    ${officesCache.map(o => `<div class="card"><div class="row"><span style="font-size:24px">🏢</span><div class="rt"><b>${esc(o.name)}</b><span>ব্যাসার্ধ ${o.radius_m} মি · শুরু ${o.start_time.slice(0, 5)} · ${o.utc_offset_min === 480 ? 'মালয়েশিয়া সময়' : o.utc_offset_min === 360 ? 'বাংলাদেশ সময়' : 'UTC+' + o.utc_offset_min / 60}</span></div><button class="smallbtn red" data-del="${o.id}">মুছুন</button></div>
+      <a class="link" style="font-size:12.5px" href="https://maps.google.com/?q=${o.lat},${o.lng}" target="_blank" rel="noopener">🗺️ ম্যাপে দেখুন</a></div>`).join('') || '<div class="hempty"><span>🏢</span>এখনো কোনো অফিস সেট করা হয়নি</div>'}
+    <button class="btn" id="oadd">📍 এখানে অফিস সেট করুন</button></div>`;
+  document.getElementById('bk').onclick = viewAttendance;
+  document.querySelectorAll('[data-del]').forEach(b => b.onclick = async () => { if (!confirm('এই অফিস মুছবেন?')) return; const { error } = await sb.from('offices').delete().eq('id', b.dataset.del); if (error) return toast(friendlyError(error)); viewOffices(); });
+  document.getElementById('oadd').onclick = async () => {
+    toast('লোকেশন নেওয়া হচ্ছে…');
+    let pos; try { pos = await getGPS(); } catch (e) { return toast(gpsErr(e.message)); }
+    sheet(`<h3>📍 নতুন অফিস</h3><p class="mut" style="font-size:12.5px">লোকেশন পাওয়া গেছে (নির্ভুলতা প্রায় ${Math.round(pos.accuracy)} মিটার)${pos.accuracy > 60 ? ' — সিগন্যাল দুর্বল, জানালার কাছে গিয়ে আবার চেষ্টা করলে ভালো হয়' : ''}।</p>
+      <label>অফিসের নাম</label><input class="in" id="on" maxlength="80" placeholder="যেমন: Tangail Office">
+      <label>কত দূর পর্যন্ত অফিস ধরা হবে</label><select class="in" id="or"><option value="100">১০০ মিটার</option><option value="150" selected>১৫০ মিটার (প্রস্তাবিত)</option><option value="300">৩০০ মিটার</option><option value="500">৫০০ মিটার</option></select>
+      <label>অফিস শুরুর সময় (এর পরে এলে দেরি)</label><input class="in" type="time" id="ot" value="09:00">
+      <label>দেশ / সময় অঞ্চল</label><select class="in" id="oz"><option value="360">বাংলাদেশ (UTC+6)</option><option value="480">মালয়েশিয়া (UTC+8)</option></select>
+      <button class="btn" id="os">সেভ করুন</button>`, (el, close) => {
+      el.querySelector('#os').onclick = async () => {
+        const name = el.querySelector('#on').value.trim(); if (!name) return toast('অফিসের নাম দিন');
+        const { error } = await sb.from('offices').insert({ name, lat: pos.latitude, lng: pos.longitude, radius_m: +el.querySelector('#or').value, start_time: el.querySelector('#ot').value || '09:00', utc_offset_min: +el.querySelector('#oz').value });
+        if (error) return toast(friendlyError(error)); close(); toast('অফিস সেভ হয়েছে ✓'); viewOffices();
+      };
+    });
+  };
+}
+
+/* ---- admin: everyone's attendance ---- */
+async function viewAttendanceAdmin(date) {
+  date = date || todayDhaka();
+  $app.innerHTML = `<div class="top"><button class="back" id="bk">←</button><h1>👥 সবার হাজিরা</h1></div>
+    <div class="pad" style="padding-top:6px"><label>তারিখ</label><input class="in" type="date" id="adt" value="${date}" max="${todayDhaka()}">
+    <div class="two" style="margin-top:12px"><button class="btn" id="ashare" style="margin-top:0">📤 WhatsApp-এ শেয়ার</button><button class="btn ghost" id="adl" style="margin-top:0">⬇️ PDF</button></div>
+    <div id="aab" style="margin-top:14px"><div class="cen"><div class="spin dark"></div></div></div></div>`;
+  document.getElementById('bk').onclick = viewAttendance;
+  document.getElementById('adt').onchange = e => viewAttendanceAdmin(e.target.value);
+  const [{ data: rows, error }, { data: leaves }] = await Promise.all([
+    sb.from('attendance').select('*').eq('work_date', date),
+    sb.from('leave_requests').select('*').eq('status', 'approved').lte('start_date', date).gte('end_date', date),
+    loadPeople()
+  ]);
+  const box = document.getElementById('aab');
+  if (error) { box.innerHTML = `<div class="msg err">${esc(friendlyError(error))}</div>`; return; }
+  const paths = (rows || []).flatMap(r => [r.check_in_selfie, r.check_out_selfie]).filter(Boolean);
+  const urls = {}; if (paths.length) { const { data } = await sb.storage.from('attendance').createSignedUrls(paths, 3600); (data || []).forEach(d => { if (d.signedUrl) urls[d.path] = d.signedUrl; }); }
+  const people = Object.values(ui.people).sort((a, b) => a.full_name.localeCompare(b.full_name)).map(p => {
+    const r = (rows || []).find(x => x.user_id === p.id), lv = (leaves || []).find(l => l.user_id === p.id);
+    const st = r ? (r.late_minutes ? 'late' : 'ok') : lv ? 'leave' : 'abs';
+    return { p, r, lv, st };
+  });
+  const cnt = k => people.filter(x => x.st === k).length;
+  const rep = { date, people, ok: cnt('ok'), late: cnt('late'), leave: cnt('leave'), abs: cnt('abs') };
+  box.innerHTML = `<div class="trs"><div><b>${rep.ok}</b><span>✅ সময়মতো</span></div><div><b>${rep.late}</b><span>⏰ দেরিতে</span></div><div><b>${rep.leave}</b><span>🏖️ ছুটিতে</span></div><div><b>${rep.abs}</b><span>❌ অনুপস্থিত</span></div></div>
+    ${people.map(x => `<div class="card aadm ${x.st}"><div class="row">${avatar(x.p.full_name, x.p.id, 40)}<div class="rt"><b>${esc(x.p.full_name)}</b><span>${x.r ? `ঢোকা ${fmtTime(x.r.check_in_at)}${x.r.late_minutes ? ' · ' + lateText(x.r.late_minutes) : ' · সময়মতো'}${x.r.check_out_at ? ' · বের ' + fmtTime(x.r.check_out_at) : ''}` : x.lv ? `🏖️ ছুটি (${LEAVE_TYPES[x.lv.leave_type][1]})` : '❌ হাজিরা নেই'}</span></div></div>
+      ${x.r ? `<div class="selfies">${[['ঢোকা', x.r.check_in_selfie], ['বের', x.r.check_out_selfie]].filter(s => s[1] && urls[s[1]]).map(([l, s]) => `<a href="${urls[s]}" target="_blank" rel="noopener"><img src="${urls[s]}" alt="${l}"><span>${l}</span></a>`).join('')}<span class="mut" style="font-size:11.5px;align-self:center">📍 অফিস থেকে ${x.r.check_in_dist ?? '–'} মি</span></div>` : ''}</div>`).join('')}`;
+  const html = attendancePdfHTML(rep);
+  document.getElementById('ashare').onclick = () => exportHtmlPdf(html, `Yaqeen-Attendance-${date}.pdf`, `Yaqeen Group · Attendance · ${date}`, true);
+  document.getElementById('adl').onclick = () => exportHtmlPdf(html, `Yaqeen-Attendance-${date}.pdf`, '', false);
+}
+function attendancePdfHTML(r) {
+  const dt = new Date(r.date + 'T00:00:00').toLocaleDateString('en-GB', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' });
+  const lbl = { ok: '<span class="sok">সময়মতো</span>', late: '<span class="spend">দেরি</span>', leave: '<span class="sok">ছুটি</span>', abs: '<span class="sbad">অনুপস্থিত</span>' };
+  return `<div class="trep pdf"><div class="trh"><img src="mark.jpg" alt=""><div><b>Yaqeen Group</b><span>Daily Attendance · দৈনিক হাজিরা</span></div><div class="trd">${dt}</div></div>
+    <div class="trs"><div><b>${r.ok}</b><span>✅ সময়মতো</span></div><div><b>${r.late}</b><span>⏰ দেরিতে</span></div><div><b>${r.leave}</b><span>🏖️ ছুটিতে</span></div><div><b>${r.abs}</b><span>❌ অনুপস্থিত</span></div></div>
+    <table class="trt"><thead><tr><th>সদস্য</th><th>ঢোকা</th><th>দেরি</th><th>বের হওয়া</th><th>অবস্থা</th></tr></thead><tbody>
+    ${r.people.map(x => `<tr><td>${esc(x.p.full_name)}</td><td class="n">${x.r ? fmtTime(x.r.check_in_at) : '—'}</td><td class="n">${x.r && x.r.late_minutes ? x.r.late_minutes + ' মি' : '—'}</td><td class="n">${x.r && x.r.check_out_at ? fmtTime(x.r.check_out_at) : '—'}</td><td class="n">${lbl[x.st]}</td></tr>`).join('')}
+    </tbody></table><div class="trf">Generated by Yaqeen Group Team App · ${new Date().toLocaleString('en-GB')}</div></div>`;
+}
+
+/* ---- leave requests ---- */
+let leaveTab = 'mine';
+async function viewLeave() {
+  cleanupChannels();
+  if (!isAdmin()) leaveTab = 'mine';
+  $app.innerHTML = `<div class="shell"><div class="view"><div class="top"><button class="back" id="bk">←</button><h1>🏖️ ছুটি</h1></div>
+    ${isAdmin() ? `<div class="chips"><button class="chip ${leaveTab === 'mine' ? 'on' : ''}" data-f="mine">আমার</button><button class="chip ${leaveTab === 'pending' ? 'on' : ''}" data-f="pending">অপেক্ষমাণ আবেদন</button><button class="chip ${leaveTab === 'all' ? 'on' : ''}" data-f="all">সব আবেদন</button></div>` : ''}
+    <div class="pad" id="lvb" style="padding-top:8px"><div class="cen"><div class="spin dark"></div></div></div>${leaveTab === 'mine' ? '<button class="fab" id="lnew">+</button>' : ''}</div>${tabbar()}</div>`;
+  document.querySelectorAll('.tb').forEach(b => b.onclick = () => go(b.dataset.t));
+  document.getElementById('bk').onclick = () => go('home');
+  document.querySelectorAll('.chip').forEach(c => c.onclick = () => { leaveTab = c.dataset.f; viewLeave(); });
+  const ln = document.getElementById('lnew'); if (ln) ln.onclick = leaveForm;
+  let q = sb.from('leave_requests').select('*').order('created_at', { ascending: false }).limit(60);
+  if (leaveTab === 'mine') q = q.eq('user_id', state.profile.id);
+  if (leaveTab === 'pending') q = q.eq('status', 'pending');
+  const { data, error } = await q;
+  const el = document.getElementById('lvb');
+  if (error) { el.innerHTML = `<div class="msg err">ছুটির তথ্য লোড হয়নি। অ্যাডমিন <b>yaqeen_step9_attendance_leave.sql</b> চালিয়েছেন কিনা দেখুন।</div>`; return; }
+  const list = data || [];
+  el.innerHTML = (leaveTab === 'mine' ? `<button class="card scard2" id="lnew2"><span style="font-size:26px">📝</span><div class="rt"><b>ছুটির আবেদন করুন</b><span>অসুস্থতা, জরুরি বা পারিবারিক কারণে ছুটি লাগলে এখানে জানান</span></div><span>›</span></button>` : '') +
+    (list.length ? list.map(l => leaveCard(l, leaveTab !== 'mine')).join('') : `<div class="hempty"><span>🏖️</span>${leaveTab === 'pending' ? 'কোনো অপেক্ষমাণ আবেদন নেই ✓' : 'এখনো কোনো আবেদন নেই'}</div>`);
+  const l2 = document.getElementById('lnew2'); if (l2) l2.onclick = leaveForm;
+  el.querySelectorAll('[data-cancel]').forEach(b => b.onclick = async () => { if (!confirm('আবেদনটা বাতিল করবেন?')) return; const { error } = await sb.from('leave_requests').update({ status: 'cancelled' }).eq('id', b.dataset.cancel); if (error) return toast(friendlyError(error)); toast('বাতিল করা হয়েছে'); viewLeave(); });
+  el.querySelectorAll('[data-decide]').forEach(b => b.onclick = () => decideLeave(list.find(l => l.id === b.dataset.id), b.dataset.decide));
+}
+function leaveCard(l, showName) {
+  const [ti, tl] = LEAVE_TYPES[l.leave_type] || ['📝', l.leave_type], [si, sl, sc] = LSTATUS[l.status];
+  const n = daysBetween(l.start_date, l.end_date);
+  return `<div class="card lcard"><div class="row" style="align-items:flex-start">${showName ? avatar(personName(l.user_id), l.user_id, 40) : `<span class="lic">${ti}</span>`}<div class="rt">
+      ${showName ? `<b>${esc(personName(l.user_id))}</b><span>${ti} ${tl}</span>` : `<b>${tl}</b>`}
+      <span>📅 ${fmtDate(l.start_date)}${n > 1 ? ' → ' + fmtDate(l.end_date) : ''} · ${bnNum(n)} দিন</span></div><span class="lst ${sc}">${si} ${sl}</span></div>
+    <div class="lq"><b>কী সমস্যা / কেন ছুটি লাগবে:</b> ${esc(l.reason)}</div>
+    <div class="ltags"><span class="${l.urgency}">${l.urgency === 'urgent' ? '🚨' : l.urgency === 'important' ? '❗' : '🟢'} ${URGENCY[l.urgency]}</span>${l.may_extend ? '<span>⏳ ছুটি বাড়তে পারে</span>' : ''}${l.handover ? `<span>🤝 কাজ সামলাবে: ${esc(l.handover)}</span>` : ''}${l.doc_link ? `<a href="${esc(l.doc_link)}" target="_blank" rel="noopener">📎 ডকুমেন্ট</a>` : ''}</div>
+    ${l.admin_note ? `<div class="msg ${l.status === 'approved' ? 'ok' : 'info'}" style="margin-top:8px;font-size:13px">💬 অ্যাডমিন: ${esc(l.admin_note)}</div>` : ''}
+    ${l.status === 'pending' && l.user_id === state.profile.id && !showName ? `<div class="two"><button class="smallbtn red" data-cancel="${l.id}">আবেদন বাতিল</button></div>` : ''}
+    ${l.status === 'pending' && isAdmin() && showName ? `<div class="two"><button class="btn sm" data-decide="approved" data-id="${l.id}">✅ মঞ্জুর</button><button class="btn sm ghost" data-decide="rejected" data-id="${l.id}">❌ নামঞ্জুর</button></div>` : ''}
+    <div class="meta"><span>আবেদন: ${fmtDate(l.created_at)} ${fmtTime(l.created_at)}</span>${l.decided_by ? `<span>সিদ্ধান্ত: ${esc(personName(l.decided_by))}</span>` : ''}</div></div>`;
+}
+function leaveForm() {
+  const today = todayDhaka();
+  let type = 'sick', urg = 'normal';
+  sheet(`<h3>📝 ছুটির আবেদন</h3>
+    <label>১. কী ধরনের ছুটি?</label><div class="lchips" id="lt">${Object.entries(LEAVE_TYPES).map(([k, [i, l]]) => `<button class="lchip ${k === type ? 'on' : ''}" data-v="${k}">${i} ${l}</button>`).join('')}</div>
+    <label>২. কী সমস্যা? কেন ছুটি লাগবে? *</label><textarea class="in" id="lr" maxlength="2000" placeholder="যেমন: গতকাল রাত থেকে জ্বর, ডাক্তার বিশ্রাম নিতে বলেছেন" style="min-height:84px"></textarea>
+    <div class="two" style="margin-top:0"><div style="flex:1"><label>৩. কবে থেকে</label><input class="in" type="date" id="ls" value="${today}" min="${dateAdd(today, -7)}"></div><div style="flex:1"><label>কবে পর্যন্ত</label><input class="in" type="date" id="le" value="${today}" min="${dateAdd(today, -7)}"></div></div>
+    <label>৪. কতটা জরুরি?</label><div class="lchips" id="lu">${Object.entries(URGENCY).map(([k, l]) => `<button class="lchip ${k === urg ? 'on' : ''}" data-v="${k}">${k === 'urgent' ? '🚨' : k === 'important' ? '❗' : '🟢'} ${l}</button>`).join('')}</div>
+    <label class="check"><input type="checkbox" id="lx"> ৫. প্রয়োজনে ছুটি আরও বাড়তে পারে</label>
+    <label>৬. আপনার কাজ কে সামলাবে? (ঐচ্ছিক)</label><input class="in" id="lh" maxlength="300" placeholder="যেমন: রহিম ভাই ক্লায়েন্ট ফলো-আপ দেখবেন">
+    <label>৭. ডাক্তারের কাগজ বা ডকুমেন্ট (Drive লিংক, ঐচ্ছিক)</label><input class="in" id="ld" maxlength="500" placeholder="https://drive.google.com/…">
+    <button class="btn" id="lsend">আবেদন পাঠান</button>`, (el, close) => {
+    const pick = (id, set) => el.querySelectorAll(`#${id} .lchip`).forEach(b => b.onclick = () => { el.querySelectorAll(`#${id} .lchip`).forEach(x => x.classList.remove('on')); b.classList.add('on'); set(b.dataset.v); });
+    pick('lt', v => type = v); pick('lu', v => urg = v);
+    el.querySelector('#ls').onchange = e => { const le = el.querySelector('#le'); if (le.value < e.target.value) le.value = e.target.value; };
+    el.querySelector('#lsend').onclick = async () => {
+      const reason = el.querySelector('#lr').value.trim(), s = el.querySelector('#ls').value, e = el.querySelector('#le').value;
+      if (reason.length < 3) return toast('কেন ছুটি লাগবে তা লিখুন');
+      if (!s || !e || e < s) return toast('তারিখ ঠিক করে দিন');
+      if (daysBetween(s, e) > 61) return toast('একবারে সর্বোচ্চ ৬০ দিনের আবেদন করা যাবে');
+      const doc = el.querySelector('#ld').value.trim();
+      const { error } = await sb.from('leave_requests').insert({ user_id: state.profile.id, leave_type: type, reason, start_date: s, end_date: e, urgency: urg, may_extend: el.querySelector('#lx').checked, handover: el.querySelector('#lh').value.trim() || null, doc_link: /^https?:\/\//.test(doc) ? doc : null });
+      if (error) return toast(friendlyError(error));
+      close(); toast('আবেদন পাঠানো হয়েছে, অ্যাডমিন দেখবেন ✓'); leaveTab = 'mine'; viewLeave();
+    };
+  });
+}
+function decideLeave(l, status) {
+  if (!l) return;
+  sheet(`<h3>${status === 'approved' ? '✅ ছুটি মঞ্জুর' : '❌ ছুটি নামঞ্জুর'}</h3><p class="mut">${esc(personName(l.user_id))} · ${fmtDate(l.start_date)}${l.end_date !== l.start_date ? ' → ' + fmtDate(l.end_date) : ''}</p>
+    <label>সদস্যকে কিছু বলবেন? (ঐচ্ছিক)</label><textarea class="in" id="dn" maxlength="500" style="min-height:70px" placeholder="${status === 'approved' ? 'যেমন: সুস্থ হয়ে উঠুন' : 'যেমন: এই সপ্তাহে জরুরি কাজ আছে, পরের সপ্তাহে নিন'}"></textarea>
+    <div class="two"><button class="btn ghost" id="dc">Cancel</button><button class="btn" id="dok" ${status === 'rejected' ? 'style="background:var(--red)"' : ''}>${status === 'approved' ? 'মঞ্জুর করুন' : 'নামঞ্জুর করুন'}</button></div>`, (el, close) => {
+    el.querySelector('#dc').onclick = close;
+    el.querySelector('#dok').onclick = async () => {
+      const { error } = await sb.from('leave_requests').update({ status, admin_note: el.querySelector('#dn').value.trim() || null }).eq('id', l.id);
+      if (error) return toast(friendlyError(error)); close(); toast(status === 'approved' ? 'ছুটি মঞ্জুর করা হয়েছে ✓' : 'আবেদন নামঞ্জুর করা হয়েছে'); viewLeave();
+    };
+  });
+}
+
+/* ---- hooks ---- */
+const _vhAtt = viewHome;
+viewHome = async function () {
+  const pr = _vhAtt();
+  const sc = document.getElementById('scard');
+  const anchor = sc || document.querySelector('.qgrid');
+  if (anchor) {
+    anchor.insertAdjacentHTML('beforebegin', `<div class="hrow2"><button class="hmini" id="hatt"><span>🕒</span><div class="rt"><b>হাজিরা</b><span id="hattsub">…</span></div></button><button class="hmini" id="hlv"><span>🏖️</span><div class="rt"><b>ছুটি</b><span id="hlvsub">আবেদন করুন</span></div></button></div>`);
+    document.getElementById('hatt').onclick = viewAttendance; document.getElementById('hlv').onclick = () => { leaveTab = 'mine'; viewLeave(); };
+    sb.from('attendance').select('*').eq('user_id', state.profile.id).eq('work_date', todayDhaka()).maybeSingle().then(({ data: t, error }) => {
+      const s = document.getElementById('hattsub'); if (!s) return;
+      s.textContent = error ? 'সেটআপ বাকি' : !t ? 'আজ এখনো দেননি' : !t.check_out_at ? `ঢোকা ${fmtTime(t.check_in_at)}${t.late_minutes ? ' · দেরি' : ' ✓'}` : 'আজ সম্পূর্ণ ✓';
+      if (!error && !t) document.getElementById('hatt').classList.add('warn');
+    });
+    if (isAdmin()) sb.from('leave_requests').select('id', { count: 'exact', head: true }).eq('status', 'pending').then(({ count }) => { const s = document.getElementById('hlvsub'); if (s && count) { s.innerHTML = `<b style="color:var(--red)">${count}টা আবেদন অপেক্ষমাণ</b>`; document.getElementById('hlv').onclick = () => { leaveTab = 'pending'; viewLeave(); }; } });
+  }
+  return pr;
+};
+const _vmAtt = viewMenu;
+viewMenu = function () {
+  _vmAtt();
+  const t = document.querySelector('.tiles'); if (!t) return;
+  t.insertAdjacentHTML('afterbegin', '<button class="tile" id="m-att"><span class="ic">🕒</span><b>হাজিরা</b><small>সেলফি দিয়ে</small></button><button class="tile" id="m-lv"><span class="ic">🏖️</span><b>ছুটি</b><small>আবেদন ও অবস্থা</small></button>');
+  document.getElementById('m-att').onclick = viewAttendance; document.getElementById('m-lv').onclick = () => { leaveTab = 'mine'; viewLeave(); };
+};
+const _vaAtt = viewAdmin;
+viewAdmin = async function () {
+  const pr = _vaAtt();
+  const t = document.querySelector('.tiles');
+  if (t) {
+    t.insertAdjacentHTML('afterbegin', '<button class="tile hl" id="x-att"><span class="ic">🕒</span><b>Attendance</b><small>সবার হাজিরা ও সেলফি · PDF</small></button><button class="tile hl" id="x-lv"><span class="ic">🏖️</span><b>Leave requests</b><small id="x-lvs">ছুটির আবেদন</small></button><button class="tile" id="x-off"><span class="ic">📍</span><b>Office location</b><small>অফিসের জায়গা সেট</small></button>');
+    document.getElementById('x-att').onclick = () => viewAttendanceAdmin(); document.getElementById('x-lv').onclick = () => { leaveTab = 'pending'; viewLeave(); }; document.getElementById('x-off').onclick = viewOffices;
+    sb.from('leave_requests').select('id', { count: 'exact', head: true }).eq('status', 'pending').then(({ count }) => { const s = document.getElementById('x-lvs'); if (s && count) s.innerHTML = `<b style="color:var(--red)">${count}টা অপেক্ষমাণ</b>`; });
+  }
+  return pr;
+};
+const _hdlAtt = handleDeepLink;
+handleDeepLink = function (href) {
+  let u; try { u = new URL(href || location.href); } catch (e) { return _hdlAtt(href); }
+  if (u.searchParams.get('l')) { if (location.search) history.replaceState(null, '', location.pathname); leaveTab = isAdmin() ? 'pending' : 'mine'; return viewLeave(); }
+  return _hdlAtt(href);
 };
 
 /* ---------- start ---------- */
