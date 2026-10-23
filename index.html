@@ -80,6 +80,9 @@ label{display:block;font-size:12.5px;font-weight:600;color:#45545f;margin:14px 0
 select.in{appearance:none;background-image:linear-gradient(45deg,transparent 50%,#7a8a96 50%),linear-gradient(135deg,#7a8a96 50%,transparent 50%);background-position:calc(100% - 18px) 50%,calc(100% - 13px) 50%;background-size:5px 5px;background-repeat:no-repeat}
 
 /* ===== app shell ===== */
+.crmwrap{position:fixed;top:0;left:50%;transform:translateX(-50%);width:100%;max-width:480px;bottom:calc(64px + env(safe-area-inset-bottom,0px));background:#F4F6FB}
+.crmwrap iframe{border:0;width:100%;height:100%;display:block}
+.crmload{position:absolute;inset:0;display:flex;align-items:center;justify-content:center}
 .shell{display:flex;flex-direction:column;min-height:100vh}
 .view{flex:1;padding-bottom:calc(70px + env(safe-area-inset-bottom,0px))}
 .tabbar{position:fixed;bottom:0;left:50%;transform:translateX(-50%);width:100%;max-width:480px;display:flex;background:#fff;border-top:1px solid var(--line);padding:6px 4px calc(8px + env(safe-area-inset-bottom,0px));z-index:10}
@@ -753,7 +756,7 @@ async function refreshUnread() {
   if (b) { b.textContent = ui.unread; b.hidden = !ui.unread; }
 }
 function tabbar() {
-  const t = [['home', '🏠', 'Home'], ['chats', '💬', 'Chats'], ['notices', '📢', 'Notices'], ['tasks', '✔️', 'Tasks'], ['menu', '☰', 'Menu']];
+  const t = [['home', '🏠', 'Home'], ['chats', '💬', 'Chats'], ['notices', '📢', 'Notices'], ['tasks', '✔️', 'Tasks'], ['crm', '📊', 'CRM'], ['menu', '☰', 'Menu']];
   return `<nav class="tabbar">${t.map(([k, i, l]) => `<button class="tb ${ui.tab === k ? 'on' : ''}" data-t="${k}"><span class="ti">${i}</span>${l}${k === 'chats' ? `<span class="bd" ${ui.unread ? '' : 'hidden'}>${ui.unread}</span>` : ''}</button>`).join('')}</nav>`;
 }
 function frame(inner) {
@@ -762,14 +765,20 @@ function frame(inner) {
 }
 function go(tab) {
   cleanupChannels(); ui.openConv = null; ui.tab = tab;
-  ({ home: viewHome, chats: viewChats, notices: viewNotices, tasks: viewTasks, menu: viewMenu })[tab]();
+  ({ home: viewHome, chats: viewChats, notices: viewNotices, tasks: viewTasks, crm: viewCRM, menu: viewMenu })[tab]();
+}
+
+/* ---------- CRM (MY TravelMate team panel, opened inside the app) ---------- */
+const CRM_URL = 'https://mytravelmateofficial.com/crm/';
+function viewCRM() {
+  frame(`<div class="crmwrap"><div class="crmload"><div class="spin dark"></div></div><iframe src="${CRM_URL}" title="MY TravelMate CRM" allow="clipboard-write" onload="this.previousElementSibling.remove()"></iframe></div>`);
 }
 
 /* ---------- HOME ---------- */
 async function viewHome() {
   const p = state.profile;
   const quick = [
-    ['chats', '💬', 'Chats', '#E3F1F0'], ['notices', '📢', 'Notices', '#FFF3DC'], ['tasks', '✅', 'Tasks', '#E7F5EE'], ['team', '👥', 'Team', '#E8EEFF'],
+    ['chats', '💬', 'Chats', '#E3F1F0'], ['notices', '📢', 'Notices', '#FFF3DC'], ['tasks', '✅', 'Tasks', '#E7F5EE'], ['team', '👥', 'Team', '#E8EEFF'], ['crm', '📊', 'CRM', '#FFE4E6'],
     ['report', '📝', 'Daily report', '#F3E8FF'], ['profile', '✏️', 'My profile', '#FCE7EF'],
     ...(isAdmin() ? [['admin', '🛡️', 'Admin', '#E2E8F0'], ['group', '➕', 'New group', '#FFEDD5']] : [])
   ];
@@ -780,7 +789,7 @@ async function viewHome() {
       <div class="qgrid">${quick.map(([k, i, l, c]) => `<button class="qi" data-q="${k}"><span class="qic" style="background:${c}">${i}</span><span>${l}</span></button>`).join('')}</div>
       <div id="hb"><div class="cen" style="padding:20px"><div class="spin dark"></div></div></div>
     </div>`);
-  const qa = { chats: () => go('chats'), notices: () => go('notices'), tasks: () => go('tasks'), team: viewTeam, report: viewReport, profile: renderProfile, admin: viewAdmin, group: createGroup };
+  const qa = { chats: () => go('chats'), notices: () => go('notices'), tasks: () => go('tasks'), team: viewTeam, report: viewReport, profile: renderProfile, admin: viewAdmin, group: createGroup, crm: () => go('crm') };
   document.querySelectorAll('[data-q]').forEach(b => b.onclick = () => qa[b.dataset.q]());
   const pb = document.getElementById('pushban'); if (pb) pb.onclick = enablePush;
   const [notices, tasks] = await Promise.all([
