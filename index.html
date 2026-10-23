@@ -770,8 +770,10 @@ function go(tab) {
 
 /* ---------- CRM (MY TravelMate team panel, opened inside the app) ---------- */
 const CRM_URL = 'https://mytravelmateofficial.com/crm/';
-function viewCRM() {
-  frame(`<div class="crmwrap"><div class="crmload"><div class="spin dark"></div></div><iframe src="${CRM_URL}" title="MY TravelMate CRM" allow="clipboard-write" onload="this.previousElementSibling.remove()"></iframe></div>`);
+function openCRM(path) { cleanupChannels(); ui.openConv = null; ui.tab = 'crm'; viewCRM(path); }
+function viewCRM(path) {
+  const h = (typeof path === 'string' && /^\/[A-Za-z0-9/_-]*$/.test(path)) ? '#' + path : '';
+  frame(`<div class="crmwrap"><div class="crmload"><div class="spin dark"></div></div><iframe src="${CRM_URL}${h}" title="MY TravelMate CRM" allow="clipboard-write" onload="this.previousElementSibling.remove()"></iframe></div>`);
 }
 
 /* ---------- HOME ---------- */
@@ -1871,13 +1873,14 @@ async function removePushForThisPhone() {
 
 function handleDeepLink(href) {
   let u; try { u = new URL(href || location.href); } catch (e) { return; }
-  const c = u.searchParams.get('c'), callId = u.searchParams.get('call'), k = u.searchParams.get('k'), t = u.searchParams.get('t'), n = u.searchParams.get('n');
+  const c = u.searchParams.get('c'), callId = u.searchParams.get('call'), k = u.searchParams.get('k'), t = u.searchParams.get('t'), n = u.searchParams.get('n'), crm = u.searchParams.get('crm');
   if (location.search) history.replaceState(null, '', location.pathname);
   if (callId) return (async () => {
     const { data: m } = await sb.from('messages').select('*').eq('id', callId).maybeSingle();
     if (m && Date.now() - new Date(m.created_at).getTime() < 3 * 60000) { await refreshUnread(); const cv = ui.convs.find(x => x.id === m.conversation_id); joinCall(m.id, k === 'video' ? 'video' : 'audio', cv ? convTitle(cv) : 'Call'); }
     else if (c) { toast('কলটা শেষ হয়ে গেছে'); openChat(c); }
   })();
+  if (crm !== null) return openCRM(crm);
   if (c) return openChat(c);
   if (t) return viewTask(t);
   if (n) return go('notices');
