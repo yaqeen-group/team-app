@@ -317,7 +317,9 @@ img.av{display:block}
 const SUPABASE_URL = 'https://tflnmzklgnvzmtwwmfpj.supabase.co';
 const SUPABASE_KEY = 'sb_publishable_C9ZIJrtRUlA5Ye31L6hi5w_pMzzB4ik'; // publishable key — safe in the app
 const sb = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY, {
-  auth: { persistSession: true, autoRefreshToken: true, detectSessionInUrl: true }
+  auth: { persistSession: true, autoRefreshToken: true, detectSessionInUrl: true,
+    // phones: the browser 'lock' can get stuck after the app sleeps, freezing the app — run without it
+    lock: (name, acquireTimeout, fn) => fn() }
 });
 const APP_URL = location.origin + location.pathname;
 const $app = document.getElementById('app');
@@ -360,12 +362,15 @@ async function loadProfile(){
 }
 
 /* ---------- router ---------- */
+const withTO = (p, ms) => Promise.race([p, new Promise((_, rej) => setTimeout(() => rej(new Error('timeout')), ms))]);
 async function route(){
   if (state.recovering) return renderNewPassword();
-  const { data } = await sb.auth.getSession();
+  let data;
+  try { ({ data } = await withTO(sb.auth.getSession(), 12000)); }
+  catch(e){ return renderError('সংযোগ ধীর বা সাময়িক সমস্যা হচ্ছে। আবার চেষ্টা করুন।'); }
   state.session = data.session;
   if (!state.session) return renderLogin();
-  try { await loadProfile(); } catch(e){ return renderError(friendlyError(e)); }
+  try { await withTO(loadProfile(), 15000); } catch(e){ return renderError(e && e.message === 'timeout' ? 'সংযোগ ধীর বা সাময়িক সমস্যা হচ্ছে। আবার চেষ্টা করুন।' : friendlyError(e)); }
   const p = state.profile;
   if (!p) return renderError('প্রোফাইল পাওয়া যায়নি। অ্যাডমিনের সাথে যোগাযোগ করুন।');
   if (p.status === 'pending')   return renderPending();
@@ -544,7 +549,7 @@ function renderBlocked(title, text){
 }
 function renderError(text){
   $app.innerHTML = `<div class="pad cen"><div class="bigic" style="background:#FDECEC">⚠️</div><h3>সমস্যা হয়েছে</h3><p class="mut">${esc(text)}</p><button class="btn" id="rt">Try again</button><button class="btn ghost" id="lo">Log out</button></div>`;
-  document.getElementById('rt').onclick = route;
+  document.getElementById('rt').onclick = () => location.reload();
   document.getElementById('lo').onclick = logout;
 }
 
@@ -2595,6 +2600,12 @@ sb.auth.onAuthStateChange((event) => {
 if ('serviceWorker' in navigator) navigator.serviceWorker.register('sw.js').catch(()=>{});
 renderSplash();
 setTimeout(route, 600);
+// after a long sleep in the background, start fresh so nothing stays frozen
+let hiddenAt = 0;
+document.addEventListener('visibilitychange', () => {
+  if (document.hidden) { hiddenAt = Date.now(); return; }
+  if (hiddenAt && Date.now() - hiddenAt > 30 * 60 * 1000 && !document.querySelector('input:focus, textarea:focus')) location.reload();
+});
 </script>
 </body>
 </html>
