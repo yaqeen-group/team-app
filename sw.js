@@ -1,5 +1,5 @@
 // Service worker: installable app shell + phone notifications
-const CACHE = 'yaqeen-shell-v21';
+const CACHE = 'yaqeen-shell-v22';
 const SHELL = ['./', './index.html', './manifest.json', './icon-192.png', './icon-512.png', './mark.jpg', './logo-full.jpg'];
 self.addEventListener('install', e => {
   e.waitUntil(caches.open(CACHE).then(c => c.addAll(SHELL)).then(() => self.skipWaiting()));

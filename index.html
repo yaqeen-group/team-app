@@ -104,6 +104,20 @@ select.in{appearance:none;background-image:linear-gradient(45deg,transparent 50%
 .lvln{display:block;margin-top:3px;font-size:12px;font-weight:600;color:#7C5A00}
 .lvbar{height:5px;background:#EEF2F7;border-radius:9px;margin-top:5px;overflow:hidden}.lvbar i{display:block;height:100%;background:linear-gradient(90deg,#F5B301,#EF4444);border-radius:9px}
 .na-card{text-align:center;padding:26px 18px}.na-card .bigic{margin:0 auto 10px}
+.wdays{display:flex;flex-wrap:wrap;gap:6px;margin:6px 0 4px}
+.wd{display:flex;align-items:center;gap:5px;padding:6px 10px;border:1px solid var(--line);border-radius:999px;font-size:13px;margin:0;font-weight:500}
+.wd input{margin:0;width:auto}
+.today{padding:14px 14px 12px;margin-bottom:12px}
+.tdh{display:flex;justify-content:space-between;align-items:center;gap:8px;margin-bottom:4px}
+.tdh b{font-size:15.5px}
+.tdr{display:flex;justify-content:space-between;align-items:center;gap:10px;width:100%;text-align:left;border:0;background:none;padding:9px 0;border-top:1px dashed var(--line);font:inherit;color:inherit;cursor:pointer}
+.tdr span{min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.tdr small{flex:0 0 auto;color:#64748b;font-size:12px}.tdr small.late{color:#dc2626;font-weight:600}
+.tdf{display:flex;gap:8px;margin-top:10px}
+.tdb{flex:1;border:1px solid var(--line);background:#F8FAFC;border-radius:12px;padding:9px 6px;font:inherit;font-size:13px;cursor:pointer}
+.tdok{padding:10px 0 2px;color:#15803d;font-weight:600}
+.rp-it{display:flex;gap:10px;align-items:flex-start}.rp-it .rt{flex:1;min-width:0}.rp-it.off{opacity:.55}
+.rp-act{display:flex;gap:6px;margin-top:8px}.rp-act button{border:1px solid var(--line);background:#fff;border-radius:999px;padding:5px 12px;font:inherit;font-size:12.5px;cursor:pointer}
 .tabbar{position:fixed;bottom:0;left:50%;transform:translateX(-50%);width:100%;max-width:480px;display:flex;background:#fff;border-top:1px solid var(--line);padding:6px 4px calc(8px + env(safe-area-inset-bottom,0px));z-index:10}
 .tb{flex:1;display:flex;flex-direction:column;align-items:center;gap:2px;color:#98a5af;font-size:11px;font-weight:600;position:relative;padding:4px 0}
 .tb .ti{font-size:20px;line-height:1;filter:grayscale(1);opacity:.7}.tb.on{color:var(--teal)}.tb.on .ti{filter:none;opacity:1}
@@ -803,7 +817,7 @@ function go(tab) {
 }
 
 /* ---------- NOTIFICATIONS (bell list, like Facebook) ---------- */
-const NF_IC = { message: '💬', group: '👥', task: '✅', notice: '📢', leave: '🏖️', crm: '📊', remind: '🕌' };
+const NF_IC = { message: '💬', group: '👥', task: '✅', notice: '📢', leave: '🏖️', crm: '📊', remind: '🕌', deadline: '⏰', award: '🏆', attendance: '🕒' };
 function nfAgo(ts) {
   const s = Math.max(0, (Date.now() - new Date(ts).getTime()) / 1000);
   if (s < 60) return 'এইমাত্র';
@@ -1524,11 +1538,12 @@ let taskFilter = 'mine';
 async function viewTasks() {
   const f = [['mine', 'My tasks'], ['pending', 'Pending'], ['overdue', 'Overdue'], ['completed', 'Completed']];
   if (isMgr()) f.push(['all', 'All tasks']);
-  frame(`<div class="top"><h1>Tasks</h1></div>
+  frame(`<div class="top"><h1>Tasks</h1>${isMgr() ? '<div class="act"><button id="rpt" title="রিপিট টাস্ক">🔁</button></div>' : ''}</div>
     <div class="chips">${f.map(([k, l]) => `<button class="chip ${taskFilter === k ? 'on' : ''}" data-f="${k}">${l}</button>`).join('')}</div>
     <div class="pad" id="tl" style="padding-top:8px"><div class="cen"><div class="spin dark"></div></div></div>${isMgr() ? '<button class="fab" id="nt">+</button>' : ''}`);
   document.querySelectorAll('.chip').forEach(b => b.onclick = () => { taskFilter = b.dataset.f; viewTasks(); });
   if (isMgr()) document.getElementById('nt').onclick = () => taskForm();
+  if (isMgr()) document.getElementById('rpt').onclick = viewRepeats;
   let q = sb.from('tasks').select('*').order('due_date', { ascending: true, nullsFirst: false }).limit(100);
   const me = state.profile.id;
   if (taskFilter === 'mine') q = q.eq('assigned_to', me).neq('status', 'completed');
@@ -1601,11 +1616,27 @@ function taskForm(t) {
     <label>Description</label><textarea class="in" id="td" maxlength="5000">${esc(t ? t.description || '' : '')}</textarea>
     <label>Assign to</label><select class="in" id="ta"><option value="">বেছে নিন</option>${people.map(p => `<option value="${p.id}" ${t && t.assigned_to === p.id ? 'selected' : ''}>${esc(p.full_name)}</option>`).join('')}</select>
     <label>Priority</label><select class="in" id="tp">${['low', 'medium', 'high', 'urgent'].map(p => `<option value="${p}" ${(t ? t.priority : 'medium') === p ? 'selected' : ''}>${p[0].toUpperCase() + p.slice(1)}</option>`).join('')}</select>
+    ${t ? '' : `<label>রিপিট</label><select class="in" id="trp"><option value="">একবারের কাজ</option><option value="daily">🔁 প্রতিদিন</option><option value="weekly">🔁 সপ্তাহের নির্দিষ্ট দিন</option><option value="monthly">🔁 প্রতি মাসে</option></select>
+    <div class="wdays" id="trwd" hidden>${['রবি', 'সোম', 'মঙ্গল', 'বুধ', 'বৃহঃ', 'শুক্র', 'শনি'].map((d, i) => `<label class="wd"><input type="checkbox" value="${i}">${d}</label>`).join('')}</div>
+    <div id="trmd" hidden><label>মাসের কত তারিখে (১–২৮)</label><input class="in" id="trday" type="number" min="1" max="28" value="${Math.min(28, new Date().getDate())}"></div>
+    <p class="mut" id="trnote" hidden style="margin:6px 0 0">প্রতিবার সকাল ৯টায় নিজে থেকে টাস্ক তৈরি হবে, শেষ করতে হবে রাত ৯টার মধ্যে। আজকেরটা এখনই তৈরি হবে।</p>`}
     <label>Due date</label><input class="in" type="datetime-local" id="tdd" value="${local(t && t.due_date)}">
     <button class="btn" id="ts">${t ? 'Save' : 'Create task'}</button>`, (el, close) => {
+    const trp = el.querySelector('#trp');
+    if (trp) trp.onchange = () => { const v = trp.value; el.querySelector('#trwd').hidden = v !== 'weekly'; el.querySelector('#trmd').hidden = v !== 'monthly'; el.querySelector('#trnote').hidden = !v; el.querySelector('#tdd').disabled = !!v; };
     el.querySelector('#ts').onclick = async () => {
       const title = el.querySelector('#tt').value.trim(), assigned_to = el.querySelector('#ta').value;
       if (!title) return toast('টাস্কের নাম দিন'); if (!assigned_to) return toast('কাকে দেবেন বেছে নিন');
+      const rp = trp ? trp.value : '';
+      if (rp) {
+        const wd = [...el.querySelectorAll('#trwd input:checked')].map(x => +x.value);
+        if (rp === 'weekly' && !wd.length) return toast('কোন কোন দিন, বেছে নিন');
+        const tpl = { title, description: el.querySelector('#td').value.trim() || null, assigned_to, priority: el.querySelector('#tp').value, freq: rp, weekdays: rp === 'weekly' ? wd : null, month_day: rp === 'monthly' ? Math.min(28, Math.max(1, +el.querySelector('#trday').value || 1)) : null, created_by: state.profile.id };
+        const { data: nt, error: e1 } = await sb.from('yg_task_templates').insert(tpl).select('id').single();
+        if (e1) return toast(friendlyError(e1));
+        const { data: made } = await sb.rpc('yg_template_run_now', { p_id: nt.id });
+        close(); toast(made ? '🔁 রিপিট টাস্ক সেট হয়েছে · আজকেরটা তৈরি ✓' : '🔁 রিপিট টাস্ক সেট হয়েছে ✓'); return viewTasks();
+      }
       const dd = el.querySelector('#tdd').value;
       const row = { title, description: el.querySelector('#td').value.trim() || null, assigned_to, priority: el.querySelector('#tp').value, due_date: dd ? new Date(dd).toISOString() : null, department_id: (ui.people[assigned_to] || {}).department_id || null };
       const { error } = t ? await sb.from('tasks').update(row).eq('id', t.id) : await sb.from('tasks').insert({ ...row, created_by: state.profile.id });
@@ -2673,6 +2704,45 @@ sb.auth.onAuthStateChange((event) => {
     toast('ইমেইল যাচাই হয়েছে ✓'); route();
   }
 });
+/* ---------- REPEATING TASKS (list for managers) ---------- */
+const WD_BN = ['রবি', 'সোম', 'মঙ্গল', 'বুধ', 'বৃহঃ', 'শুক্র', 'শনি'];
+const rpText = x => x.freq === 'daily' ? 'প্রতিদিন' : x.freq === 'weekly' ? 'প্রতি ' + (x.weekdays || []).map(i => WD_BN[i]).join(', ') : 'প্রতি মাসের ' + x.month_day + ' তারিখ';
+async function viewRepeats() {
+  frame(`<div class="top"><button class="back" id="bk">←</button><h1>🔁 রিপিট টাস্ক</h1></div><div class="pad" id="rpl" style="padding-top:8px"><div class="cen"><div class="spin dark"></div></div></div><button class="fab" id="nt2">+</button>`);
+  document.getElementById('bk').onclick = () => go('tasks');
+  document.getElementById('nt2').onclick = () => taskForm();
+  const { data, error } = await sb.from('yg_task_templates').select('*').order('created_at', { ascending: false });
+  const el = document.getElementById('rpl'); if (!el) return;
+  if (error) { el.innerHTML = `<div class="msg err">${esc(friendlyError(error))}</div>`; return; }
+  const list = data || [];
+  el.innerHTML = '<p class="mut" style="margin:0 0 10px">প্রতিবার সকাল ৯টায় নিজে থেকে টাস্ক তৈরি হয়, শেষ করতে হয় রাত ৯টার মধ্যে। নতুন বানাতে + চাপুন, ফর্মে "রিপিট" বেছে নিন।</p>' + (list.length ? list.map(x => `<div class="card rp-it ${x.active ? '' : 'off'}">${avatar(personName(x.assigned_to), x.assigned_to, 40)}<div class="rt"><b>${esc(x.title)}</b><span class="mut" style="display:block;font-size:13px">${esc(personName(x.assigned_to))} · ${rpText(x)}${x.active ? '' : ' · ⏸️ বন্ধ'}</span><div class="rp-act"><button data-tg="${x.id}">${x.active ? '⏸️ বন্ধ করুন' : '▶️ চালু করুন'}</button>${isAdmin() ? `<button data-del="${x.id}">🗑️ মুছুন</button>` : ''}</div></div></div>`).join('') : '<div class="empty">এখনো কোনো রিপিট টাস্ক নেই</div>');
+  el.querySelectorAll('[data-tg]').forEach(b => b.onclick = async () => { const x = list.find(y => y.id === b.dataset.tg); const { error: e } = await sb.from('yg_task_templates').update({ active: !x.active }).eq('id', x.id); if (e) return toast(friendlyError(e)); toast(x.active ? 'বন্ধ করা হয়েছে' : 'চালু করা হয়েছে ✓'); viewRepeats(); });
+  el.querySelectorAll('[data-del]').forEach(b => b.onclick = async () => { if (!confirm('এই রিপিট টাস্কটা মুছে ফেলবেন? আগের দিনের টাস্কগুলো থেকে যাবে।')) return; const { error: e } = await sb.from('yg_task_templates').delete().eq('id', b.dataset.del); if (e) return toast(friendlyError(e)); toast('মুছে ফেলা হয়েছে'); viewRepeats(); });
+}
+
+/* ---------- HOME: today's work at a glance ---------- */
+const _vhToday = viewHome;
+viewHome = async function () {
+  const pr = _vhToday();
+  try {
+    const anchor = document.querySelector('.hrow2') || document.getElementById('scard') || document.querySelector('.qgrid');
+    if (anchor && !document.getElementById('today')) {
+      anchor.insertAdjacentHTML('beforebegin', `<div class="card today" id="today"><div class="tdh"><b>📋 আজকের কাজ</b><span class="mut" id="tdsum">…</span></div><div id="tdl"></div><div class="tdf"><button class="tdb" id="tdchat">💬 না পড়া মেসেজ <b id="tdun">${ui.unread || 0}</b></button><button class="tdb" id="tdcrm">📊 CRM ফলো-আপ</button></div></div>`);
+      document.getElementById('tdchat').onclick = () => go('chats');
+      document.getElementById('tdcrm').onclick = () => go('crm');
+      const end = new Date(todayDhaka() + 'T23:59:59+06:00').toISOString();
+      const { data } = await sb.from('tasks').select('id,title,due_date,status').eq('assigned_to', state.profile.id).neq('status', 'completed').lte('due_date', end).order('due_date', { ascending: true }).limit(6);
+      const box = document.getElementById('tdl'), sum = document.getElementById('tdsum'); if (!box) return pr;
+      const list = data || [], now = Date.now(), late = list.filter(t => new Date(t.due_date).getTime() < now).length;
+      sum.textContent = list.length ? list.length + 'টা বাকি' + (late ? ' · ' + late + 'টা দেরি' : '') : '';
+      box.innerHTML = list.length ? list.map(t => { const d = new Date(t.due_date), isLate = d.getTime() < now; const when = isLate ? (d.toDateString() === new Date().toDateString() ? 'দেরি' : 'আগের দিনের') : d.toLocaleTimeString('bn-BD', { hour: 'numeric', minute: '2-digit' }) + ' পর্যন্ত'; return `<button class="tdr" data-t="${t.id}"><span>${isLate ? '⚠️' : '⬜'} ${esc(t.title)}</span><small class="${isLate ? 'late' : ''}">${when}</small></button>`; }).join('') : '<div class="tdok">✅ আজকের সব কাজ শেষ, মাশাআল্লাহ!</div>';
+      box.querySelectorAll('.tdr').forEach(b => b.onclick = () => viewTask(b.dataset.t));
+      setTimeout(() => { const u = document.getElementById('tdun'); if (u) u.textContent = ui.unread || 0; }, 1500);
+    }
+  } catch (e) { /* the card is a helper; never break the home screen */ }
+  return pr;
+};
+
 if ('serviceWorker' in navigator) navigator.serviceWorker.register('sw.js').catch(()=>{});
 if ('serviceWorker' in navigator) navigator.serviceWorker.addEventListener('message', ev => { if (ev.data && ev.data.type === 'yg-notif') refreshNotifCount(); });
 setInterval(() => { if (!document.hidden && state.profile) refreshNotifCount(); }, 60000);
