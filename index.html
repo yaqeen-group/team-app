@@ -97,6 +97,13 @@ select.in{appearance:none;background-image:linear-gradient(45deg,transparent 50%
 .nf-it:not(.new) .nf-tx small{color:#94a3b8}
 .nf-dot{position:absolute;right:12px;top:18px;width:9px;height:9px;border-radius:50%;background:#2563eb}
 .tb[data-t="notif"]{white-space:nowrap;font-size:10.5px}
+.avl{position:relative;display:inline-flex;flex:0 0 auto;border-radius:50%;vertical-align:middle}
+.avl>.av{box-shadow:0 0 0 2.5px #fff,0 0 0 5px var(--lc)}
+.avb{position:absolute;right:-5px;bottom:-5px;line-height:1;font-style:normal;filter:drop-shadow(0 1px 1px rgba(0,0,0,.25))}
+.lv-silver{--lc:#A3ACB9}.lv-gold{--lc:#F5B301}.lv-platinum{--lc:#22C3D6}.lv-diamond{--lc:#3B82F6}.lv-heroic{--lc:#EF4444}
+.lvln{display:block;margin-top:3px;font-size:12px;font-weight:600;color:#7C5A00}
+.lvbar{height:5px;background:#EEF2F7;border-radius:9px;margin-top:5px;overflow:hidden}.lvbar i{display:block;height:100%;background:linear-gradient(90deg,#F5B301,#EF4444);border-radius:9px}
+.na-card{text-align:center;padding:26px 18px}.na-card .bigic{margin:0 auto 10px}
 .tabbar{position:fixed;bottom:0;left:50%;transform:translateX(-50%);width:100%;max-width:480px;display:flex;background:#fff;border-top:1px solid var(--line);padding:6px 4px calc(8px + env(safe-area-inset-bottom,0px));z-index:10}
 .tb{flex:1;display:flex;flex-direction:column;align-items:center;gap:2px;color:#98a5af;font-size:11px;font-weight:600;position:relative;padding:4px 0}
 .tb .ti{font-size:20px;line-height:1;filter:grayscale(1);opacity:.7}.tb.on{color:var(--teal)}.tb.on .ti{filter:none;opacity:1}
@@ -714,7 +721,16 @@ const isMgr = () => state.profile && ['admin', 'manager'].includes(state.profile
 const COLORS = ['#0F7C7A', '#C2410C', '#1D4ED8', '#7C3AED', '#0B3B5A', '#B45309', '#0E7490', '#9D174D'];
 const colorFor = id => COLORS[[...String(id || '')].reduce((a, c) => a + c.charCodeAt(0), 0) % COLORS.length];
 const photoOf = id => (id && state.profile && id === state.profile.id && state.profile.avatar_url) || (ui.people[id] && ui.people[id].avatar_url) || null;
-const avatar = (name, id, size = 44) => { const u = photoOf(id); return u ? `<img class="av" src="${esc(u)}" alt="" style="width:${size}px;height:${size}px;object-fit:cover">` : `<div class="av" style="width:${size}px;height:${size}px;background:${colorFor(id)};font-size:${Math.round(size / 3.2)}px">${esc(initials(name))}</div>`; };
+const LV = { bronze: ['🥉', 'ব্রোঞ্জ', 0], silver: ['🥈', 'সিলভার', 5], gold: ['🥇', 'গোল্ড', 15], platinum: ['💠', 'প্লাটিনাম', 30], diamond: ['💎', 'ডায়মন্ড', 50], heroic: ['🔥', 'হিরোইক', 80] };
+const LV_ORDER = ['bronze', 'silver', 'gold', 'platinum', 'diamond', 'heroic'];
+function lvLine(id) {
+  const L = ui.levels && ui.levels[id]; if (!L) return '';
+  const k = L.level || 'bronze', i = LV_ORDER.indexOf(k), nx = LV_ORDER[i + 1];
+  const pct = nx ? Math.min(100, Math.round((L.points - LV[k][2]) / (LV[nx][2] - LV[k][2]) * 100)) : 100;
+  return `<small class="lvln">${LV[k][0]} ${LV[k][1]} · ${L.points} পয়েন্ট · ${L.awards}টা অ্যাওয়ার্ড${nx ? ` · ${LV[nx][1]} হতে আর ${LV[nx][2] - L.points}` : ' · সর্বোচ্চ লেভেল!'}</small><div class="lvbar"><i style="width:${pct}%"></i></div>`;
+}
+const avatar = (name, id, size = 44) => { const inner = avatarInner(name, id, size); const L = ui.levels && ui.levels[id]; if (!L || !L.level || L.level === 'bronze') return inner; return `<span class="avl lv-${L.level}" title="${LV[L.level][1]}">${inner}<i class="avb" style="font-size:${Math.max(11, Math.round(size / 3))}px">${LV[L.level][0]}</i></span>`; };
+const avatarInner = (name, id, size = 44) => { const u = photoOf(id); return u ? `<img class="av" src="${esc(u)}" alt="" style="width:${size}px;height:${size}px;object-fit:cover">` : `<div class="av" style="width:${size}px;height:${size}px;background:${colorFor(id)};font-size:${Math.round(size / 3.2)}px">${esc(initials(name))}</div>`; };
 const personName = id => (ui.people[id] && ui.people[id].full_name) || 'Former member';
 const isOnline = p => p && p.last_seen && (Date.now() - new Date(p.last_seen).getTime() < 4 * 60 * 1000);
 function linkify(t) {
@@ -723,8 +739,9 @@ function linkify(t) {
 const todayDhaka = () => new Date(Date.now() + 6 * 3600 * 1000).toISOString().slice(0, 10);
 
 async function loadPeople() {
-  const { data } = await sb.from('profiles').select('id,full_name,designation,company_id,department_id,role,status,last_seen,phone,email,avatar_url').eq('status', 'active');
+  const { data } = await sb.from('profiles').select('id,full_name,designation,company_id,department_id,role,status,last_seen,phone,email,avatar_url,work_mode').eq('status', 'active');
   ui.people = {}; (data || []).forEach(p => ui.people[p.id] = p);
+  try { const { data: lv } = await sb.rpc('yg_levels'); ui.levels = {}; (lv || []).forEach(l => ui.levels[l.user_id] = l); } catch (e) { ui.levels = ui.levels || {}; }
 }
 
 function cleanupChannels() { ui.channels.forEach(c => sb.removeChannel(c)); ui.channels = []; }
@@ -1648,7 +1665,7 @@ async function teamReports(date) {
 function viewMenu() {
   const p = state.profile;
   frame(`<div class="top"><h1>Menu</h1></div><div class="pad" style="padding-top:8px">
-    <button class="card row" id="pf" style="width:100%;text-align:left">${avatar(p.full_name, p.id, 52)}<div class="rt"><b>${esc(p.full_name)}</b><span>${esc(p.designation || p.role)}</span></div><span class="editpill">✏️ Edit</span></button>
+    <button class="card row" id="pf" style="width:100%;text-align:left">${avatar(p.full_name, p.id, 52)}<div class="rt"><b>${esc(p.full_name)}</b><span>${esc(p.designation || p.role)}</span>${lvLine(p.id)}</div><span class="editpill">✏️ Edit</span></button>
     <div class="tiles">
       <button class="tile" id="m-notices" onclick="go('notices')"><span class="ic">📢</span><b>Notices</b><small>অফিসের নোটিশ</small></button>
       <button class="tile" id="m-edit"><span class="ic">✏️</span><b>Edit profile</b><small>ছবি, নাম, ফোন</small></button>
@@ -1729,9 +1746,10 @@ async function editMemberInfo(id, f) {
     <label>Designation</label><input class="in" id="ed" maxlength="100" value="${esc(u.designation || '')}">
     <label>Company</label><select class="in" id="ec">${opt(state.companies, u.company_id)}</select>
     <label>Department</label><select class="in" id="ep">${opt(state.departments, u.department_id)}</select>
+    <label>কাজের ধরন (হাজিরা)</label><select class="in" id="ew"><option value="remote" ${u.work_mode !== 'office' ? 'selected' : ''}>🏠 বাসা থেকে — হাজিরা প্রযোজ্য নয়</option><option value="office" ${u.work_mode === 'office' ? 'selected' : ''}>🏢 অফিস — সেলফি হাজিরা ও রিমাইন্ডার</option></select>
     <button class="btn" id="es">Save</button>`, (el, close) => {
     el.querySelector('#es').onclick = async () => {
-      const { error } = await sb.from('profiles').update({ designation: el.querySelector('#ed').value.trim() || null, company_id: el.querySelector('#ec').value || null, department_id: el.querySelector('#ep').value || null }).eq('id', id);
+      const { error } = await sb.from('profiles').update({ designation: el.querySelector('#ed').value.trim() || null, company_id: el.querySelector('#ec').value || null, department_id: el.querySelector('#ep').value || null, work_mode: el.querySelector('#ew').value }).eq('id', id);
       if (error) return toast(friendlyError(error));
       close(); toast('সেভ হয়েছে ✓'); await loadPeople(); renderMembers(f);
     };
@@ -2389,6 +2407,10 @@ async function viewAttendance() {
   document.querySelectorAll('.tb').forEach(b => b.onclick = () => go(b.dataset.t));
   document.getElementById('bk').onclick = () => go('home');
   if (isAdmin()) { document.getElementById('aadm').onclick = () => viewAttendanceAdmin(); document.getElementById('aoff').onclick = viewOffices; }
+  if ((state.profile.work_mode || 'remote') !== 'office') {
+    document.getElementById('atb').innerHTML = `<div class="card na-card"><div class="bigic" style="background:#EEF6FF">🏠</div><h3>হাজিরা আপনার জন্য প্রযোজ্য নয়</h3><p class="mut">আপনি বাসা থেকে কাজ করেন, তাই প্রতিদিন হাজিরা দিতে হবে না। হাজিরার রিমাইন্ডারও আসবে না।</p>${isAdmin() ? '<p class="mut" style="margin-top:8px">অ্যাডমিন হিসেবে উপরের 👥 বাটন থেকে অফিসের সদস্যদের হাজিরা দেখতে পারবেন।</p>' : ''}</div>`;
+    return;
+  }
   const from = dateAdd(todayDhaka(), -13);
   const [{ data: rows, error }, { data: leaves }] = await Promise.all([
     sb.from('attendance').select('*').eq('user_id', state.profile.id).gte('work_date', from).order('work_date', { ascending: false }),
@@ -2495,7 +2517,7 @@ async function viewAttendanceAdmin(date) {
   if (error) { box.innerHTML = `<div class="msg err">${esc(friendlyError(error))}</div>`; return; }
   const paths = (rows || []).flatMap(r => [r.check_in_selfie, r.check_out_selfie]).filter(Boolean);
   const urls = {}; if (paths.length) { const { data } = await sb.storage.from('attendance').createSignedUrls(paths, 3600); (data || []).forEach(d => { if (d.signedUrl) urls[d.path] = d.signedUrl; }); }
-  const people = Object.values(ui.people).sort((a, b) => a.full_name.localeCompare(b.full_name)).map(p => {
+  const people = Object.values(ui.people).filter(p => p.work_mode === 'office' || (rows || []).some(x => x.user_id === p.id)).sort((a, b) => a.full_name.localeCompare(b.full_name)).map(p => {
     const r = (rows || []).find(x => x.user_id === p.id), lv = (leaves || []).find(l => l.user_id === p.id);
     const st = r ? (r.late_minutes ? 'late' : 'ok') : lv ? 'leave' : 'abs';
     return { p, r, lv, st };
@@ -2606,7 +2628,7 @@ viewHome = async function () {
   if (anchor) {
     anchor.insertAdjacentHTML('beforebegin', `<div class="hrow2"><button class="hmini" id="hatt"><span>🕒</span><div class="rt"><b>হাজিরা</b><span id="hattsub">…</span></div></button><button class="hmini" id="hlv"><span>🏖️</span><div class="rt"><b>ছুটি</b><span id="hlvsub">আবেদন করুন</span></div></button></div>`);
     document.getElementById('hatt').onclick = viewAttendance; document.getElementById('hlv').onclick = () => { leaveTab = 'mine'; viewLeave(); };
-    sb.from('attendance').select('*').eq('user_id', state.profile.id).eq('work_date', todayDhaka()).maybeSingle().then(({ data: t, error }) => {
+    if ((state.profile.work_mode || 'remote') !== 'office') { const s0 = document.getElementById('hattsub'); if (s0) s0.textContent = 'প্রযোজ্য নয় (বাসা থেকে)'; } else sb.from('attendance').select('*').eq('user_id', state.profile.id).eq('work_date', todayDhaka()).maybeSingle().then(({ data: t, error }) => {
       const s = document.getElementById('hattsub'); if (!s) return;
       s.textContent = error ? 'সেটআপ বাকি' : !t ? 'আজ এখনো দেননি' : !t.check_out_at ? `ঢোকা ${fmtTime(t.check_in_at)}${t.late_minutes ? ' · দেরি' : ' ✓'}` : 'আজ সম্পূর্ণ ✓';
       if (!error && !t) document.getElementById('hatt').classList.add('warn');
