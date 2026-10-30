@@ -1,5 +1,5 @@
 // Service worker: installable app shell + phone notifications
-const CACHE = 'yaqeen-shell-v18';
+const CACHE = 'yaqeen-shell-v20';
 const SHELL = ['./', './index.html', './manifest.json', './icon-192.png', './icon-512.png', './mark.jpg', './logo-full.jpg'];
 self.addEventListener('install', e => {
   e.waitUntil(caches.open(CACHE).then(c => c.addAll(SHELL)).then(() => self.skipWaiting()));
@@ -39,3 +39,8 @@ self.addEventListener('notificationclick', e => {
   }));
 });
 
+
+// tell open app windows a new alert arrived, so the bell badge updates
+self.addEventListener('push', e => {
+  e.waitUntil(self.clients.matchAll({ type: 'window', includeUncontrolled: true }).then(cs => cs.forEach(c => c.postMessage({ type: 'yg-notif' }))));
+});
