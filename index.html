@@ -1538,12 +1538,12 @@ let taskFilter = 'mine';
 async function viewTasks() {
   const f = [['mine', 'My tasks'], ['pending', 'Pending'], ['overdue', 'Overdue'], ['completed', 'Completed']];
   if (isMgr()) f.push(['all', 'All tasks']);
-  frame(`<div class="top"><h1>Tasks</h1>${isMgr() ? '<div class="act"><button id="rpt" title="রিপিট টাস্ক">🔁</button></div>' : ''}</div>
+  frame(`<div class="top"><h1>Tasks</h1>${isAdmin() ? '<div class="act"><button id="rpt" title="রিপিট টাস্ক">🔁</button></div>' : ''}</div>
     <div class="chips">${f.map(([k, l]) => `<button class="chip ${taskFilter === k ? 'on' : ''}" data-f="${k}">${l}</button>`).join('')}</div>
-    <div class="pad" id="tl" style="padding-top:8px"><div class="cen"><div class="spin dark"></div></div></div>${isMgr() ? '<button class="fab" id="nt">+</button>' : ''}`);
+    <div class="pad" id="tl" style="padding-top:8px"><div class="cen"><div class="spin dark"></div></div></div>${isAdmin() ? '<button class="fab" id="nt">+</button>' : ''}`);
   document.querySelectorAll('.chip').forEach(b => b.onclick = () => { taskFilter = b.dataset.f; viewTasks(); });
-  if (isMgr()) document.getElementById('nt').onclick = () => taskForm();
-  if (isMgr()) document.getElementById('rpt').onclick = viewRepeats;
+  if (isAdmin()) document.getElementById('nt').onclick = () => taskForm();
+  if (isAdmin()) document.getElementById('rpt').onclick = viewRepeats;
   let q = sb.from('tasks').select('*').order('due_date', { ascending: true, nullsFirst: false }).limit(100);
   const me = state.profile.id;
   if (taskFilter === 'mine') q = q.eq('assigned_to', me).neq('status', 'completed');
@@ -1577,7 +1577,7 @@ async function viewTask(id) {
   if (error || !t) return toast('টাস্ক পাওয়া যায়নি');
   const canStatus = t.assigned_to === state.profile.id || isMgr();
   const st = [['todo', 'To Do'], ['in_progress', 'In Progress'], ['under_review', 'Under Review'], ['completed', 'Completed']];
-  $app.innerHTML = `<div class="top"><button class="back" id="bk">←</button><h1>Task</h1>${isMgr() ? '<div class="act"><button id="ed">✏️</button>' + (isAdmin() ? '<button id="dl">🗑️</button>' : '') + '</div>' : ''}</div>
+  $app.innerHTML = `<div class="top"><button class="back" id="bk">←</button><h1>Task</h1>${isAdmin() ? '<div class="act"><button id="ed">✏️</button>' + (isAdmin() ? '<button id="dl">🗑️</button>' : '') + '</div>' : ''}</div>
   <div class="pad" style="padding-top:10px">
     <span class="pri ${t.priority}">● ${t.priority.toUpperCase()}</span><h2 style="margin-top:6px;font-size:21px">${esc(t.title)}</h2>
     ${t.description ? `<div class="body" style="margin-top:10px;white-space:pre-wrap;font-size:14.5px;line-height:1.6">${linkify(t.description)}</div>` : ''}
