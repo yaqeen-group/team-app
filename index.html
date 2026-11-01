@@ -868,7 +868,7 @@ function viewCRM(path) {
 async function viewHome() {
   const p = state.profile;
   const quick = [
-    ['chats', '💬', 'Chats', '#E3F1F0'], ['notices', '📢', 'Notices', '#FFF3DC'], ['tasks', '✅', 'Tasks', '#E7F5EE'], ['team', '👥', 'Team', '#E8EEFF'], ['crm', '📊', 'CRM', '#FFE4E6'],
+    ['chats', '💬', 'Chats', '#E3F1F0'], ['notices', '📢', 'Notices', '#FFF3DC'], ['tasks', '✅', 'Tasks', '#E7F5EE'], ['team', '👥', 'Team', '#E8EEFF'], ['crm', '📊', 'CRM', '#FFE4E6'], ['lead', '➕', 'নতুন লিড', '#FFE9D6'],
     ['report', '📝', 'Daily report', '#F3E8FF'], ['profile', '✏️', 'My profile', '#FCE7EF'],
     ...(isAdmin() ? [['admin', '🛡️', 'Admin', '#E2E8F0'], ['group', '➕', 'New group', '#FFEDD5']] : [])
   ];
@@ -879,7 +879,7 @@ async function viewHome() {
       <div class="qgrid">${quick.map(([k, i, l, c]) => `<button class="qi" data-q="${k}"><span class="qic" style="background:${c}">${i}</span><span>${l}</span></button>`).join('')}</div>
       <div id="hb"><div class="cen" style="padding:20px"><div class="spin dark"></div></div></div>
     </div>`);
-  const qa = { chats: () => go('chats'), notices: () => go('notices'), tasks: () => go('tasks'), team: viewTeam, report: viewReport, profile: renderProfile, admin: viewAdmin, group: createGroup, crm: () => go('crm') };
+  const qa = { chats: () => go('chats'), notices: () => go('notices'), tasks: () => go('tasks'), team: viewTeam, report: viewReport, profile: renderProfile, admin: viewAdmin, group: createGroup, crm: () => go('crm'), lead: () => openCRM('/contacts/add') };
   document.querySelectorAll('[data-q]').forEach(b => b.onclick = () => qa[b.dataset.q]());
   const pb = document.getElementById('pushban'); if (pb) pb.onclick = enablePush;
   const [notices, tasks] = await Promise.all([
