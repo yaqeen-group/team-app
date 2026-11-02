@@ -2897,7 +2897,7 @@ function perfTeamPDF(rows, r) {
 async function viewPerfPerson(id, back) {
   cleanupChannels();
   const r = perfRange(perfPeriod), p = ui.people[id]; if (!p) return toast('সদস্য পাওয়া যায়নি');
-  $app.innerHTML = `<div class="top"><button class="back" id="bk">←</button><h1>📈 ${esc(p.full_name.split(' ')[0])}-এর পারফরম্যান্স</h1></div>
+  $app.innerHTML = `<div class="top"><button class="back" id="bk">←</button><h1 style="font-size:17px">📈 ${esc(p.full_name)}</h1></div>
    <div class="chips">${PERIODS.map(([k, l]) => `<button class="chip ${k === perfPeriod ? 'on' : ''}" data-pp="${k}">${l}</button>`).join('')}</div>
    <div class="pad" id="ppb" style="padding-top:8px"><div class="cen"><div class="spin dark"></div></div></div>`;
   document.getElementById('bk').onclick = () => (back || viewPerfTeam)();
