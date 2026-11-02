@@ -2769,10 +2769,11 @@ viewHome = async function () {
   const pr = _vhObs();
   if (!isObserver()) return pr;
   const rm = s => document.querySelectorAll(s).forEach(e => e.remove());
-  rm('#scard'); rm('.hrow2'); rm('[data-q="report"]'); rm('[data-q="lead"]');
+  rm('#scard'); rm('.hrow2'); rm('#today'); rm('[data-q="report"]'); rm('[data-q="lead"]');
   const hi = document.querySelector('.hero .hi'); if (hi) hi.insertAdjacentHTML('beforeend', '<small style="display:block;opacity:.85;font-size:13px;margin-top:4px">👁️ তত্ত্বাবধান অ্যাকাউন্ট — শুধু দেখা ও নিয়ন্ত্রণ</small>');
   const k2l = document.getElementById('k2'); if (k2l && k2l.nextElementSibling) k2l.nextElementSibling.textContent = 'team open tasks';
   await pr;
+  rm('#today'); setTimeout(() => rm('#today'), 1500);
   const hs = [...document.querySelectorAll('#hb .hsec')].find(h => /My tasks/.test(h.textContent));
   if (hs) { let n = hs.nextElementSibling; while (n && !n.classList.contains('hsec')) { const x = n.nextElementSibling; n.remove(); n = x; } hs.remove(); }
   const hb = document.getElementById('hb'); if (!hb) return;
