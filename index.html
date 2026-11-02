@@ -753,7 +753,7 @@ function linkify(t) {
 const todayDhaka = () => new Date(Date.now() + 6 * 3600 * 1000).toISOString().slice(0, 10);
 
 async function loadPeople() {
-  const { data } = await sb.from('profiles').select('id,full_name,designation,company_id,department_id,role,status,last_seen,phone,email,avatar_url,work_mode,observer').eq('status', 'active');
+  const { data } = await sb.from('profiles').select('id,full_name,designation,company_id,department_id,role,status,last_seen,phone,email,avatar_url,work_mode,observer,daily_report').eq('status', 'active');
   ui.people = {}; (data || []).forEach(p => ui.people[p.id] = p);
   try { const { data: lv } = await sb.rpc('yg_levels'); ui.levels = {}; (lv || []).forEach(l => ui.levels[l.user_id] = l); } catch (e) { ui.levels = ui.levels || {}; }
 }
@@ -1680,12 +1680,12 @@ function reportCard(r, showName) {
 async function teamReports(date) {
   $app.innerHTML = `<div class="top"><button class="back" id="bk">←</button><h1>Team reports</h1></div>
     <div class="pad" style="padding-top:6px"><label>Date</label><input class="in" type="date" id="dt" value="${date}"><div id="rl" style="margin-top:6px"></div></div>`;
-  document.getElementById('bk').onclick = viewReport;
+  document.getElementById('bk').onclick = () => (state.profile && state.profile.daily_report === false) ? go('home') : viewReport();
   const load = async d => {
     const { data } = await sb.from('daily_reports').select('*').eq('report_date', d);
     const got = new Set((data || []).map(r => r.user_id));
-    const missing = Object.values(ui.people).filter(p => !got.has(p.id));
-    document.getElementById('rl').innerHTML = `<p class="mut" style="margin:8px 0">জমা: ${got.size} / ${Object.keys(ui.people).length}</p>` + (data || []).map(r => reportCard(r, true)).join('') +
+    const missing = Object.values(ui.people).filter(p => p.daily_report !== false && !got.has(p.id));
+    document.getElementById('rl').innerHTML = `<p class="mut" style="margin:8px 0">জমা: ${got.size} / ${Object.values(ui.people).filter(p => p.daily_report !== false).length}</p>` + (data || []).map(r => reportCard(r, true)).join('') +
       (missing.length ? `<div class="sec">এখনো জমা দেননি</div><p class="mut">${missing.map(p => esc(p.full_name)).join(', ')}</p>` : '');
   };
   document.getElementById('dt').onchange = e => load(e.target.value);
@@ -1778,9 +1778,10 @@ async function editMemberInfo(id, f) {
     <label>Company</label><select class="in" id="ec">${opt(state.companies, u.company_id)}</select>
     <label>Department</label><select class="in" id="ep">${opt(state.departments, u.department_id)}</select>
     <label>কাজের ধরন (হাজিরা)</label><select class="in" id="ew"><option value="remote" ${u.work_mode !== 'office' ? 'selected' : ''}>🏠 বাসা থেকে — হাজিরা প্রযোজ্য নয়</option><option value="office" ${u.work_mode === 'office' ? 'selected' : ''}>🏢 অফিস — সেলফি হাজিরা ও রিমাইন্ডার</option></select>
+<label>দৈনিক রিপোর্ট</label><select class="in" id="edr"><option value="1" ${u.daily_report !== false ? 'selected' : ''}>📝 প্রযোজ্য — প্রতিদিন রিপোর্ট দিতে হবে</option><option value="0" ${u.daily_report === false ? 'selected' : ''}>🚫 প্রযোজ্য নয় — রিপোর্ট লাগবে না</option></select>
     <button class="btn" id="es">Save</button>`, (el, close) => {
     el.querySelector('#es').onclick = async () => {
-      const { error } = await sb.from('profiles').update({ designation: el.querySelector('#ed').value.trim() || null, company_id: el.querySelector('#ec').value || null, department_id: el.querySelector('#ep').value || null, work_mode: el.querySelector('#ew').value }).eq('id', id);
+      const { error } = await sb.from('profiles').update({ designation: el.querySelector('#ed').value.trim() || null, company_id: el.querySelector('#ec').value || null, department_id: el.querySelector('#ep').value || null, work_mode: el.querySelector('#ew').value, daily_report: el.querySelector('#edr').value === '1' }).eq('id', id);
       if (error) return toast(friendlyError(error));
       close(); toast('সেভ হয়েছে ✓'); await loadPeople(); renderMembers(f);
     };
@@ -2122,9 +2123,9 @@ async function taskReportData(date) {
   const people = Object.values(ui.people).sort((a, b) => a.full_name.localeCompare(b.full_name)).map(p => {
     const d = (done || []).filter(t => t.assigned_to === p.id), q = (pend || []).filter(t => t.assigned_to === p.id);
     const od = q.filter(t => t.due_date && new Date(t.due_date) < Math.min(to, new Date()));
-    return { p, done: d, pending: q, overdue: od, report: repSet.has(p.id) };
+    return { p, done: d, pending: q, overdue: od, report: repSet.has(p.id), noRep: p.daily_report === false };
   });
-  return { date, people, totals: { done: (done || []).length, pending: (pend || []).length, overdue: people.reduce((a, x) => a + x.overdue.length, 0), reports: repSet.size, members: people.length } };
+  return { date, people, totals: { done: (done || []).length, pending: (pend || []).length, overdue: people.reduce((a, x) => a + x.overdue.length, 0), reports: repSet.size, members: people.filter(x => !x.noRep).length } };
 }
 function taskReportHTML(r, forPdf) {
   const dt = new Date(r.date + 'T00:00:00').toLocaleDateString('en-GB', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' });
@@ -2133,7 +2134,7 @@ function taskReportHTML(r, forPdf) {
     ${forPdf ? `<div class="trh"><img src="mark.jpg" alt=""><div><b>Yaqeen Group</b><span>Daily Task Report</span></div><div class="trd">${dt}</div></div>` : `<p class="mut" style="margin-bottom:8px">${dt}</p>`}
     <div class="trs"><div><b>${r.totals.done}</b><span>✅ শেষ হয়েছে</span></div><div><b>${r.totals.pending}</b><span>⏳ বাকি আছে</span></div><div><b>${r.totals.overdue}</b><span>⏰ সময় পেরিয়েছে</span></div><div><b>${r.totals.reports}/${r.totals.members}</b><span>📝 রিপোর্ট জমা</span></div></div>
     <table class="trt"><thead><tr><th>সদস্য</th><th>✅ শেষ</th><th>⏳ বাকি</th><th>⏰ ওভারডিউ</th><th>📝 রিপোর্ট</th></tr></thead><tbody>
-      ${r.people.map(x => `<tr><td>${esc(x.p.full_name)}</td><td class="n">${x.done.length}</td><td class="n">${x.pending.length}</td><td class="n ${x.overdue.length ? 'bad' : ''}">${x.overdue.length}</td><td class="n">${x.report ? '✓' : '✗'}</td></tr>`).join('')}
+      ${r.people.map(x => `<tr><td>${esc(x.p.full_name)}</td><td class="n">${x.done.length}</td><td class="n">${x.pending.length}</td><td class="n ${x.overdue.length ? 'bad' : ''}">${x.overdue.length}</td><td class="n">${x.noRep ? '—' : x.report ? '✓' : '✗'}</td></tr>`).join('')}
     </tbody></table>
     ${r.people.filter(x => x.done.length || x.pending.length).map(x => `<div class="trp"><b>${esc(x.p.full_name)}</b>${x.p.designation ? ` <span>· ${esc(x.p.designation)}</span>` : ''}<ul>${x.done.map(t => tline(t, true)).join('')}${x.pending.map(t => tline(t, false)).join('')}</ul></div>`).join('') || '<div class="hempty"><span>📭</span>এই দিনে কোনো টাস্ক নেই</div>'}
     ${forPdf ? `<div class="trf">Generated by Yaqeen Group Team App · ${new Date().toLocaleString('en-GB')}</div>` : ''}
@@ -2789,13 +2790,13 @@ viewHome = async function () {
       sb.from('leave_requests').select('id', { count: 'exact', head: true }).eq('status', 'pending')]);
     const k2 = document.getElementById('k2'); if (k2) k2.textContent = open.count || 0;
     const office = people.filter(p => p.work_mode === 'office').length;
-    const rep = new Set((reps.data || []).map(r => r.user_id).filter(u => ids.has(u))).size;
+    const rep = new Set((reps.data || []).map(r => r.user_id).filter(u => ids.has(u) && (ui.people[u] || {}).daily_report !== false)).size, repN = people.filter(p => p.daily_report !== false).length;
     const came = new Set((att.data || []).filter(r => r.check_in_at && ids.has(r.user_id)).map(r => r.user_id)).size;
     const full = (sal.data || []).filter(l => ids.has(l.user_id) && salahCount(l) === 5).length;
     const box = (ic, big, txt, id, warn) => `<button class="card hcard" id="${id}" style="${warn ? 'border:1.5px solid #F59E0B' : ''}"><span class="hci" style="background:#EEF2F9">${ic}</span><div class="rt"><b>${big}</b><span>${txt}</span></div></button>`;
     document.getElementById('obsp').outerHTML =
       box('✅', `${open.count || 0}টা চলমান কাজ`, `${over.count || 0}টা সময় পার হয়ে গেছে`, 'ob-t', (over.count || 0) > 0) +
-      box('📝', `${rep}/${people.length} জন রিপোর্ট দিয়েছে`, 'আজকের দৈনিক রিপোর্ট', 'ob-r', rep < people.length) +
+      box('📝', `${rep}/${repN} জন রিপোর্ট দিয়েছে`, 'আজকের দৈনিক রিপোর্ট', 'ob-r', rep < repN) +
       box('🕒', `${came}/${office} জন হাজিরা দিয়েছে`, 'অফিসের সদস্য', 'ob-a', came < office) +
       box('🕌', `${full}/${people.length} জন পূর্ণ`, 'আজকের নামাজের হিসাব', 'ob-s', false) +
       ((lv.count || 0) ? box('🏖️', `${lv.count}টা ছুটির আবেদন`, 'সিদ্ধান্তের অপেক্ষায়', 'ob-l', true) : '');
@@ -2851,7 +2852,7 @@ async function perfData(ids, r) {
     out[id] = {
       p, done: d, open: o, overdue: o.filter(t => t.due_date && Date.parse(t.due_date) < now), onTime, late: d.length - onTime,
       avgH: hs.length ? hs.reduce((x, y) => x + y, 0) / hs.length : null, perWeek: Math.round(d.length / Math.max(1, days / 7) * 10) / 10,
-      reports: new Set((reps.data || []).filter(x => x.user_id === id).map(x => x.report_date)).size, workDays, leaveDays, days,
+      rep: p.daily_report !== false, reports: new Set((reps.data || []).filter(x => x.user_id === id).map(x => x.report_date)).size, workDays, leaveDays, days,
       office: p.work_mode === 'office', present: new Set(a.map(x => x.work_date)).size, lates: lates.length,
       avgLate: lates.length ? Math.round(lates.reduce((x, y) => x + y.late_minutes, 0) / lates.length) : 0,
       salFull: s.filter(x => salahCount(x) === 5).length, salWaqt: s.reduce((x, y) => x + salahCount(y), 0),
@@ -2879,7 +2880,7 @@ async function viewPerfTeam() {
    <div class="trs" style="margin-bottom:12px"><div><b>${tDone}</b><span>✅ কাজ শেষ</span></div><div><b>${pct(tOn, tDone)}%</b><span>⏱️ সময়মতো</span></div><div><b>${tOpen}</b><span>📋 চলমান</span></div><div><b>${tOver}</b><span>⚠️ সময় পার</span></div></div>
    ${rows.map(x => `<button class="card row" data-pu="${x.p.id}" style="width:100%;text-align:left;align-items:flex-start">${avatar(x.p.full_name, x.p.id, 44)}<div class="rt"><b>${esc(x.p.full_name)}${x.gold ? ` <span title="trophies">🏆${x.gold}</span>` : ''}</b><span>${esc(x.p.designation || '')}</span>
      <span style="display:block;margin-top:4px;color:var(--navy);font-size:12.5px">✅ ${x.done.length} শেষ · ⏱️ ${pct(x.onTime, x.done.length)}% সময়মতো · 📋 ${x.open.length} চলমান${x.overdue.length ? ` · <b style="color:var(--red)">⚠️ ${x.overdue.length} সময় পার</b>` : ''}</span>
-     <span style="display:block;font-size:12px">📝 রিপোর্ট ${x.reports}/${x.workDays} দিন${x.office ? ` · 🕒 হাজিরা ${x.present} দিন${x.lates ? `, দেরি ${x.lates}` : ''}` : ''}</span></div><span class="mut" style="font-size:20px">›</span></button>`).join('') || '<div class="hempty"><span>👥</span>কোনো সদস্য নেই</div>'}
+     <span style="display:block;font-size:12px">📝 রিপোর্ট ${x.rep ? x.reports + '/' + x.workDays + ' দিন' : 'প্রযোজ্য নয়'}${x.office ? ` · 🕒 হাজিরা ${x.present} দিন${x.lates ? `, দেরি ${x.lates}` : ''}` : ''}</span></div><span class="mut" style="font-size:20px">›</span></button>`).join('') || '<div class="hempty"><span>👥</span>কোনো সদস্য নেই</div>'}
    <button class="btn" id="ptpdf" style="margin-top:12px">📄 টিম রিপোর্ট PDF</button>`;
   box.querySelectorAll('[data-pu]').forEach(b => b.onclick = () => viewPerfPerson(b.dataset.pu, viewPerfTeam));
   document.getElementById('ptpdf').onclick = () => exportHtmlPdf(perfTeamPDF(rows, r), `Team-Performance-${r.from}_${r.to}.pdf`, 'Team performance report', true);
@@ -2888,7 +2889,7 @@ async function viewPerfTeam() {
 function perfTeamPDF(rows, r) {
   return `<div class="trep pdf"><div class="trh"><img src="mark.jpg" alt=""><div><b>Yaqeen Group</b><span>Team Performance Report · টিমের পারফরম্যান্স</span></div><div class="trd">${rangeTxt(r)}</div></div>
    <table class="trt"><thead><tr><th>সদস্য</th><th>কাজ শেষ</th><th>সময়মতো</th><th>গড় সময়</th><th>চলমান</th><th>সময় পার</th><th>রিপোর্ট</th><th>হাজিরা</th><th>🏆</th></tr></thead><tbody>
-   ${rows.map(x => `<tr><td><b>${esc(x.p.full_name)}</b><br><span style="font-size:11px;color:#6b7a86">${esc(x.p.designation || '')}</span></td><td class="n">${x.done.length}</td><td class="n">${pct(x.onTime, x.done.length)}%</td><td class="n">${hrsTxt(x.avgH)}</td><td class="n">${x.open.length}</td><td class="n">${x.overdue.length}</td><td class="n">${x.reports}/${x.workDays}</td><td class="n">${x.office ? x.present + (x.lates ? ` (দেরি ${x.lates})` : '') : '—'}</td><td class="n">${x.gold || '—'}</td></tr>`).join('')}
+   ${rows.map(x => `<tr><td><b>${esc(x.p.full_name)}</b><br><span style="font-size:11px;color:#6b7a86">${esc(x.p.designation || '')}</span></td><td class="n">${x.done.length}</td><td class="n">${pct(x.onTime, x.done.length)}%</td><td class="n">${hrsTxt(x.avgH)}</td><td class="n">${x.open.length}</td><td class="n">${x.overdue.length}</td><td class="n">${x.rep ? x.reports + '/' + x.workDays : '—'}</td><td class="n">${x.office ? x.present + (x.lates ? ` (দেরি ${x.lates})` : '') : '—'}</td><td class="n">${x.gold || '—'}</td></tr>`).join('')}
    </tbody></table>
    <p style="font-size:11px;color:#6b7a86;margin-top:8px">সময়মতো = নির্ধারিত সময়ের মধ্যে শেষ হওয়া কাজ। রিপোর্ট = দৈনিক রিপোর্ট জমার দিন / কাজের দিন (অনুমোদিত ছুটি বাদে)। হাজিরা শুধু অফিসের সদস্যদের।</p>
    <div class="trf">Generated by Yaqeen Group Team App · ${new Date().toLocaleString('en-GB')}</div></div>`;
@@ -2911,7 +2912,7 @@ async function viewPerfPerson(id, back) {
    <div class="trs"><div><b>${x.done.length}</b><span>শেষ করেছে</span></div><div><b>${pct(x.onTime, x.done.length)}%</b><span>সময়মতো (${x.onTime})</span></div><div><b>${hrsTxt(x.avgH)}</b><span>গড়ে কাজ শেষের সময়</span></div><div><b>${x.perWeek}</b><span>সপ্তাহে গড়ে</span></div></div>
    <div class="trs" style="margin-top:6px"><div><b>${x.open.length}</b><span>এখন চলমান</span></div><div><b style="${x.overdue.length ? 'color:var(--red)' : ''}">${x.overdue.length}</b><span>সময় পার হয়েছে</span></div><div><b>${x.late}</b><span>দেরিতে শেষ</span></div><div><b>${x.gold ? '🏆' + x.gold : '–'}</b><span>ট্রফি${x.silver || x.bronze ? ` · 🥈${x.silver} 🥉${x.bronze}` : ''}</span></div></div>
    <div class="hsec"><span class="hsi">📅</span><b>নিয়মানুবর্তিতা</b></div>
-   <div class="trs"><div><b>${x.reports}/${x.workDays}</b><span>📝 দৈনিক রিপোর্ট</span></div><div><b>${x.office ? x.present : '—'}</b><span>🕒 হাজিরার দিন</span></div><div><b>${x.office ? x.lates : '—'}</b><span>দেরিতে এসেছে${x.lates ? ` (গড় ${x.avgLate} মি)` : ''}</span></div><div><b>${x.leaveDays}</b><span>🏖️ ছুটির দিন</span></div></div>
+   <div class="trs"><div><b>${x.rep ? x.reports + '/' + x.workDays : '—'}</b><span>📝 দৈনিক রিপোর্ট${x.rep ? '' : ' (প্রযোজ্য নয়)'}</span></div><div><b>${x.office ? x.present : '—'}</b><span>🕒 হাজিরার দিন</span></div><div><b>${x.office ? x.lates : '—'}</b><span>দেরিতে এসেছে${x.lates ? ` (গড় ${x.avgLate} মি)` : ''}</span></div><div><b>${x.leaveDays}</b><span>🏖️ ছুটির দিন</span></div></div>
    <div class="trs" style="margin-top:6px;grid-template-columns:1fr 1fr"><div><b>${x.salFull}/${x.days}</b><span>🕌 পাঁচ ওয়াক্ত পূর্ণ দিন</span></div><div><b>${pct(x.salWaqt, x.days * 5)}%</b><span>🕌 মোট ওয়াক্ত</span></div></div>
    <div id="pwk" style="margin-top:12px"></div>
    <div class="hsec"><span class="hsi">📋</span><b>চলমান কাজ (${x.open.length})</b></div><div class="card">${x.open.slice(0, 30).map(t => tl(t, false)).join('') || '<p class="mut">কোনো চলমান কাজ নেই</p>'}</div>
@@ -2929,7 +2930,7 @@ function perfPersonPDF(x, r, withSalah) {
    ${x.lvl ? `<div style="text-align:right;font-size:12.5px;color:#45545f">মোট পয়েন্ট ${x.lvl.points ?? '–'} · মোট অ্যাওয়ার্ড ${x.lvl.awards ?? '–'}</div>` : ''}</div>
    <b style="color:#0F7C7A">কাজ</b><div class="trs" style="margin:6px 0 10px">${cell(x.done.length, 'কাজ শেষ')}${cell(pct(x.onTime, x.done.length) + '%', 'সময়মতো')}${cell(hrsTxt(x.avgH), 'গড় সময়')}${cell(x.perWeek, 'সপ্তাহে গড়ে')}</div>
    <div class="trs" style="margin:0 0 10px">${cell(x.open.length, 'চলমান')}${cell(x.overdue.length, 'সময় পার')}${cell(x.late, 'দেরিতে শেষ')}${cell(x.gold ? '🏆 ' + x.gold : '–', 'ট্রফি')}</div>
-   <b style="color:#0F7C7A">নিয়মানুবর্তিতা</b><div class="trs" style="margin:6px 0 10px">${cell(x.reports + '/' + x.workDays, 'দৈনিক রিপোর্ট')}${cell(x.office ? x.present : '—', 'হাজিরার দিন')}${cell(x.office ? x.lates : '—', 'দেরিতে এসেছে')}${cell(x.leaveDays, 'ছুটির দিন')}</div>
+   <b style="color:#0F7C7A">নিয়মানুবর্তিতা</b><div class="trs" style="margin:6px 0 10px">${cell(x.rep ? x.reports + '/' + x.workDays : 'প্রযোজ্য নয়', 'দৈনিক রিপোর্ট')}${cell(x.office ? x.present : '—', 'হাজিরার দিন')}${cell(x.office ? x.lates : '—', 'দেরিতে এসেছে')}${cell(x.leaveDays, 'ছুটির দিন')}</div>
    ${withSalah ? `<div class="trs" style="margin:0 0 10px;grid-template-columns:1fr 1fr">${cell(x.salFull + '/' + x.days, 'পাঁচ ওয়াক্ত পূর্ণ দিন')}${cell(pct(x.salWaqt, x.days * 5) + '%', 'মোট ওয়াক্ত')}</div>` : ''}
    <b style="color:#0F7C7A">চলমান কাজ (${x.open.length})</b>
    <table class="trt" style="margin:6px 0 10px"><thead><tr><th>কাজ</th><th>অগ্রাধিকার</th><th>শেষ তারিখ</th></tr></thead><tbody>${x.open.slice(0, 25).map(t => `<tr><td>${esc(t.title)}</td><td class="n">${esc(t.priority || '')}</td><td class="n">${t.due_date ? fmtDate(t.due_date) + (Date.parse(t.due_date) < Date.now() ? ' ⚠️' : '') : '—'}</td></tr>`).join('') || '<tr><td colspan="3">নেই</td></tr>'}</tbody></table>
@@ -2959,6 +2960,23 @@ memberCard = function (id) {
 window.viewPerfTeam = viewPerfTeam;
 }
 
+
+/* ---------- daily report: only for members the admin marks as "applicable" ---------- */
+{
+  const noRep = () => !!(state.profile && state.profile.daily_report === false);
+  const _vhRep = viewHome;
+  viewHome = async function () {
+    const pr = _vhRep();
+    if (noRep()) { const q = document.querySelector('[data-q="report"]'); if (q) { if (isMgr()) { const s = q.querySelector('span:last-child'); if (s) s.textContent = 'Team reports'; q.onclick = () => teamReports(todayDhaka()); } else q.remove(); } }
+    return pr;
+  };
+  const _vmRep = viewMenu;
+  viewMenu = function () {
+    const r = _vmRep();
+    if (noRep()) { const m = document.getElementById('m-rep'); if (m) { if (isMgr()) { m.querySelector('b').textContent = 'Team reports'; m.querySelector('small').textContent = 'সবার দৈনিক রিপোর্ট'; m.onclick = () => teamReports(todayDhaka()); } else m.remove(); } }
+    return r;
+  };
+}
 </script>
 </body>
 </html>
