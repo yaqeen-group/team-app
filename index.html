@@ -753,7 +753,7 @@ function linkify(t) {
 const todayDhaka = () => new Date(Date.now() + 6 * 3600 * 1000).toISOString().slice(0, 10);
 
 async function loadPeople() {
-  const { data } = await sb.from('profiles').select('id,full_name,designation,company_id,department_id,role,status,last_seen,phone,email,avatar_url,work_mode').eq('status', 'active');
+  const { data } = await sb.from('profiles').select('id,full_name,designation,company_id,department_id,role,status,last_seen,phone,email,avatar_url,work_mode,observer').eq('status', 'active');
   ui.people = {}; (data || []).forEach(p => ui.people[p.id] = p);
   try { const { data: lv } = await sb.rpc('yg_levels'); ui.levels = {}; (lv || []).forEach(l => ui.levels[l.user_id] = l); } catch (e) { ui.levels = ui.levels || {}; }
 }
@@ -2754,6 +2754,57 @@ document.addEventListener('visibilitychange', () => {
   if (document.hidden) { hiddenAt = Date.now(); return; }
   if (hiddenAt && Date.now() - hiddenAt > 30 * 60 * 1000 && !document.querySelector('input:focus, textarea:focus')) location.reload();
 });
+
+/* ---------- observer (supervision-only) account: sees and controls everything, never shows up as a team member ---------- */
+const isObserver = () => !!(state.profile && state.profile.observer);
+const _lpObs = loadPeople;
+loadPeople = async function () {
+  await _lpObs();
+  const real = ui.people, hid = new Set(Object.values(real).filter(p => p.observer).map(p => p.id));
+  if (!hid.size) return;
+  ui.people = new Proxy(real, { ownKeys: t => Reflect.ownKeys(t).filter(k => !hid.has(k)), getOwnPropertyDescriptor: (t, k) => hid.has(k) ? undefined : Reflect.getOwnPropertyDescriptor(t, k) });
+};
+const _vhObs = viewHome;
+viewHome = async function () {
+  const pr = _vhObs();
+  if (!isObserver()) return pr;
+  const rm = s => document.querySelectorAll(s).forEach(e => e.remove());
+  rm('#scard'); rm('.hrow2'); rm('[data-q="report"]'); rm('[data-q="lead"]');
+  const hi = document.querySelector('.hero .hi'); if (hi) hi.insertAdjacentHTML('beforeend', '<small style="display:block;opacity:.85;font-size:13px;margin-top:4px">👁️ তত্ত্বাবধান অ্যাকাউন্ট — শুধু দেখা ও নিয়ন্ত্রণ</small>');
+  const k2l = document.getElementById('k2'); if (k2l && k2l.nextElementSibling) k2l.nextElementSibling.textContent = 'team open tasks';
+  await pr;
+  const hs = [...document.querySelectorAll('#hb .hsec')].find(h => /My tasks/.test(h.textContent));
+  if (hs) { let n = hs.nextElementSibling; while (n && !n.classList.contains('hsec')) { const x = n.nextElementSibling; n.remove(); n = x; } hs.remove(); }
+  const hb = document.getElementById('hb'); if (!hb) return;
+  hb.insertAdjacentHTML('afterbegin', '<div class="hsec"><span class="hsi">👁️</span><b>আজকের টিম পরিস্থিতি</b></div><div id="obsp" class="cen" style="padding:14px"><div class="spin dark"></div></div>');
+  try {
+    const d = todayDhaka(), ids = new Set(Object.keys(ui.people)), people = Object.values(ui.people);
+    const [open, over, reps, att, sal, lv] = await Promise.all([
+      sb.from('tasks').select('id', { count: 'exact', head: true }).neq('status', 'completed'),
+      sb.from('tasks').select('id', { count: 'exact', head: true }).neq('status', 'completed').lt('due_date', new Date().toISOString()),
+      sb.from('daily_reports').select('user_id').eq('report_date', d),
+      sb.from('attendance').select('user_id,check_in_at').eq('work_date', d),
+      sb.from('salah_logs').select('*').eq('log_date', salahToday()),
+      sb.from('leave_requests').select('id', { count: 'exact', head: true }).eq('status', 'pending')]);
+    const k2 = document.getElementById('k2'); if (k2) k2.textContent = open.count || 0;
+    const office = people.filter(p => p.work_mode === 'office').length;
+    const rep = new Set((reps.data || []).map(r => r.user_id).filter(u => ids.has(u))).size;
+    const came = new Set((att.data || []).filter(r => r.check_in_at && ids.has(r.user_id)).map(r => r.user_id)).size;
+    const full = (sal.data || []).filter(l => ids.has(l.user_id) && salahCount(l) === 5).length;
+    const box = (ic, big, txt, id, warn) => `<button class="card hcard" id="${id}" style="${warn ? 'border:1.5px solid #F59E0B' : ''}"><span class="hci" style="background:#EEF2F9">${ic}</span><div class="rt"><b>${big}</b><span>${txt}</span></div></button>`;
+    document.getElementById('obsp').outerHTML =
+      box('✅', `${open.count || 0}টা চলমান কাজ`, `${over.count || 0}টা সময় পার হয়ে গেছে`, 'ob-t', (over.count || 0) > 0) +
+      box('📝', `${rep}/${people.length} জন রিপোর্ট দিয়েছে`, 'আজকের দৈনিক রিপোর্ট', 'ob-r', rep < people.length) +
+      box('🕒', `${came}/${office} জন হাজিরা দিয়েছে`, 'অফিসের সদস্য', 'ob-a', came < office) +
+      box('🕌', `${full}/${people.length} জন পূর্ণ`, 'আজকের নামাজের হিসাব', 'ob-s', false) +
+      ((lv.count || 0) ? box('🏖️', `${lv.count}টা ছুটির আবেদন`, 'সিদ্ধান্তের অপেক্ষায়', 'ob-l', true) : '');
+    const on = (id, f) => { const e = document.getElementById(id); if (e) e.onclick = f; };
+    on('ob-t', () => go('tasks')); on('ob-r', () => teamReports(todayDhaka())); on('ob-a', () => viewAttendanceAdmin()); on('ob-s', () => viewSalahAdmin()); on('ob-l', () => { leaveTab = 'pending'; viewLeave(); });
+  } catch (e) { const o = document.getElementById('obsp'); if (o) o.innerHTML = '<p class="mut">তথ্য লোড হয়নি</p>'; }
+};
+const _vmObs = viewMenu;
+viewMenu = function () { const r = _vmObs(); if (isObserver()) { const s = document.getElementById('m-sal'); if (s) s.remove(); } return r; };
+
 </script>
 </body>
 </html>
