@@ -2584,6 +2584,11 @@ viewAttendance = async function () {
   const mk = document.getElementById('amark'); if (mk) mk.onclick = () => markAttendance(stage);
 };
 }
+/* refresh member list before assigning a task, so newly activated members appear */
+{
+const _tfFresh = taskForm;
+taskForm = async function (t) { try { await loadPeople(); } catch (e) {} return _tfFresh(t); };
+}
 async function viewAttendanceAdmin(date) {
   date = date || todayDhaka();
   $app.innerHTML = `<div class="top"><button class="back" id="bk">←</button><h1>👥 সবার হাজিরা</h1></div>
