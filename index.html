@@ -753,7 +753,7 @@ function linkify(t) {
 const todayDhaka = () => new Date(Date.now() + 6 * 3600 * 1000).toISOString().slice(0, 10);
 
 async function loadPeople() {
-  const { data } = await sb.from('profiles').select('id,full_name,designation,company_id,department_id,role,status,last_seen,phone,email,avatar_url,work_mode,observer,daily_report').eq('status', 'active');
+  const { data } = await sb.from('profiles').select('id,full_name,designation,company_id,department_id,role,status,last_seen,phone,email,avatar_url,work_mode,observer,daily_report,shifts').eq('status', 'active');
   ui.people = {}; (data || []).forEach(p => ui.people[p.id] = p);
   try { const { data: lv } = await sb.rpc('yg_levels'); ui.levels = {}; (lv || []).forEach(l => ui.levels[l.user_id] = l); } catch (e) { ui.levels = ui.levels || {}; }
 }
@@ -2532,6 +2532,57 @@ async function viewOffices() {
 }
 
 /* ---- admin: everyone's attendance ---- */
+/* ---- shift attendance (per-person shifts, e.g. morning + evening) ---- */
+function _attLbl(s) { return ['সকাল', 'বিকেল'][s - 1] || ('শিফট ' + s); }
+function _attMerge(rs) { if (!rs || !rs.length) return null; rs = rs.slice().sort((a, b) => (a.shift || 1) - (b.shift || 1)); const l = rs[rs.length - 1]; return Object.assign({}, rs[0], { check_out_at: l.check_out_at, check_out_selfie: l.check_out_selfie, late_minutes: rs.reduce((a, x) => a + (x.late_minutes || 0), 0), _rs: rs }); }
+function _attTxt(rs) { return rs.map(r => _attLbl(r.shift || 1) + ': ' + fmtTime(r.check_in_at) + '–' + (r.check_out_at ? fmtTime(r.check_out_at) : '…') + (r.late_minutes ? ' (' + lateText(r.late_minutes) + ')' : '')).join(' · '); }
+function _attSelf(rs) { const m = rs.length > 1 || (rs[0] && (rs[0].shift || 1) > 1); return rs.flatMap(r => { const p = m ? _attLbl(r.shift || 1) + ' ' : ''; return [[p + 'ঢোকা', r.check_in_selfie], [p + 'বের', r.check_out_selfie]]; }); }
+{
+const _vaShiftX = viewAttendance;
+const shN = s => ['সকালের', 'বিকেলের'][s - 1] || ('শিফট ' + s + '-এর');
+const t12 = s => { const [h, m] = String(s).split(':').map(Number); return ((h % 12) || 12) + ':' + String(m).padStart(2, '0'); };
+const toM = s => { const [h, m] = String(s).split(':').map(Number); return h * 60 + m; };
+viewAttendance = async function () {
+  const SH = state.profile && state.profile.shifts;
+  if (!Array.isArray(SH) || SH.length < 2 || (state.profile.work_mode || 'remote') !== 'office') return _vaShiftX();
+  await _vaShiftX();
+  const el = document.getElementById('atb'); if (!el) return;
+  const from = dateAdd(todayDhaka(), -13);
+  const [{ data: rows, error }, { data: leaves }] = await Promise.all([
+    sb.from('attendance').select('*').eq('user_id', state.profile.id).gte('work_date', from).order('work_date', { ascending: false }),
+    sb.from('leave_requests').select('*').eq('user_id', state.profile.id).eq('status', 'approved').gte('end_date', from)]);
+  if (error) return;
+  const today = todayDhaka(), all = rows || [];
+  const dayRows = d => all.filter(r => r.work_date === d).sort((a, b) => (a.shift || 1) - (b.shift || 1));
+  const onLeave = d => (leaves || []).some(l => d >= l.start_date && d <= l.end_date);
+  const tr = dayRows(today), open = tr.find(r => !r.check_out_at);
+  const dk = new Date(Date.now() + 6 * 3600000), nowM = dk.getUTCHours() * 60 + dk.getUTCMinutes();
+  let s = 1; for (let i = SH.length; i >= 2; i--) { if (nowM >= (toM(SH[i - 2].end) + toM(SH[i - 1].start)) / 2) { s = i; break; } }
+  let stage, cur;
+  if (open) { stage = 'out'; cur = open.shift || 1; }
+  else if (tr.some(r => (r.shift || 1) >= s)) { cur = Math.max(...tr.map(r => r.shift || 1)); stage = cur >= SH.length ? 'done' : 'wait'; }
+  else { stage = 'in'; cur = s; }
+  const row = i => { const r = tr.find(x => (x.shift || 1) === i + 1); const h = r && r.check_out_at ? Math.round((new Date(r.check_out_at) - new Date(r.check_in_at)) / 360000) / 10 : null;
+    return '<div style="margin-top:12px;font-size:12.5px;color:rgba(255,255,255,.9)"><b>' + _attLbl(i + 1) + ' শিফট</b> · ' + t12(SH[i].start) + '–' + t12(SH[i].end) + '</div>'
+      + '<div class="attrow" style="margin-top:4px"><div><span>ঢোকা</span><b>' + (r ? fmtTime(r.check_in_at) : '—') + '</b>' + (r ? (r.late_minutes ? '<em>' + lateText(r.late_minutes) + '</em>' : '<em class="ok">সময়মতো ✓</em>') : '') + '</div>'
+      + '<div><span>বের হওয়া</span><b>' + (r && r.check_out_at ? fmtTime(r.check_out_at) : '—') + '</b>' + (h != null ? '<em class="ok">' + h + ' ঘণ্টা</em>' : '') + '</div></div>'; };
+  let act;
+  if (stage === 'done') act = '<div class="attdone">✅ আজকের সব শিফটের হাজিরা সম্পূর্ণ</div>';
+  else if (stage === 'wait') { const mid = Math.ceil((toM(SH[cur - 1].end) + toM(SH[cur].start)) / 2); act = '<div class="attdone">✅ ' + shN(cur) + ' শিফট শেষ · ' + shN(cur + 1) + ' শিফট শুরু ' + t12(SH[cur].start) + '-এ<br><small style="font-weight:500">' + t12(Math.floor(mid / 60) + ':' + (mid % 60)) + '-এর পর ঢোকার হাজিরা দিতে পারবেন</small></div>'; }
+  else act = '<button class="attbtn" id="amark">📸 ' + shN(cur) + (stage === 'in' ? ' শিফটে ঢোকার হাজিরা দিন' : ' শিফট থেকে বের হওয়ার হাজিরা দিন') + '</button>';
+  const list = [...Array(14)].map((_, i) => dateAdd(today, -i)).map(d => { const rs = dayRows(d); const fri = new Date(d + 'T00:00:00Z').getUTCDay() === 5; const lt = rs.reduce((a, x) => a + (x.late_minutes || 0), 0);
+    const st = rs.length ? (lt ? ['late', '⏰', lateText(lt)] : ['ok', '✅', 'সময়মতো']) : onLeave(d) ? ['leave', '🏖️', 'ছুটি'] : d === today ? ['wait', '⏳', 'বাকি'] : fri ? ['off', '🕌', 'শুক্রবার'] : ['abs', '❌', 'অনুপস্থিত'];
+    if (rs.length && rs.length < SH.length && d !== today) st[2] += ' · ' + rs.length + '/' + SH.length + ' শিফট';
+    return '<div class="arow ' + st[0] + '"><div class="ad"><b>' + shortDay(d) + '</b><span>' + new Date(d + 'T00:00:00').toLocaleDateString('bn-BD', { weekday: 'short' }) + '</span></div><div class="rt"><b>' + st[1] + ' ' + st[2] + '</b><span>' + (rs.length ? _attTxt(rs) : '') + '</span></div></div>'; }).join('');
+  el.innerHTML = '<div class="attcard ' + (stage === 'wait' ? 'done' : stage) + '"><div class="attclock" id="aclock">' + new Date().toLocaleTimeString([], { hour: 'numeric', minute: '2-digit' }) + '</div>'
+    + '<div class="mut" style="color:rgba(255,255,255,.85)">' + new Date().toLocaleDateString('bn-BD', { weekday: 'long', day: 'numeric', month: 'long' }) + ' · দিনে ' + SH.length + ' শিফট</div>'
+    + SH.map((_, i) => row(i)).join('') + act + '<div class="attstep" id="astep"></div></div>'
+    + (onLeave(today) ? '<div class="msg ok" style="margin-top:10px">🏖️ আজ আপনার ছুটি মঞ্জুর আছে।</div>' : '')
+    + '<div class="msg info" style="margin-top:12px;font-size:12.5px">📍 প্রতিটা শিফটে ঢোকা ও বের হওয়ার সময় অফিসের ভেতরে থেকে সেলফি দিয়ে হাজিরা দিতে হবে। ফোনের <b>Location</b> চালু রাখুন।</div>'
+    + '<div class="hsec"><span class="hsi">📅</span><b>শেষ ১৪ দিন</b></div>' + list;
+  const mk = document.getElementById('amark'); if (mk) mk.onclick = () => markAttendance(stage);
+};
+}
 async function viewAttendanceAdmin(date) {
   date = date || todayDhaka();
   $app.innerHTML = `<div class="top"><button class="back" id="bk">←</button><h1>👥 সবার হাজিরা</h1></div>
@@ -2550,15 +2601,15 @@ async function viewAttendanceAdmin(date) {
   const paths = (rows || []).flatMap(r => [r.check_in_selfie, r.check_out_selfie]).filter(Boolean);
   const urls = {}; if (paths.length) { const { data } = await sb.storage.from('attendance').createSignedUrls(paths, 3600); (data || []).forEach(d => { if (d.signedUrl) urls[d.path] = d.signedUrl; }); }
   const people = Object.values(ui.people).filter(p => p.work_mode === 'office' || (rows || []).some(x => x.user_id === p.id)).sort((a, b) => a.full_name.localeCompare(b.full_name)).map(p => {
-    const r = (rows || []).find(x => x.user_id === p.id), lv = (leaves || []).find(l => l.user_id === p.id);
+    const r = _attMerge((rows || []).filter(x => x.user_id === p.id)), lv = (leaves || []).find(l => l.user_id === p.id);
     const st = r ? (r.late_minutes ? 'late' : 'ok') : lv ? 'leave' : 'abs';
     return { p, r, lv, st };
   });
   const cnt = k => people.filter(x => x.st === k).length;
   const rep = { date, people, ok: cnt('ok'), late: cnt('late'), leave: cnt('leave'), abs: cnt('abs') };
   box.innerHTML = `<div class="trs"><div><b>${rep.ok}</b><span>✅ সময়মতো</span></div><div><b>${rep.late}</b><span>⏰ দেরিতে</span></div><div><b>${rep.leave}</b><span>🏖️ ছুটিতে</span></div><div><b>${rep.abs}</b><span>❌ অনুপস্থিত</span></div></div>
-    ${people.map(x => `<div class="card aadm ${x.st}"><div class="row">${avatar(x.p.full_name, x.p.id, 40)}<div class="rt"><b>${esc(x.p.full_name)}</b><span>${x.r ? `ঢোকা ${fmtTime(x.r.check_in_at)}${x.r.late_minutes ? ' · ' + lateText(x.r.late_minutes) : ' · সময়মতো'}${x.r.check_out_at ? ' · বের ' + fmtTime(x.r.check_out_at) : ''}` : x.lv ? `🏖️ ছুটি (${LEAVE_TYPES[x.lv.leave_type][1]})` : '❌ হাজিরা নেই'}</span></div></div>
-      ${x.r ? `<div class="selfies">${[['ঢোকা', x.r.check_in_selfie], ['বের', x.r.check_out_selfie]].filter(s => s[1] && urls[s[1]]).map(([l, s]) => `<a href="${urls[s]}" target="_blank" rel="noopener"><img src="${urls[s]}" alt="${l}"><span>${l}</span></a>`).join('')}<span class="mut" style="font-size:11.5px;align-self:center">📍 অফিস থেকে ${x.r.check_in_dist ?? '–'} মি</span></div>` : ''}</div>`).join('')}`;
+    ${people.map(x => `<div class="card aadm ${x.st}"><div class="row">${avatar(x.p.full_name, x.p.id, 40)}<div class="rt"><b>${esc(x.p.full_name)}</b><span>${x.r && x.r._rs.length > 1 ? _attTxt(x.r._rs) : x.r ? `ঢোকা ${fmtTime(x.r.check_in_at)}${x.r.late_minutes ? ' · ' + lateText(x.r.late_minutes) : ' · সময়মতো'}${x.r.check_out_at ? ' · বের ' + fmtTime(x.r.check_out_at) : ''}` : x.lv ? `🏖️ ছুটি (${LEAVE_TYPES[x.lv.leave_type][1]})` : '❌ হাজিরা নেই'}</span></div></div>
+      ${x.r ? `<div class="selfies">${_attSelf(x.r._rs).filter(s => s[1] && urls[s[1]]).map(([l, s]) => `<a href="${urls[s]}" target="_blank" rel="noopener"><img src="${urls[s]}" alt="${l}"><span>${l}</span></a>`).join('')}<span class="mut" style="font-size:11.5px;align-self:center">📍 অফিস থেকে ${x.r.check_in_dist ?? '–'} মি</span></div>` : ''}</div>`).join('')}`;
   const html = attendancePdfHTML(rep);
   document.getElementById('ashare').onclick = () => exportHtmlPdf(html, `Yaqeen-Attendance-${date}.pdf`, `Yaqeen Group · Attendance · ${date}`, true);
   document.getElementById('adl').onclick = () => exportHtmlPdf(html, `Yaqeen-Attendance-${date}.pdf`, '', false);
@@ -2660,9 +2711,9 @@ viewHome = async function () {
   if (anchor) {
     anchor.insertAdjacentHTML('beforebegin', `<div class="hrow2"><button class="hmini" id="hatt"><span>🕒</span><div class="rt"><b>হাজিরা</b><span id="hattsub">…</span></div></button><button class="hmini" id="hlv"><span>🏖️</span><div class="rt"><b>ছুটি</b><span id="hlvsub">আবেদন করুন</span></div></button></div>`);
     document.getElementById('hatt').onclick = viewAttendance; document.getElementById('hlv').onclick = () => { leaveTab = 'mine'; viewLeave(); };
-    if ((state.profile.work_mode || 'remote') !== 'office') { const s0 = document.getElementById('hattsub'); if (s0) s0.textContent = 'প্রযোজ্য নয় (বাসা থেকে)'; } else sb.from('attendance').select('*').eq('user_id', state.profile.id).eq('work_date', todayDhaka()).maybeSingle().then(({ data: t, error }) => {
+    if ((state.profile.work_mode || 'remote') !== 'office') { const s0 = document.getElementById('hattsub'); if (s0) s0.textContent = 'প্রযোজ্য নয় (বাসা থেকে)'; } else sb.from('attendance').select('*').eq('user_id', state.profile.id).eq('work_date', todayDhaka()).order('shift', { ascending: false }).limit(1).then(({ data: t0, error }) => { const t = t0 && t0[0];
       const s = document.getElementById('hattsub'); if (!s) return;
-      s.textContent = error ? 'সেটআপ বাকি' : !t ? 'আজ এখনো দেননি' : !t.check_out_at ? `ঢোকা ${fmtTime(t.check_in_at)}${t.late_minutes ? ' · দেরি' : ' ✓'}` : 'আজ সম্পূর্ণ ✓';
+      s.textContent = error ? 'সেটআপ বাকি' : !t ? 'আজ এখনো দেননি' : !t.check_out_at ? `ঢোকা ${fmtTime(t.check_in_at)}${t.late_minutes ? ' · দেরি' : ' ✓'}` : (t.shift || 1) < ((state.profile.shifts || []).length || 1) ? 'শিফট ' + (t.shift || 1) + ' শেষ · পরের শিফট বাকি' : 'আজ সম্পূর্ণ ✓';
       if (!error && !t) document.getElementById('hatt').classList.add('warn');
     });
     if (isAdmin()) sb.from('leave_requests').select('id', { count: 'exact', head: true }).eq('status', 'pending').then(({ count }) => { const s = document.getElementById('hlvsub'); if (s && count) { s.innerHTML = `<b style="color:var(--red)">${count}টা আবেদন অপেক্ষমাণ</b>`; document.getElementById('hlv').onclick = () => { leaveTab = 'pending'; viewLeave(); }; } });
@@ -2845,8 +2896,9 @@ async function perfData(ids, r) {
     const hs = d.map(t => (Date.parse(t.completed_at) - Date.parse(t.created_at)) / 3600000).filter(h => h >= 0);
     const leaveDays = (lv.data || []).filter(l => l.user_id === id).reduce((a, l) => a + dCount(l.start_date < r.from ? r.from : l.start_date, l.end_date > r.to ? r.to : l.end_date), 0);
     const workDays = Math.max(0, days - leaveDays);
-    const a = (att.data || []).filter(x => x.user_id === id && x.check_in_at);
-    const lates = a.filter(x => x.late_minutes > 0);
+    const a0 = (att.data || []).filter(x => x.user_id === id && x.check_in_at);
+    const a = a0.filter((x, i) => a0.findIndex(y => y.work_date === x.work_date) === i);
+    const lates = a0.filter(x => x.late_minutes > 0);
     const s = (sal.data || []).filter(x => x.user_id === id);
     const tro = (aw.data || []).filter(x => x.user_id === id && !x.is_current && x.week_start >= r.from && x.week_start <= r.to);
     out[id] = {
