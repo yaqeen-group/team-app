@@ -753,7 +753,7 @@ function linkify(t) {
 const todayDhaka = () => new Date(Date.now() + 6 * 3600 * 1000).toISOString().slice(0, 10);
 
 async function loadPeople() {
-  const { data } = await sb.from('profiles').select('id,full_name,designation,company_id,department_id,role,status,last_seen,phone,email,avatar_url,work_mode,observer,daily_report,shifts').eq('status', 'active');
+  const { data } = await sb.from('profiles').select('id,full_name,designation,company_id,department_id,role,status,last_seen,phone,email,avatar_url,work_mode,observer,daily_report,shifts,att_start').eq('status', 'active');
   ui.people = {}; (data || []).forEach(p => ui.people[p.id] = p);
   try { const { data: lv } = await sb.rpc('yg_levels'); ui.levels = {}; (lv || []).forEach(l => ui.levels[l.user_id] = l); } catch (e) { ui.levels = ui.levels || {}; }
 }
@@ -2391,7 +2391,8 @@ function distM(a, b, c, d) { const R = 6371000, r = x => x * Math.PI / 180; cons
 function getGPS() {
   return new Promise((res, rej) => {
     if (!navigator.geolocation) return rej(new Error('NO_GPS_SUPPORT'));
-    navigator.geolocation.getCurrentPosition(p => res(p.coords), e => rej(new Error(e.code === 1 ? 'GPS_DENIED' : e.code === 3 ? 'GPS_TIMEOUT' : 'GPS_FAIL')), { enableHighAccuracy: true, timeout: 20000, maximumAge: 0 });
+    const fail = e => rej(new Error(e.code === 1 ? 'GPS_DENIED' : e.code === 3 ? 'GPS_TIMEOUT' : 'GPS_FAIL'));
+    navigator.geolocation.getCurrentPosition(p => res(p.coords), e => e.code === 1 ? fail(e) : navigator.geolocation.getCurrentPosition(p => res(p.coords), fail, { enableHighAccuracy: false, timeout: 20000, maximumAge: 60000 }), { enableHighAccuracy: true, timeout: 20000, maximumAge: 0 });
   });
 }
 function gpsErr(m) {
@@ -2466,7 +2467,7 @@ async function viewAttendance() {
     ${onLeave(today) ? '<div class="msg ok" style="margin-top:10px">🏖️ আজ আপনার ছুটি মঞ্জুর আছে।</div>' : ''}
     <div class="msg info" style="margin-top:12px;font-size:12.5px">📍 হাজিরা দিতে অফিসের ভেতরে থাকতে হবে। ফোনের <b>Location</b> চালু রাখুন, আর ক্যামেরা দিয়ে সাথে সাথে সেলফি তুলতে হবে।</div>
     <div class="hsec"><span class="hsi">📅</span><b>শেষ ১৪ দিন</b></div>
-    ${[...Array(14)].map((_, i) => dateAdd(today, -i)).map(d => { const r = (rows || []).find(x => x.work_date === d); const fri = new Date(d + 'T00:00:00Z').getUTCDay() === 5;
+    ${[...Array(14)].map((_, i) => dateAdd(today, -i)).filter(d => !state.profile.att_start || d >= state.profile.att_start).map(d => { const r = (rows || []).find(x => x.work_date === d); const fri = new Date(d + 'T00:00:00Z').getUTCDay() === 5;
       const st = r ? (r.late_minutes ? ['late', '⏰', lateText(r.late_minutes)] : ['ok', '✅', 'সময়মতো']) : onLeave(d) ? ['leave', '🏖️', 'ছুটি'] : d === today ? ['wait', '⏳', 'বাকি'] : fri ? ['off', '🕌', 'শুক্রবার'] : ['abs', '❌', 'অনুপস্থিত'];
       return `<div class="arow ${st[0]}"><div class="ad"><b>${shortDay(d)}</b><span>${new Date(d + 'T00:00:00').toLocaleDateString('bn-BD', { weekday: 'short' })}</span></div><div class="rt"><b>${st[1]} ${st[2]}</b><span>${r ? `ঢোকা ${fmtTime(r.check_in_at)}${r.check_out_at ? ' · বের ' + fmtTime(r.check_out_at) : ' · বের হওয়ার হাজিরা নেই'}` : ''}</span></div></div>`; }).join('')}`;
   const mk = document.getElementById('amark'); if (mk) mk.onclick = () => markAttendance(stage);
@@ -2570,7 +2571,7 @@ viewAttendance = async function () {
   if (stage === 'done') act = '<div class="attdone">✅ আজকের সব শিফটের হাজিরা সম্পূর্ণ</div>';
   else if (stage === 'wait') { const mid = Math.ceil((toM(SH[cur - 1].end) + toM(SH[cur].start)) / 2); act = '<div class="attdone">✅ ' + shN(cur) + ' শিফট শেষ · ' + shN(cur + 1) + ' শিফট শুরু ' + t12(SH[cur].start) + '-এ<br><small style="font-weight:500">' + t12(Math.floor(mid / 60) + ':' + (mid % 60)) + '-এর পর ঢোকার হাজিরা দিতে পারবেন</small></div>'; }
   else act = '<button class="attbtn" id="amark">📸 ' + shN(cur) + (stage === 'in' ? ' শিফটে ঢোকার হাজিরা দিন' : ' শিফট থেকে বের হওয়ার হাজিরা দিন') + '</button>';
-  const list = [...Array(14)].map((_, i) => dateAdd(today, -i)).map(d => { const rs = dayRows(d); const fri = new Date(d + 'T00:00:00Z').getUTCDay() === 5; const lt = rs.reduce((a, x) => a + (x.late_minutes || 0), 0);
+  const list = [...Array(14)].map((_, i) => dateAdd(today, -i)).filter(d => !state.profile.att_start || d >= state.profile.att_start).map(d => { const rs = dayRows(d); const fri = new Date(d + 'T00:00:00Z').getUTCDay() === 5; const lt = rs.reduce((a, x) => a + (x.late_minutes || 0), 0);
     const st = rs.length ? (lt ? ['late', '⏰', lateText(lt)] : ['ok', '✅', 'সময়মতো']) : onLeave(d) ? ['leave', '🏖️', 'ছুটি'] : d === today ? ['wait', '⏳', 'বাকি'] : fri ? ['off', '🕌', 'শুক্রবার'] : ['abs', '❌', 'অনুপস্থিত'];
     if (rs.length && rs.length < SH.length && d !== today) st[2] += ' · ' + rs.length + '/' + SH.length + ' শিফট';
     return '<div class="arow ' + st[0] + '"><div class="ad"><b>' + shortDay(d) + '</b><span>' + new Date(d + 'T00:00:00').toLocaleDateString('bn-BD', { weekday: 'short' }) + '</span></div><div class="rt"><b>' + st[1] + ' ' + st[2] + '</b><span>' + (rs.length ? _attTxt(rs) : '') + '</span></div></div>'; }).join('');
@@ -2579,7 +2580,7 @@ viewAttendance = async function () {
     + SH.map((_, i) => row(i)).join('') + act + '<div class="attstep" id="astep"></div></div>'
     + (onLeave(today) ? '<div class="msg ok" style="margin-top:10px">🏖️ আজ আপনার ছুটি মঞ্জুর আছে।</div>' : '')
     + '<div class="msg info" style="margin-top:12px;font-size:12.5px">📍 প্রতিটা শিফটে ঢোকা ও বের হওয়ার সময় অফিসের ভেতরে থেকে সেলফি দিয়ে হাজিরা দিতে হবে। ফোনের <b>Location</b> চালু রাখুন।</div>'
-    + '<div class="hsec"><span class="hsi">📅</span><b>শেষ ১৪ দিন</b></div>' + list;
+    + (state.profile.att_start > today ? '<div class="msg info" style="margin-top:10px">🗓️ আপনার হাজিরা শুরু হবে ' + new Date(state.profile.att_start + 'T00:00:00').toLocaleDateString('bn-BD', { day: 'numeric', month: 'long' }) + ' থেকে।</div>' : '') + '<div class="hsec"><span class="hsi">📅</span><b>শেষ ১৪ দিন</b></div>' + list;
   const mk = document.getElementById('amark'); if (mk) mk.onclick = () => markAttendance(stage);
 };
 }
@@ -2600,7 +2601,7 @@ async function viewAttendanceAdmin(date) {
   if (error) { box.innerHTML = `<div class="msg err">${esc(friendlyError(error))}</div>`; return; }
   const paths = (rows || []).flatMap(r => [r.check_in_selfie, r.check_out_selfie]).filter(Boolean);
   const urls = {}; if (paths.length) { const { data } = await sb.storage.from('attendance').createSignedUrls(paths, 3600); (data || []).forEach(d => { if (d.signedUrl) urls[d.path] = d.signedUrl; }); }
-  const people = Object.values(ui.people).filter(p => p.work_mode === 'office' || (rows || []).some(x => x.user_id === p.id)).sort((a, b) => a.full_name.localeCompare(b.full_name)).map(p => {
+  const people = Object.values(ui.people).filter(p => (p.work_mode === 'office' && (!p.att_start || date >= p.att_start)) || (rows || []).some(x => x.user_id === p.id)).sort((a, b) => a.full_name.localeCompare(b.full_name)).map(p => {
     const r = _attMerge((rows || []).filter(x => x.user_id === p.id)), lv = (leaves || []).find(l => l.user_id === p.id);
     const st = r ? (r.late_minutes ? 'late' : 'ok') : lv ? 'leave' : 'abs';
     return { p, r, lv, st };
@@ -2713,8 +2714,8 @@ viewHome = async function () {
     document.getElementById('hatt').onclick = viewAttendance; document.getElementById('hlv').onclick = () => { leaveTab = 'mine'; viewLeave(); };
     if ((state.profile.work_mode || 'remote') !== 'office') { const s0 = document.getElementById('hattsub'); if (s0) s0.textContent = 'প্রযোজ্য নয় (বাসা থেকে)'; } else sb.from('attendance').select('*').eq('user_id', state.profile.id).eq('work_date', todayDhaka()).order('shift', { ascending: false }).limit(1).then(({ data: t0, error }) => { const t = t0 && t0[0];
       const s = document.getElementById('hattsub'); if (!s) return;
-      s.textContent = error ? 'সেটআপ বাকি' : !t ? 'আজ এখনো দেননি' : !t.check_out_at ? `ঢোকা ${fmtTime(t.check_in_at)}${t.late_minutes ? ' · দেরি' : ' ✓'}` : (t.shift || 1) < ((state.profile.shifts || []).length || 1) ? 'শিফট ' + (t.shift || 1) + ' শেষ · পরের শিফট বাকি' : 'আজ সম্পূর্ণ ✓';
-      if (!error && !t) document.getElementById('hatt').classList.add('warn');
+      s.textContent = error ? 'সেটআপ বাকি' : !t ? (state.profile.att_start > todayDhaka() ? 'শুরু হবে ' + new Date(state.profile.att_start + 'T00:00:00').toLocaleDateString('bn-BD', { day: 'numeric', month: 'long' }) : 'আজ এখনো দেননি') : !t.check_out_at ? `ঢোকা ${fmtTime(t.check_in_at)}${t.late_minutes ? ' · দেরি' : ' ✓'}` : (t.shift || 1) < ((state.profile.shifts || []).length || 1) ? 'শিফট ' + (t.shift || 1) + ' শেষ · পরের শিফট বাকি' : 'আজ সম্পূর্ণ ✓';
+      if (!error && !t && !(state.profile.att_start > todayDhaka())) document.getElementById('hatt').classList.add('warn');
     });
     if (isAdmin()) sb.from('leave_requests').select('id', { count: 'exact', head: true }).eq('status', 'pending').then(({ count }) => { const s = document.getElementById('hlvsub'); if (s && count) { s.innerHTML = `<b style="color:var(--red)">${count}টা আবেদন অপেক্ষমাণ</b>`; document.getElementById('hlv').onclick = () => { leaveTab = 'pending'; viewLeave(); }; } });
   }
@@ -2895,7 +2896,8 @@ async function perfData(ids, r) {
     const onTime = d.filter(t => !t.due_date || Date.parse(t.completed_at) <= Date.parse(t.due_date)).length;
     const hs = d.map(t => (Date.parse(t.completed_at) - Date.parse(t.created_at)) / 3600000).filter(h => h >= 0);
     const leaveDays = (lv.data || []).filter(l => l.user_id === id).reduce((a, l) => a + dCount(l.start_date < r.from ? r.from : l.start_date, l.end_date > r.to ? r.to : l.end_date), 0);
-    const workDays = Math.max(0, days - leaveDays);
+    const preDays = p.att_start && p.att_start > r.from ? dCount(r.from, p.att_start <= r.to ? dateAdd(p.att_start, -1) : r.to) : 0;
+    const workDays = Math.max(0, days - leaveDays - preDays);
     const a0 = (att.data || []).filter(x => x.user_id === id && x.check_in_at);
     const a = a0.filter((x, i) => a0.findIndex(y => y.work_date === x.work_date) === i);
     const lates = a0.filter(x => x.late_minutes > 0);
