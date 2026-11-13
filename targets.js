@@ -142,8 +142,9 @@ async function tgTrend(tr) {
   const { data, error } = await sb.rpc('yg_perf_trend', { p_from: tr.from, p_to: tr.to, p_bucket: tr.bucket });
   return error ? null : (data || []).map(r => ({ ...r, pct: r.score }));
 }
-function tgChart(rows, tr) {
-  if (!rows || !rows.length) return '<div class="card tgc" style="margin-top:10px"><b>📈 পারফরম্যান্স স্কোরের ট্রেন্ড</b><p class="mut" style="font-size:12.5px;margin:6px 0 0">এই সময়ে কোনো টাস্ক বা টার্গেটের হিসাব নেই।</p></div>';
+function tgChart(rows, tr, o) {
+  o = o || {}; const suf = o.suf != null ? o.suf : '%';
+  if (!rows || !rows.length) return '<div class="card tgc" style="margin-top:10px"><b>' + (o.title || '📈 পারফরম্যান্স স্কোরের ট্রেন্ড') + '</b><p class="mut" style="font-size:12.5px;margin:6px 0 0">এই সময়ে কোনো টাস্ক বা টার্গেটের হিসাব নেই।</p></div>';
   const us = [...new Map(rows.map(r => [r.user_id, r.full_name])).entries()].sort((a, b) => a[1].localeCompare(b[1])).slice(0, TG_COL.length);
   const bk = [...new Set(rows.map(r => r.bucket))].sort();
   const W = 340, H = 190, L = 34, Rr = 12, T = 12, B = 26, pw = W - L - Rr, ph = H - T - B;
@@ -152,7 +153,7 @@ function tgChart(rows, tr) {
   const lab = d => tr.bucket === 'month' ? new Date(d + 'T00:00:00').toLocaleDateString('bn-BD', { month: 'short' }) : new Date(d + 'T00:00:00').toLocaleDateString('bn-BD', { day: 'numeric', month: 'short' });
   const step = Math.ceil(bk.length / 6);
   let g = '';
-  [0, 50, 100].filter(v => v <= ymax).forEach(v => { g += '<line x1="' + L + '" x2="' + (W - Rr) + '" y1="' + Y(v) + '" y2="' + Y(v) + '" stroke="' + (v === 100 ? '#9aa4b2' : '#e8edf3') + '" stroke-width="1"' + (v === 100 ? ' stroke-dasharray="4 3"' : '') + '/><text x="' + (L - 6) + '" y="' + (Y(v) + 4) + '" text-anchor="end" font-size="10" fill="#6b7280">' + v + '%</text>'; });
+  [0, 50, 100].filter(v => v <= ymax).forEach(v => { g += '<line x1="' + L + '" x2="' + (W - Rr) + '" y1="' + Y(v) + '" y2="' + Y(v) + '" stroke="' + (v === 100 ? '#9aa4b2' : '#e8edf3') + '" stroke-width="1"' + (v === 100 ? ' stroke-dasharray="4 3"' : '') + '/><text x="' + (L - 6) + '" y="' + (Y(v) + 4) + '" text-anchor="end" font-size="10" fill="#6b7280">' + v + suf + '</text>'; });
   bk.forEach((d, i) => { if (i % step === 0 || i === bk.length - 1) g += '<text x="' + X(i) + '" y="' + (H - 8) + '" text-anchor="middle" font-size="10" fill="#6b7280">' + lab(d) + '</text>'; });
   us.forEach(([u], k) => {
     const c = TG_COL[k], pts = bk.map((d, i) => { const r = rows.find(x => x.user_id === u && x.bucket === d); return r ? { x: X(i), y: Y(r.pct), p: r.partial } : null; });
@@ -165,12 +166,13 @@ function tgChart(rows, tr) {
     const all = rows.filter(r => r.user_id === u).sort((a, b) => a.bucket < b.bucket ? -1 : 1), mine = all.filter(r => !r.partial), cur = all.find(r => r.partial), last = mine[mine.length - 1], prev = mine[mine.length - 2];
     const dlt = last && prev ? last.pct - prev.pct : null;
     const tag = dlt == null ? '' : dlt > 2 ? ' <span style="color:#16a34a;font-weight:600">▲ ' + tgN(dlt) + ' পয়েন্ট উন্নতি</span>' : dlt < -2 ? ' <span style="color:#dc2626;font-weight:600">▼ ' + tgN(-dlt) + ' পয়েন্ট অবনতি</span>' : ' <span class="mut">● আগের মতোই</span>';
-    return '<div style="display:flex;align-items:center;gap:6px;font-size:12.5px;margin-top:4px"><span style="width:10px;height:10px;border-radius:50%;background:' + TG_COL[k] + ';flex:none"></span><span>' + esc(n) + ' — শেষ ' + (tr.bucket === 'month' ? 'মাস' : 'সপ্তাহ') + ' <b>' + (last ? last.pct + '%' : '—') + '</b>' + tag + (cur ? ' <span class="mut">· চলতি ' + cur.pct + '%</span>' : '') + '</span></div>';
+    return '<div style="display:flex;align-items:center;gap:6px;font-size:12.5px;margin-top:4px"><span style="width:10px;height:10px;border-radius:50%;background:' + TG_COL[k] + ';flex:none"></span><span>' + esc(n) + ' — শেষ ' + (tr.bucket === 'month' ? 'মাস' : 'সপ্তাহ') + ' <b>' + (last ? last.pct + suf : '—') + '</b>' + tag + (cur ? ' <span class="mut">· চলতি ' + cur.pct + suf + '</span>' : '') + '</span></div>';
   }).join('');
   const unit = tr.bucket === 'month' ? 'মাস' : 'সপ্তাহ';
-  return '<div class="card tgc" style="margin-top:10px"><b>📈 পারফরম্যান্স স্কোরের ট্রেন্ড (' + unit + ' অনুযায়ী)</b><div class="mut" style="font-size:12px;margin:2px 0 6px">স্কোর = সময়মতো টাস্ক শেষের % (দেরিতে শেষ = অর্ধেক), আর যাদের দৈনিক টার্গেট আছে তাদের টার্গেট পূরণের % — দুটোর গড়। ড্যাশ লাইন = ১০০%। ফাঁপা বিন্দু = চলতি ' + unit + ' (এখন পর্যন্ত)।</div><div class="tgcw" style="position:relative">' + svg + '<div class="tgtip" style="position:absolute;top:0;pointer-events:none;background:#0B3B5A;color:#fff;font-size:11.5px;padding:6px 8px;border-radius:8px;display:none;width:max-content;max-width:250px;line-height:1.5"></div></div>' + leg + '<div class="mut" style="font-size:11.5px;margin-top:6px">উন্নতি/অবনতি = শেষ সম্পূর্ণ ' + unit + ' বনাম তার আগের ' + unit + '। চলতি ' + unit + ' শেষ হলে হিসাবে আসবে।</div></div>';
+  return '<div class="card tgc" style="margin-top:10px"><b>' + (o.title || '📈 পারফরম্যান্স স্কোরের ট্রেন্ড (' + unit + ' অনুযায়ী)') + '</b><div class="mut" style="font-size:12px;margin:2px 0 6px">' + (o.desc ? o.desc + '</div><div hidden>' : '') + 'স্কোর = সময়মতো টাস্ক শেষের % (দেরিতে শেষ = অর্ধেক), আর যাদের দৈনিক টার্গেট আছে তাদের টার্গেট পূরণের % — দুটোর গড়। ড্যাশ লাইন = ১০০%। ফাঁপা বিন্দু = চলতি ' + unit + ' (এখন পর্যন্ত)।</div><div class="tgcw" style="position:relative">' + svg + '<div class="tgtip" style="position:absolute;top:0;pointer-events:none;background:#0B3B5A;color:#fff;font-size:11.5px;padding:6px 8px;border-radius:8px;display:none;width:max-content;max-width:250px;line-height:1.5"></div></div>' + leg + '<div class="mut" style="font-size:11.5px;margin-top:6px">উন্নতি/অবনতি = শেষ সম্পূর্ণ ' + unit + ' বনাম তার আগের ' + unit + '। চলতি ' + unit + ' শেষ হলে হিসাবে আসবে।</div></div>';
 }
-function tgChartWire(root, rows, tr) {
+function tgChartWire(root, rows, tr, o) {
+  o = o || {}; const suf = o.suf != null ? o.suf : '%';
   const w = root.querySelector('.tgcw'); if (!w || !rows || !rows.length) return;
   const svg = w.querySelector('svg'), tip = w.querySelector('.tgtip'), ln = svg.querySelector('.tgx');
   const us = [...new Map(rows.map(r => [r.user_id, r.full_name])).entries()].sort((a, b) => a[1].localeCompare(b[1])).slice(0, TG_COL.length);
@@ -180,7 +182,7 @@ function tgChartWire(root, rows, tr) {
     const i = bk.length === 1 ? 0 : Math.max(0, Math.min(bk.length - 1, Math.round((vx - L) / (pw / (bk.length - 1)))));
     const x = bk.length === 1 ? L + pw / 2 : L + i * pw / (bk.length - 1), d = bk[i];
     ln.setAttribute('x1', x); ln.setAttribute('x2', x); ln.setAttribute('visibility', 'visible');
-    tip.innerHTML = '<b>' + (tr.bucket === 'month' ? new Date(d + 'T00:00:00').toLocaleDateString('bn-BD', { month: 'long', year: 'numeric' }) : 'সপ্তাহ শুরু ' + tgDate(d)) + '</b>' + us.map(([u, n], k) => { const r = rows.find(z => z.user_id === u && z.bucket === d); return '<br><span style="color:' + TG_COL[k] + '">●</span> ' + esc(n) + ': ' + (r ? '<b>' + r.pct + '%</b>' + (r.task_pct != null ? ' · টাস্ক ' + r.task_pct + '% (' + r.tasks_n + 'টা)' : '') + (r.target_pct != null ? ' · টার্গেট ' + r.target_pct + '%' : '') + (r.partial ? ' (চলতি)' : '') : '—'); }).join('');
+    tip.innerHTML = '<b>' + (tr.bucket === 'month' ? new Date(d + 'T00:00:00').toLocaleDateString('bn-BD', { month: 'long', year: 'numeric' }) : 'সপ্তাহ শুরু ' + tgDate(d)) + '</b>' + us.map(([u, n], k) => { const r = rows.find(z => z.user_id === u && z.bucket === d); return '<br><span style="color:' + TG_COL[k] + '">●</span> ' + esc(n) + ': ' + (r ? '<b>' + r.pct + suf + '</b>' + (r.task_pct != null ? ' · টাস্ক ' + r.task_pct + '% (' + r.tasks_n + 'টা)' : '') + (r.target_pct != null ? ' · টার্গেট ' + r.target_pct + '%' : '') + (r.partial ? ' (চলতি)' : '') : '—'); }).join('');
     tip.style.display = 'block'; const px = x / 340 * bx.width; tip.style.left = Math.max(0, Math.min(bx.width - tip.offsetWidth, px - tip.offsetWidth / 2)) + 'px'; tip.style.top = '-6px'; tip.style.transform = 'translateY(-100%)';
   };
   svg.addEventListener('pointermove', move); svg.addEventListener('pointerdown', move);
@@ -294,4 +296,145 @@ viewAdmin = async function () {
   if (t && !document.getElementById('x-tg')) { t.insertAdjacentHTML('afterbegin', '<button class="tile hl" id="x-tg"><span class="ic">🎯</span><b>টার্গেট</b><small>সবার অগ্রগতি · PDF</small></button>'); document.getElementById('x-tg').onclick = viewTargetsTeam; }
   return pr;
 };
+
+/* ---------- 🧾 discipline points (monthly 100) ---------- */
+const DC_KIND = { late_att: '⏰', late_streak: '🔁', late_task: '📋', task_overdue: '🚫', salah_missing: '🕌', salah_waqt: '🕌', salah_bonus: '🌟', manual: '✍️' };
+const dcCol = b => b >= 80 ? '#16a34a' : b >= 60 ? '#d97706' : '#dc2626';
+const dcMon = d => d.slice(0, 8) + '01';
+const dcMonAdd = (m, n) => { const [y, mo] = m.split('-').map(Number); return new Date(Date.UTC(y, mo - 1 + n, 1)).toISOString().slice(0, 10); };
+const dcMonTxt = m => new Date(m + 'T00:00:00').toLocaleDateString('bn-BD', { month: 'long', year: 'numeric' });
+const dcBal = es => 100 + es.filter(e => !e.waived).reduce((a, e) => a + e.points, 0);
+const DC_RULES = '<details class="card" style="margin-top:12px"><summary style="cursor:pointer"><b>📜 নিয়মগুলো</b></summary><div class="mut" style="font-size:12.5px;line-height:1.7;margin-top:6px">• প্রতি মাসের ১ তারিখে সবাই ১০০ পয়েন্ট নিয়ে শুরু করেন।<br>• দেরিতে হাজিরা: প্রথম ৫ মিনিট ছাড়, এর বেশি হলে পুরো দেরির প্রতি মিনিট −১ (দিনে সর্বোচ্চ −৩০)। মাসে ৫ম বার থেকে প্রতিবার বাড়তি −১০। শুক্রবার ও ছুটিতে কাটে না।<br>• দেরিতে টাস্ক: ডেডলাইনের পর প্রতি ঘণ্টা −১ (একটা টাস্কে সর্বোচ্চ −১০)। ৭ দিন পরেও শেষ না হলে −১০।<br>• নামাজ: দিনের হিসাব না দিলে −৩, প্রতি বাকি ওয়াক্ত −১ (দিনে সর্বোচ্চ −৫)। ওজর দিলে কাটে না। পুরো সপ্তাহ পূরণে +৫।<br>• বিশেষ কারণে অ্যাডমিন কারণ লিখে মাফ করতে পারেন।</div></details>';
+
+async function viewDiscipline(uid, month) {
+  cleanupChannels();
+  uid = uid || state.profile.id; month = month || dcMon(todayDhaka());
+  const me = uid === state.profile.id, cur = dcMon(todayDhaka());
+  await loadPeople();
+  const pn = (ui.people[uid] && ui.people[uid].full_name) || '';
+  $app.innerHTML = '<div class="shell"><div class="view"><div class="top"><button class="back" id="bk">←</button><h1 style="font-size:17px">🧾 ' + (me ? 'আমার শৃঙ্খলা পয়েন্ট' : esc(pn)) + '</h1>' + (isAdmin() && !me ? '<div class="act"><button id="dcadd" title="পয়েন্ট যোগ / কাটা">±</button></div>' : '') + '</div><div class="pad" id="dcb" style="padding-top:8px"><div class="cen"><div class="spin dark"></div></div></div></div>' + (me ? tabbar() : '') + '</div>';
+  document.querySelectorAll('.tb').forEach(b => b.onclick = () => go(b.dataset.t));
+  document.getElementById('bk').onclick = () => me ? go('home') : viewDisciplineTeam(month);
+  const add = document.getElementById('dcadd');
+  if (add) add.onclick = () => sheet('<h3>± পয়েন্ট — ' + esc(pn) + '</h3><label>পয়েন্ট (কাটতে মাইনাস দিন, যেমন -5)</label><input class="in" id="dcp" type="number" step="1" placeholder="-5 বা 5"><label>কারণ (সদস্য নোটিফিকেশনে দেখবেন)</label><textarea class="in" id="dcr" maxlength="300"></textarea><button class="btn" id="dcok">সেভ ও নোটিফিকেশন পাঠান</button>', (el, close) => {
+    el.querySelector('#dcok').onclick = async () => { const p = parseInt(el.querySelector('#dcp').value, 10), r = el.querySelector('#dcr').value.trim(); if (!p || !r) return toast('পয়েন্ট আর কারণ দুটোই দিন'); const { error } = await sb.rpc('yg_disc_manual', { p_uid: uid, p_pts: p, p_reason: r }); if (error) return toast(friendlyError(error)); close(); toast('সেভ হয়েছে ✓'); viewDiscipline(uid, month); };
+  });
+  const { data, error } = await sb.from('yg_discipline').select('*').eq('user_id', uid).eq('month', month).order('created_at', { ascending: false });
+  const el = document.getElementById('dcb'); if (!el) return;
+  if (error) { el.innerHTML = '<div class="msg err">' + esc(friendlyError(error)) + '</div>'; return; }
+  const es = data || [], bal = dcBal(es), cnt = k => es.filter(e => !e.waived && k.includes(e.kind)).length;
+  el.innerHTML = '<div style="display:flex;align-items:center;justify-content:space-between;gap:8px"><button class="btn ghost" id="dcprev" style="margin:0;width:auto;padding:8px 12px">‹</button><b>' + dcMonTxt(month) + '</b><button class="btn ghost" id="dcnext" style="margin:0;width:auto;padding:8px 12px" ' + (month >= cur ? 'disabled' : '') + '>›</button></div>'
+    + '<div class="card" style="margin-top:10px;text-align:center"><div style="font-size:40px;font-weight:800;color:' + dcCol(bal) + '">' + bal + '<span style="font-size:18px;color:#6b7280">/100</span></div>' + tgBar(bal, dcCol(bal)) + '<div class="mut" style="font-size:12.5px;margin-top:8px">⏰ দেরিতে হাজিরা ' + cnt(['late_att']) + ' · 📋 দেরিতে টাস্ক ' + cnt(['late_task', 'task_overdue']) + ' · 🕌 নামাজ ' + cnt(['salah_missing', 'salah_waqt']) + ' · 🌟 বোনাস ' + cnt(['salah_bonus']) + '</div></div>'
+    + (es.length ? es.map(e => '<div class="card" style="margin-top:8px;padding:10px 12px' + (e.waived ? ';opacity:.6' : '') + '"><div style="display:flex;justify-content:space-between;gap:10px"><div style="font-size:13.5px">' + (DC_KIND[e.kind] || '•') + ' ' + esc(e.reason) + '<div class="mut" style="font-size:11.5px">' + new Date(e.created_at).toLocaleString('bn-BD', { day: 'numeric', month: 'short', hour: 'numeric', minute: '2-digit' }) + (e.waived ? ' · ✅ মাফ: ' + esc(e.waived_reason || '') : '') + '</div></div><b style="white-space:nowrap;color:' + (e.points < 0 ? '#dc2626' : '#16a34a') + (e.waived ? ';text-decoration:line-through' : '') + '">' + (e.points > 0 ? '+' : '') + e.points + '</b></div>' + (isAdmin() && !e.waived && e.points < 0 ? '<button class="btn ghost" data-wv="' + e.id + '" style="margin-top:6px;padding:6px;font-size:12.5px">✅ মাফ করুন</button>' : '') + '</div>').join('') : '<div class="empty">' + (month === cur ? 'এই মাসে এখনো কোনো পয়েন্ট কাটা হয়নি ✓' : 'এই মাসে কোনো এন্ট্রি নেই') + '</div>')
+    + DC_RULES;
+  document.getElementById('dcprev').onclick = () => viewDiscipline(uid, dcMonAdd(month, -1));
+  document.getElementById('dcnext').onclick = () => { if (month < cur) viewDiscipline(uid, dcMonAdd(month, 1)); };
+  el.querySelectorAll('[data-wv]').forEach(b => b.onclick = () => sheet('<h3>✅ পয়েন্ট মাফ</h3><label>মাফের কারণ (সদস্য নোটিফিকেশনে দেখবেন)</label><textarea class="in" id="wvr" maxlength="300" placeholder="যেমন: রাস্তায় দুর্ঘটনা"></textarea><button class="btn" id="wvok">মাফ করুন</button>', (s2, close) => {
+    s2.querySelector('#wvok').onclick = async () => { const r = s2.querySelector('#wvr').value.trim(); if (!r) return toast('কারণ লিখুন'); const { error } = await sb.rpc('yg_disc_waive', { p_id: b.dataset.wv, p_reason: r }); if (error) return toast(friendlyError(error)); close(); toast('মাফ করা হয়েছে ✓'); viewDiscipline(uid, month); };
+  }));
+}
+
+async function dcTeamData(month) {
+  await loadPeople();
+  const from = dcMonAdd(month, -5);
+  const { data } = await sb.from('yg_discipline').select('user_id,month,points,kind,waived').gte('month', from).lte('month', month);
+  const ps = Object.values(ui.people).filter(p => !p.observer).sort((a, b) => a.full_name.localeCompare(b.full_name));
+  return { ps, es: data || [], from };
+}
+async function viewDisciplineTeam(month) {
+  cleanupChannels();
+  const cur = dcMon(todayDhaka()); month = month || cur;
+  $app.innerHTML = '<div class="top"><button class="back" id="bk">←</button><h1>🧾 টিমের শৃঙ্খলা পয়েন্ট</h1></div><div class="pad" id="dtb" style="padding-top:8px"><div class="cen"><div class="spin dark"></div></div></div>';
+  document.getElementById('bk').onclick = () => isAdmin() ? viewAdmin() : go('home');
+  const { ps, es, from } = await dcTeamData(month);
+  const el = document.getElementById('dtb'); if (!el) return;
+  const START = '2026-11-01';
+  const rows = [];
+  for (let m = from < START ? START : from; m <= month; m = dcMonAdd(m, 1)) ps.forEach(p => rows.push({ user_id: p.id, full_name: p.full_name, bucket: m, pct: dcBal(es.filter(e => e.user_id === p.id && e.month === m)), partial: m === cur }));
+  const tr = { bucket: 'month' }, opt = { suf: '', title: '🧾 শৃঙ্খলা পয়েন্টের ট্রেন্ড (মাস অনুযায়ী)', desc: 'প্রতিটা বিন্দু = মাস শেষে কত পয়েন্ট ছিল (১০০ থেকে শুরু)। ফাঁপা বিন্দু = চলতি মাস।' };
+  const mine = p => es.filter(e => e.user_id === p.id && e.month === month), c = (p, k) => mine(p).filter(e => !e.waived && k.includes(e.kind)).length;
+  el.innerHTML = '<div style="display:flex;align-items:center;justify-content:space-between;gap:8px"><button class="btn ghost" id="dcprev" style="margin:0;width:auto;padding:8px 12px">‹</button><b>' + dcMonTxt(month) + '</b><button class="btn ghost" id="dcnext" style="margin:0;width:auto;padding:8px 12px" ' + (month >= cur ? 'disabled' : '') + '>›</button></div>'
+    + tgChart(rows, tr, opt)
+    + ps.map(p => { const b = dcBal(mine(p)); return '<button class="card" data-u="' + p.id + '" style="display:block;width:100%;text-align:left;margin-top:10px;border:0;cursor:pointer"><div class="row">' + avatar(p.full_name, p.id, 36) + '<div class="rt"><b>' + esc(p.full_name) + '</b><span>⏰ ' + c(p, ['late_att']) + ' · 📋 ' + c(p, ['late_task', 'task_overdue']) + ' · 🕌 ' + c(p, ['salah_missing', 'salah_waqt']) + ' · 🌟 ' + c(p, ['salah_bonus']) + '</span></div><b style="font-size:20px;color:' + dcCol(b) + '">' + b + '</b></div>' + tgBar(b, dcCol(b)) + '</button>'; }).join('')
+    + DC_RULES;
+  tgChartWire(el, rows, tr, opt);
+  document.getElementById('dcprev').onclick = () => viewDisciplineTeam(dcMonAdd(month, -1));
+  document.getElementById('dcnext').onclick = () => { if (month < cur) viewDisciplineTeam(dcMonAdd(month, 1)); };
+  el.querySelectorAll('[data-u]').forEach(b => b.onclick = () => viewDiscipline(b.dataset.u, month));
+}
+window.viewDiscipline = viewDiscipline; window.viewDisciplineTeam = viewDisciplineTeam;
+
+/* discipline table for PDFs (performance, target) */
+async function dcPdfTable(uids) {
+  const m = dcMon(todayDhaka()), { ps, es } = await dcTeamData(m);
+  const list = ps.filter(p => !uids || uids.includes(p.id));
+  if (!list.length) return '';
+  const c = (p, k) => es.filter(e => e.user_id === p.id && e.month === m && !e.waived && k.includes(e.kind)).length;
+  return '<div style="margin-top:14px"><b style="font-size:14px;color:#0B3B5A">🧾 শৃঙ্খলা পয়েন্ট — ' + dcMonTxt(m) + '</b></div><table class="trt"><thead><tr><th>সদস্য</th><th>পয়েন্ট</th><th>দেরিতে হাজিরা</th><th>দেরিতে টাস্ক</th><th>নামাজ</th><th>বোনাস</th></tr></thead><tbody>'
+    + list.map(p => '<tr><td>' + esc(p.full_name) + '</td><td class="n"><b>' + dcBal(es.filter(e => e.user_id === p.id && e.month === m)) + '/100</b></td><td class="n">' + c(p, ['late_att']) + '</td><td class="n">' + c(p, ['late_task', 'task_overdue']) + '</td><td class="n">' + c(p, ['salah_missing', 'salah_waqt']) + '</td><td class="n">' + c(p, ['salah_bonus']) + '</td></tr>').join('') + '</tbody></table>';
+}
+async function tgPdfAugment(html) {
+  const at = h => { const i = h.indexOf('class="trd"'), j = i < 0 ? -1 : h.indexOf('</div></div>', i); return j < 0 ? -1 : j + 12; };
+  if (/Team Performance Report/.test(html)) {
+    const ch = document.querySelector('#ptb .tgc'), extra = (ch ? ch.outerHTML.replace(/<div class="tgtip"[^>]*><\/div>/, '') : '') + await dcPdfTable(null);
+    const k = at(html); return k < 0 ? html + extra : html.slice(0, k) + extra + html.slice(k);
+  }
+  if (/Performance Report · পারফরম্যান্স রিপোর্ট/.test(html)) {
+    const mm = html.match(/font-size:20px;color:#0B3B5A">([^<]+)<\/b>/), p = mm && Object.values(ui.people).find(x => esc(x.full_name) === mm[1]);
+    if (!p) return html;
+    const extra = await dcPdfTable([p.id]), e = html.lastIndexOf('<div class="trf">');
+    return e < 0 ? html + extra : html.slice(0, e) + extra + html.slice(e);
+  }
+  if (/Target Report · টার্গেট রিপোর্ট/.test(html)) {
+    const extra = await dcPdfTable(null), e = html.lastIndexOf('<div class="trf">');
+    return e < 0 ? html + extra : html.slice(0, e) + extra + html.slice(e);
+  }
+  return html;
+}
+const _xpTg = exportHtmlPdf;
+exportHtmlPdf = async function (html, name, text, share) { try { html = await tgPdfAugment(html); } catch (e) {} return _xpTg(html, name, text, share); };
+
+/* salah screen: "ওজর" (excuse) switch — no deduction for that day */
+let dcOjBusy = false;
+new MutationObserver(() => {
+  const sb2 = document.getElementById('sbody');
+  if (!sb2 || dcOjBusy || document.getElementById('dcoj') || sb2.querySelector('.spin') || typeof salahDay === 'undefined' || !salahDay || !state.profile) return;
+  dcOjBusy = true; const day = salahDay;
+  sb.from('salah_logs').select('excused').eq('user_id', state.profile.id).eq('log_date', day).maybeSingle().then(({ data }) => {
+    dcOjBusy = false;
+    const host = document.getElementById('sbody'); if (!host || document.getElementById('dcoj')) return;
+    const on = !!(data && data.excused);
+    host.insertAdjacentHTML('beforeend', '<button class="card" id="dcoj" style="display:block;width:100%;text-align:left;margin-top:12px;border:' + (on ? '1.5px solid #16a34a' : '0') + ';cursor:pointer"><b>' + (on ? '✅ এই দিনের জন্য ওজর দেওয়া আছে' : '🤲 এই দিন ওজর আছে?') + '</b><div class="mut" style="font-size:12px;margin-top:4px">' + (on ? 'এই দিনের নামাজের জন্য কোনো পয়েন্ট কাটবে না। বাতিল করতে আবার চাপুন।' : 'সফর, অসুস্থতা বা বিশেষ কারণে — চাপলে এই দিনের জন্য পয়েন্ট কাটবে না। কারণ কেউ দেখবে না।') + '</div></button>');
+    document.getElementById('dcoj').onclick = async () => { const { error } = await sb.from('salah_logs').upsert({ user_id: state.profile.id, log_date: day, excused: !on, updated_at: new Date().toISOString() }, { onConflict: 'user_id,log_date' }); if (error) return toast(/row-level|policy/i.test(error.message) ? 'এই দিনের হিসাব আর বদলানো যাবে না' : friendlyError(error)); toast(on ? 'ওজর বাতিল করা হয়েছে' : 'ওজর দেওয়া হয়েছে ✓'); const b = document.getElementById('dcoj'); if (b) b.remove(); };
+  }, () => { dcOjBusy = false; });
+}).observe(document.body, { childList: true, subtree: true });
+
+/* hooks: home card + tiles */
+async function dcHomeCard() {
+  try {
+    if (!state.profile || state.profile.observer || document.getElementById('hdc')) return;
+    const m = dcMon(todayDhaka()), { data } = await sb.from('yg_discipline').select('points,waived').eq('user_id', state.profile.id).eq('month', m);
+    const b = dcBal(data || []);
+    const anchor = document.getElementById('htg') || (document.getElementById('hatt') && document.getElementById('hatt').closest('.hrow2')) || document.getElementById('scard') || document.querySelector('.qgrid');
+    if (!anchor || document.getElementById('hdc')) return;
+    anchor.insertAdjacentHTML('beforebegin', '<button class="card" id="hdc" style="display:block;width:100%;text-align:left;margin-bottom:10px;border:0;cursor:pointer"><div style="display:flex;justify-content:space-between;align-items:center"><b>🧾 শৃঙ্খলা পয়েন্ট (এই মাস)</b><b style="color:' + dcCol(b) + '">' + b + '/100</b></div>' + tgBar(b, dcCol(b)) + '</button>');
+    document.getElementById('hdc').onclick = () => viewDiscipline();
+  } catch (e) {}
+}
+const _vhDc = viewHome;
+viewHome = async function () { const pr = _vhDc(); dcHomeCard(); return pr; };
+if (document.getElementById('hatt') || document.getElementById('scard')) dcHomeCard();
+const _vmDc = viewMenu;
+viewMenu = function () {
+  const r = _vmDc(); const t = document.querySelector('.tiles');
+  if (t && !document.getElementById('m-dc') && state.profile && !state.profile.observer) { t.insertAdjacentHTML('afterbegin', '<button class="tile" id="m-dc"><span class="ic">🧾</span><b>শৃঙ্খলা</b><small>আমার পয়েন্ট</small></button>' + (isMgr() ? '<button class="tile" id="m-dct"><span class="ic">🧾</span><b>টিমের শৃঙ্খলা</b><small>সবার পয়েন্ট</small></button>' : '')); document.getElementById('m-dc').onclick = () => viewDiscipline(); const x = document.getElementById('m-dct'); if (x) x.onclick = () => viewDisciplineTeam(); }
+  return r;
+};
+const _vaDc = viewAdmin;
+viewAdmin = async function () {
+  const pr = _vaDc(); const t = document.querySelector('.tiles');
+  if (t && !document.getElementById('x-dc')) { t.insertAdjacentHTML('afterbegin', '<button class="tile hl" id="x-dc"><span class="ic">🧾</span><b>শৃঙ্খলা পয়েন্ট</b><small>সবার পয়েন্ট · মাফ · ±</small></button>'); document.getElementById('x-dc').onclick = () => viewDisciplineTeam(); }
+  return pr;
+};
+
 }
