@@ -704,7 +704,7 @@ async function renderMembers(filter='active'){
   });
   box.querySelectorAll('button[data-s]').forEach(b => b.onclick = async () => {
     const id = b.closest('.card').dataset.id, status = b.dataset.s;
-    if (status === 'suspended' && !confirm('অ্যাকাউন্ট বন্ধ করবেন? সাথে সাথে তার সব অ্যাক্সেস বন্ধ হয়ে যাবে।')) return;
+    if (status === 'suspended' && !(await _ygHandover(id))) return;
     const { error } = await sb.from('profiles').update({ status }).eq('id', id);
     if (error) return toast(friendlyError(error));
     toast(status==='active' ? 'চালু করা হয়েছে ✓' : 'বন্ধ করা হয়েছে'); renderMembers(filter);
@@ -1779,9 +1779,16 @@ async function editMemberInfo(id, f) {
     <label>Department</label><select class="in" id="ep">${opt(state.departments, u.department_id)}</select>
     <label>কাজের ধরন (হাজিরা)</label><select class="in" id="ew"><option value="remote" ${u.work_mode !== 'office' ? 'selected' : ''}>🏠 বাসা থেকে — হাজিরা প্রযোজ্য নয়</option><option value="office" ${u.work_mode === 'office' ? 'selected' : ''}>🏢 অফিস — সেলফি হাজিরা ও রিমাইন্ডার</option></select>
 <label>দৈনিক রিপোর্ট</label><select class="in" id="edr"><option value="1" ${u.daily_report !== false ? 'selected' : ''}>📝 প্রযোজ্য — প্রতিদিন রিপোর্ট দিতে হবে</option><option value="0" ${u.daily_report === false ? 'selected' : ''}>🚫 প্রযোজ্য নয় — রিপোর্ট লাগবে না</option></select>
+    <label>শিফট (অফিসের সদস্যদের জন্য)</label><div class="two"><input class="in" type="time" id="es1a" value="${((u.shifts || [])[0] || {}).start || ''}" style="margin-top:0"><input class="in" type="time" id="es1b" value="${((u.shifts || [])[0] || {}).end || ''}" style="margin-top:0"></div>
+    <div class="two" style="margin-top:6px"><input class="in" type="time" id="es2a" value="${((u.shifts || [])[1] || {}).start || ''}" style="margin-top:0"><input class="in" type="time" id="es2b" value="${((u.shifts || [])[1] || {}).end || ''}" style="margin-top:0"></div>
+    <p class="mut" style="font-size:12px;margin:4px 0 0">প্রতি লাইনে শুরু ও শেষ সময়। একটাই শিফট হলে দ্বিতীয় লাইন খালি রাখুন। দুটোই খালি থাকলে অফিসের সাধারণ সময় ধরা হবে।</p>
+    <label>হাজিরা শুরুর তারিখ</label><input class="in" type="date" id="eas" value="${u.att_start || ''}">
+    <p class="mut" style="font-size:12px;margin:4px 0 0">এই তারিখের আগের দিনগুলো "অনুপস্থিত" দেখাবে না। খালি রাখলে প্রযোজ্য নয়।</p>
     <button class="btn" id="es">Save</button>`, (el, close) => {
     el.querySelector('#es').onclick = async () => {
-      const { error } = await sb.from('profiles').update({ designation: el.querySelector('#ed').value.trim() || null, company_id: el.querySelector('#ec').value || null, department_id: el.querySelector('#ep').value || null, work_mode: el.querySelector('#ew').value, daily_report: el.querySelector('#edr').value === '1' }).eq('id', id);
+      const _sh = [['#es1a', '#es1b'], ['#es2a', '#es2b']].map(([a, b]) => [el.querySelector(a).value, el.querySelector(b).value]).filter(x => x[0] || x[1]);
+      if (_sh.some(x => !x[0] || !x[1] || x[1] <= x[0]) || (_sh.length === 2 && _sh[1][0] < _sh[0][1])) return toast('শিফটের সময় ঠিক নেই: শুরু ও শেষ দুটোই দিন, শেষ সময় শুরুর পরে, আর দ্বিতীয় শিফট প্রথমটার পরে হতে হবে।');
+      const { error } = await sb.from('profiles').update({ designation: el.querySelector('#ed').value.trim() || null, company_id: el.querySelector('#ec').value || null, department_id: el.querySelector('#ep').value || null, work_mode: el.querySelector('#ew').value, daily_report: el.querySelector('#edr').value === '1', shifts: _sh.length ? _sh.map(([s, e]) => ({ start: s, end: e })) : null, att_start: el.querySelector('#eas').value || null }).eq('id', id);
       if (error) return toast(friendlyError(error));
       close(); toast('সেভ হয়েছে ✓'); await loadPeople(); renderMembers(f);
     };
@@ -2589,6 +2596,61 @@ viewAttendance = async function () {
 const _tfFresh = taskForm;
 taskForm = async function (t) { try { await loadPeople(); } catch (e) {} return _tfFresh(t); };
 }
+/* ---- suspend a member: hand over open tasks + repeating tasks ---- */
+async function _ygHandover(id) {
+  const [{ data: ts }, { data: tm }] = await Promise.all([
+    sb.from('tasks').select('id,title').eq('assigned_to', id).neq('status', 'completed'),
+    sb.from('yg_task_templates').select('id,title').eq('assigned_to', id).eq('active', true)]);
+  const n1 = (ts || []).length, n2 = (tm || []).length;
+  if (!n1 && !n2) return confirm('অ্যাকাউন্ট বন্ধ করবেন? সাথে সাথে তার সব অ্যাক্সেস বন্ধ হয়ে যাবে।');
+  await loadPeople();
+  const people = Object.values(ui.people).filter(p => p.id !== id).sort((a, b) => a.full_name.localeCompare(b.full_name));
+  const list = [...(ts || []).map(t => t.title), ...(tm || []).map(t => '🔁 ' + t.title)];
+  return new Promise(res => sheet('<h3>অ্যাকাউন্ট বন্ধ করার আগে</h3><p class="mut">এই সদস্যের নামে ' + (n1 ? n1 + 'টা বাকি টাস্ক' : '') + (n1 && n2 ? ' আর ' : '') + (n2 ? n2 + 'টা প্রতিদিনের/রিপিট টাস্ক' : '') + ' আছে। এগুলো কাকে দেবেন?</p>'
+    + '<div style="max-height:150px;overflow:auto;font-size:13px;margin:8px 0;line-height:1.6">' + list.map(x => '• ' + esc(x)).join('<br>') + '</div>'
+    + '<label>নতুন দায়িত্ব</label><select class="in" id="hto"><option value="">কাউকে দেবো না (বাকি টাস্ক থাকবে, রিপিট বন্ধ হবে)</option>' + people.map(p => '<option value="' + p.id + '">' + esc(p.full_name) + '</option>').join('') + '</select>'
+    + '<button class="btn red" id="hgo">দায়িত্ব বুঝিয়ে অ্যাকাউন্ট বন্ধ করুন</button>', (el, close) => {
+      el.querySelector('#hgo').onclick = async () => {
+        const to = el.querySelector('#hto').value; let e1 = null, e2 = null;
+        if (to) {
+          if (n1) ({ error: e1 } = await sb.from('tasks').update({ assigned_to: to }).in('id', ts.map(t => t.id)));
+          if (n2) ({ error: e2 } = await sb.from('yg_task_templates').update({ assigned_to: to }).in('id', tm.map(t => t.id)));
+        } else if (n2) ({ error: e2 } = await sb.from('yg_task_templates').update({ active: false }).in('id', tm.map(t => t.id)));
+        if (e1 || e2) return toast(friendlyError(e1 || e2));
+        close(); res(true);
+      };
+    }));
+}
+/* ---- admin: stuck / overdue tasks ---- */
+async function viewStuckTasks() {
+  cleanupChannels();
+  $app.innerHTML = '<div class="top"><button class="back" id="bk">←</button><h1>⏳ আটকে থাকা টাস্ক</h1></div><div class="pad" id="stb" style="padding-top:10px"><div class="cen"><div class="spin dark"></div></div></div>';
+  document.getElementById('bk').onclick = viewAdmin;
+  await loadPeople();
+  const now = Date.now();
+  const { data, error } = await sb.from('tasks').select('id,title,assigned_to,created_by,due_date,created_at,status').neq('status', 'completed').order('due_date', { ascending: true, nullsFirst: false }).limit(300);
+  const el = document.getElementById('stb'); if (!el) return;
+  if (error) { el.innerHTML = '<div class="msg err">' + esc(friendlyError(error)) + '</div>'; return; }
+  const rows = (data || []).filter(t => (t.due_date && Date.parse(t.due_date) < now) || (!t.due_date && now - Date.parse(t.created_at) > 3 * 86400000));
+  const days = t => Math.max(0, Math.floor((now - Date.parse(t.due_date || t.created_at)) / 86400000));
+  const nm = id => (ui.people[id] && ui.people[id].full_name) || 'বন্ধ/অজানা সদস্য';
+  const people = Object.values(ui.people).sort((a, b) => a.full_name.localeCompare(b.full_name));
+  el.innerHTML = rows.length ? '<div class="msg info" style="font-size:12.5px">যেসব টাস্কের সময় পার হয়ে গেছে, বা তারিখ ছাড়া ৩ দিনের বেশি বাকি — মোট ' + rows.length + 'টা। এখান থেকেই শেষ করা বা অন্যকে দেওয়া যাবে।</div>' + rows.map(t => '<div class="card" data-id="' + t.id + '" style="margin-top:10px"><b>' + esc(t.title) + '</b><div class="mut" style="font-size:12.5px;margin:4px 0 8px">👤 ' + esc(nm(t.assigned_to)) + ' · ' + (t.due_date ? '⏰ ' + (days(t) ? days(t) + ' দিন আগে সময় পার হয়েছে' : 'আজ সময় পার হয়েছে') : '📅 ' + days(t) + ' দিন ধরে বাকি') + '</div>'
+    + '<div class="two"><select class="in" data-re style="padding:8px 10px;font-size:13px;margin-top:0"><option value="">অন্যকে দিন…</option>' + people.filter(p => p.id !== t.assigned_to).map(p => '<option value="' + p.id + '">' + esc(p.full_name) + '</option>').join('') + '</select><button class="btn sm" data-done style="margin-top:0">✓ শেষ করুন</button></div>'
+    + '<button class="btn ghost" data-open style="margin-top:6px;padding:8px">খুলে দেখুন</button></div>').join('') : '<div class="empty">কোনো আটকে থাকা টাস্ক নেই ✓</div>';
+  el.querySelectorAll('[data-done]').forEach(b => b.onclick = async () => { const id = b.closest('.card').dataset.id; if (!confirm('এই টাস্কটা শেষ (Completed) হিসেবে চিহ্নিত করবেন?')) return; const { error } = await sb.from('tasks').update({ status: 'completed', completed_at: new Date().toISOString() }).eq('id', id); if (error) return toast(friendlyError(error)); toast('শেষ করা হয়েছে ✓'); viewStuckTasks(); });
+  el.querySelectorAll('[data-re]').forEach(s => s.onchange = async () => { if (!s.value) return; const id = s.closest('.card').dataset.id; const { error } = await sb.from('tasks').update({ assigned_to: s.value }).eq('id', id); if (error) return toast(friendlyError(error)); toast('নতুন দায়িত্ব দেওয়া হয়েছে ✓'); viewStuckTasks(); });
+  el.querySelectorAll('[data-open]').forEach(b => b.onclick = () => viewTask(b.closest('.card').dataset.id));
+}
+{
+const _vaStuckX = viewAdmin;
+viewAdmin = async function () {
+  const pr = _vaStuckX();
+  const t = document.querySelector('.tiles');
+  if (t && !document.getElementById('x-stuck')) { t.insertAdjacentHTML('afterbegin', '<button class="tile hl" id="x-stuck"><span class="ic">⏳</span><b>আটকে থাকা টাস্ক</b><small>সময় পার · দীর্ঘদিন বাকি</small></button>'); document.getElementById('x-stuck').onclick = viewStuckTasks; }
+  return pr;
+};
+}
 async function viewAttendanceAdmin(date) {
   date = date || todayDhaka();
   $app.innerHTML = `<div class="top"><button class="back" id="bk">←</button><h1>👥 সবার হাজিরা</h1></div>
@@ -2867,14 +2929,28 @@ viewMenu = function () { const r = _vmObs(); if (isObserver()) { const s = docum
 
 {
 /* ---------- performance reports (admin / manager): team dashboard + full member report + PDF ---------- */
-const PERIODS = [['m0', 'এই মাস'], ['m1', 'গত মাস'], ['d30', 'শেষ ৩০ দিন'], ['d90', 'শেষ ৯০ দিন'], ['y0', 'এই বছর']];
-let perfPeriod = 'm0';
+const PERIODS = [['d0', 'আজ'], ['w0', 'এই সপ্তাহ'], ['w1', 'গত সপ্তাহ'], ['m0', 'এই মাস'], ['m1', 'গত মাস'], ['d30', 'শেষ ৩০ দিন'], ['d90', 'শেষ ৯০ দিন'], ['h6', 'শেষ ৬ মাস'], ['y1', 'শেষ ১২ মাস'], ['y0', 'এই বছর'], ['cu', '📅 নিজের তারিখ']];
+let perfPeriod = 'm0', perfCustom = null;
+function _ppPick(k, cb) {
+  if (k !== 'cu') { perfPeriod = k; return cb(); }
+  const t = todayDhaka(), c = perfCustom || { from: t.slice(0, 8) + '01', to: t };
+  sheet(`<h3>📅 নিজের তারিখ বেছে নিন</h3><label>থেকে</label><input class="in" type="date" id="pcf" value="${c.from}" max="${t}"><label>পর্যন্ত</label><input class="in" type="date" id="pct" value="${c.to}" max="${t}"><button class="btn" id="pcg">রিপোর্ট দেখুন</button>`, (el, close) => {
+    el.querySelector('#pcg').onclick = () => { const f = el.querySelector('#pcf').value, to = el.querySelector('#pct').value; if (!f || !to || f > to) return toast('তারিখ ঠিক নেই: শুরুর তারিখ শেষ তারিখের আগে হতে হবে'); perfCustom = { from: f, to }; perfPeriod = 'cu'; close(); cb(); };
+  });
+}
 function perfRange(k) {
   const t = todayDhaka(), [Y, M] = t.split('-').map(Number), iso = d => d.toISOString().slice(0, 10), back = n => iso(new Date(Date.parse(t + 'T00:00:00Z') - n * 86400000));
   if (k === 'm1') { const s = new Date(Date.UTC(Y, M - 2, 1)), e = new Date(Date.UTC(Y, M - 1, 0)); return { from: iso(s), to: iso(e) }; }
   if (k === 'd30') return { from: back(29), to: t };
   if (k === 'd90') return { from: back(89), to: t };
   if (k === 'y0') return { from: `${Y}-01-01`, to: t };
+  if (k === 'd0') return { from: t, to: t };
+  const wo = (new Date(t + 'T00:00:00Z').getUTCDay() + 1) % 7;
+  if (k === 'w0') return { from: back(wo), to: t };
+  if (k === 'w1') return { from: back(wo + 7), to: back(wo + 1) };
+  if (k === 'h6') return { from: back(182), to: t };
+  if (k === 'y1') return { from: back(364), to: t };
+  if (k === 'cu' && perfCustom) return { from: perfCustom.from, to: perfCustom.to };
   return { from: `${Y}-${String(M).padStart(2, '0')}-01`, to: t };
 }
 const dCount = (a, b) => Math.max(0, Math.round((Date.parse(b + 'T00:00:00Z') - Date.parse(a + 'T00:00:00Z')) / 86400000) + 1);
@@ -2929,7 +3005,7 @@ async function viewPerfTeam() {
    <div class="chips">${PERIODS.map(([k, l]) => `<button class="chip ${k === perfPeriod ? 'on' : ''}" data-pp="${k}">${l}</button>`).join('')}</div>
    <div class="pad" id="ptb" style="padding-top:8px"><div class="cen"><div class="spin dark"></div></div></div>`;
   document.getElementById('bk').onclick = viewAdmin;
-  document.querySelectorAll('[data-pp]').forEach(b => b.onclick = () => { perfPeriod = b.dataset.pp; viewPerfTeam(); });
+  document.querySelectorAll('[data-pp]').forEach(b => b.onclick = () => _ppPick(b.dataset.pp, viewPerfTeam));
   await loadPeople();
   const ids = Object.keys(ui.people), box = document.getElementById('ptb');
   let D; try { D = await perfData(ids, r); } catch (e) { box.innerHTML = '<div class="msg err">তথ্য লোড হয়নি</div>'; return; }
@@ -2961,7 +3037,7 @@ async function viewPerfPerson(id, back) {
    <div class="chips">${PERIODS.map(([k, l]) => `<button class="chip ${k === perfPeriod ? 'on' : ''}" data-pp="${k}">${l}</button>`).join('')}</div>
    <div class="pad" id="ppb" style="padding-top:8px"><div class="cen"><div class="spin dark"></div></div></div>`;
   document.getElementById('bk').onclick = () => (back || viewPerfTeam)();
-  document.querySelectorAll('[data-pp]').forEach(b => b.onclick = () => { perfPeriod = b.dataset.pp; viewPerfPerson(id, back); });
+  document.querySelectorAll('[data-pp]').forEach(b => b.onclick = () => _ppPick(b.dataset.pp, () => viewPerfPerson(id, back)));
   const box = document.getElementById('ppb');
   let x; try { x = (await perfData([id], r))[id]; } catch (e) { box.innerHTML = '<div class="msg err">তথ্য লোড হয়নি</div>'; return; }
   const tl = (t, done) => `<div class="kv" style="align-items:flex-start"><span style="flex:1">${done ? '✅' : (t.due_date && Date.parse(t.due_date) < Date.now() ? '⚠️' : '📋')} ${esc(t.title)}</span><b style="font-size:12px;white-space:nowrap">${done ? fmtDate(t.completed_at) : (t.due_date ? fmtDate(t.due_date) : 'তারিখ নেই')}</b></div>`;
