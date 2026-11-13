@@ -2468,7 +2468,7 @@ async function viewAttendance() {
       <div class="attclock" id="aclock">${new Date().toLocaleTimeString([], { hour: 'numeric', minute: '2-digit' })}</div>
       <div class="mut" style="color:rgba(255,255,255,.85)">${new Date().toLocaleDateString('bn-BD', { weekday: 'long', day: 'numeric', month: 'long' })}${office ? ' · অফিস শুরু ' + office.start_time.slice(0, 5) : ''}</div>
       <div class="attrow"><div><span>ঢোকা</span><b>${t ? fmtTime(t.check_in_at) : '—'}</b>${t && t.late_minutes ? `<em>${lateText(t.late_minutes)}</em>` : t ? '<em class="ok">সময়মতো ✓</em>' : ''}</div><div><span>বের হওয়া</span><b>${t && t.check_out_at ? fmtTime(t.check_out_at) : '—'}</b>${t && t.check_out_at ? `<em class="ok">${Math.round((new Date(t.check_out_at) - new Date(t.check_in_at)) / 3600000 * 10) / 10} ঘণ্টা</em>` : ''}</div></div>
-      ${stage === 'done' ? '<div class="attdone">✅ আজকের হাজিরা সম্পূর্ণ</div>' : `<button class="attbtn" id="amark">📸 ${stage === 'in' ? 'অফিসে ঢোকার হাজিরা দিন' : 'বের হওয়ার হাজিরা দিন'}</button>`}
+      ${stage === 'done' ? '<div class="attdone">✅ আজকের হাজিরা সম্পূর্ণ</div>' : (stage === 'in' && new Date(todayDhaka() + 'T00:00:00Z').getUTCDay() === 5) ? '<div class="attdone">🕌 আজ শুক্রবার — সাপ্তাহিক ছুটি</div>' : `<button class="attbtn" id="amark">📸 ${stage === 'in' ? 'অফিসে ঢোকার হাজিরা দিন' : 'বের হওয়ার হাজিরা দিন'}</button>`}
       <div class="attstep" id="astep"></div>
     </div>
     ${onLeave(today) ? '<div class="msg ok" style="margin-top:10px">🏖️ আজ আপনার ছুটি মঞ্জুর আছে।</div>' : ''}
@@ -2577,6 +2577,7 @@ viewAttendance = async function () {
   let act;
   if (stage === 'done') act = '<div class="attdone">✅ আজকের সব শিফটের হাজিরা সম্পূর্ণ</div>';
   else if (stage === 'wait') { const mid = Math.ceil((toM(SH[cur - 1].end) + toM(SH[cur].start)) / 2); act = '<div class="attdone">✅ ' + shN(cur) + ' শিফট শেষ · ' + shN(cur + 1) + ' শিফট শুরু ' + t12(SH[cur].start) + '-এ<br><small style="font-weight:500">' + t12(Math.floor(mid / 60) + ':' + (mid % 60)) + '-এর পর ঢোকার হাজিরা দিতে পারবেন</small></div>'; }
+  else if (stage === 'in' && new Date(todayDhaka() + 'T00:00:00Z').getUTCDay() === 5) act = '<div class="attdone">🕌 আজ শুক্রবার — সাপ্তাহিক ছুটি, হাজিরা লাগবে না</div>';
   else act = '<button class="attbtn" id="amark">📸 ' + shN(cur) + (stage === 'in' ? ' শিফটে ঢোকার হাজিরা দিন' : ' শিফট থেকে বের হওয়ার হাজিরা দিন') + '</button>';
   const list = [...Array(14)].map((_, i) => dateAdd(today, -i)).filter(d => !state.profile.att_start || d >= state.profile.att_start).map(d => { const rs = dayRows(d); const fri = new Date(d + 'T00:00:00Z').getUTCDay() === 5; const lt = rs.reduce((a, x) => a + (x.late_minutes || 0), 0);
     const st = rs.length ? (lt ? ['late', '⏰', lateText(lt)] : ['ok', '✅', 'সময়মতো']) : onLeave(d) ? ['leave', '🏖️', 'ছুটি'] : d === today ? ['wait', '⏳', 'বাকি'] : fri ? ['off', '🕌', 'শুক্রবার'] : ['abs', '❌', 'অনুপস্থিত'];
@@ -2670,13 +2671,13 @@ async function viewAttendanceAdmin(date) {
   const urls = {}; if (paths.length) { const { data } = await sb.storage.from('attendance').createSignedUrls(paths, 3600); (data || []).forEach(d => { if (d.signedUrl) urls[d.path] = d.signedUrl; }); }
   const people = Object.values(ui.people).filter(p => (p.work_mode === 'office' && (!p.att_start || date >= p.att_start)) || (rows || []).some(x => x.user_id === p.id)).sort((a, b) => a.full_name.localeCompare(b.full_name)).map(p => {
     const r = _attMerge((rows || []).filter(x => x.user_id === p.id)), lv = (leaves || []).find(l => l.user_id === p.id);
-    const st = r ? (r.late_minutes ? 'late' : 'ok') : lv ? 'leave' : 'abs';
+    const st = r ? (r.late_minutes ? 'late' : 'ok') : lv ? 'leave' : new Date(date + 'T00:00:00Z').getUTCDay() === 5 ? 'off' : 'abs';
     return { p, r, lv, st };
   });
   const cnt = k => people.filter(x => x.st === k).length;
   const rep = { date, people, ok: cnt('ok'), late: cnt('late'), leave: cnt('leave'), abs: cnt('abs') };
   box.innerHTML = `<div class="trs"><div><b>${rep.ok}</b><span>✅ সময়মতো</span></div><div><b>${rep.late}</b><span>⏰ দেরিতে</span></div><div><b>${rep.leave}</b><span>🏖️ ছুটিতে</span></div><div><b>${rep.abs}</b><span>❌ অনুপস্থিত</span></div></div>
-    ${people.map(x => `<div class="card aadm ${x.st}"><div class="row">${avatar(x.p.full_name, x.p.id, 40)}<div class="rt"><b>${esc(x.p.full_name)}</b><span>${x.r && x.r._rs.length > 1 ? _attTxt(x.r._rs) : x.r ? `ঢোকা ${fmtTime(x.r.check_in_at)}${x.r.late_minutes ? ' · ' + lateText(x.r.late_minutes) : ' · সময়মতো'}${x.r.check_out_at ? ' · বের ' + fmtTime(x.r.check_out_at) : ''}` : x.lv ? `🏖️ ছুটি (${LEAVE_TYPES[x.lv.leave_type][1]})` : '❌ হাজিরা নেই'}</span></div></div>
+    ${people.map(x => `<div class="card aadm ${x.st}"><div class="row">${avatar(x.p.full_name, x.p.id, 40)}<div class="rt"><b>${esc(x.p.full_name)}</b><span>${x.r && x.r._rs.length > 1 ? _attTxt(x.r._rs) : x.r ? `ঢোকা ${fmtTime(x.r.check_in_at)}${x.r.late_minutes ? ' · ' + lateText(x.r.late_minutes) : ' · সময়মতো'}${x.r.check_out_at ? ' · বের ' + fmtTime(x.r.check_out_at) : ''}` : x.lv ? `🏖️ ছুটি (${LEAVE_TYPES[x.lv.leave_type][1]})` : x.st === 'off' ? '🕌 শুক্রবার — সাপ্তাহিক ছুটি' : '❌ হাজিরা নেই'}</span></div></div>
       ${x.r ? `<div class="selfies">${_attSelf(x.r._rs).filter(s => s[1] && urls[s[1]]).map(([l, s]) => `<a href="${urls[s]}" target="_blank" rel="noopener"><img src="${urls[s]}" alt="${l}"><span>${l}</span></a>`).join('')}<span class="mut" style="font-size:11.5px;align-self:center">📍 অফিস থেকে ${x.r.check_in_dist ?? '–'} মি</span></div>` : ''}</div>`).join('')}`;
   const html = attendancePdfHTML(rep);
   document.getElementById('ashare').onclick = () => exportHtmlPdf(html, `Yaqeen-Attendance-${date}.pdf`, `Yaqeen Group · Attendance · ${date}`, true);
@@ -2684,7 +2685,7 @@ async function viewAttendanceAdmin(date) {
 }
 function attendancePdfHTML(r) {
   const dt = new Date(r.date + 'T00:00:00').toLocaleDateString('en-GB', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' });
-  const lbl = { ok: '<span class="sok">সময়মতো</span>', late: '<span class="spend">দেরি</span>', leave: '<span class="sok">ছুটি</span>', abs: '<span class="sbad">অনুপস্থিত</span>' };
+  const lbl = { ok: '<span class="sok">সময়মতো</span>', late: '<span class="spend">দেরি</span>', leave: '<span class="sok">ছুটি</span>', off: '<span class="sok">শুক্রবার</span>', abs: '<span class="sbad">অনুপস্থিত</span>' };
   return `<div class="trep pdf"><div class="trh"><img src="mark.jpg" alt=""><div><b>Yaqeen Group</b><span>Daily Attendance · দৈনিক হাজিরা</span></div><div class="trd">${dt}</div></div>
     <div class="trs"><div><b>${r.ok}</b><span>✅ সময়মতো</span></div><div><b>${r.late}</b><span>⏰ দেরিতে</span></div><div><b>${r.leave}</b><span>🏖️ ছুটিতে</span></div><div><b>${r.abs}</b><span>❌ অনুপস্থিত</span></div></div>
     <table class="trt"><thead><tr><th>সদস্য</th><th>ঢোকা</th><th>দেরি</th><th>বের হওয়া</th><th>অবস্থা</th></tr></thead><tbody>
@@ -2781,8 +2782,8 @@ viewHome = async function () {
     document.getElementById('hatt').onclick = viewAttendance; document.getElementById('hlv').onclick = () => { leaveTab = 'mine'; viewLeave(); };
     if ((state.profile.work_mode || 'remote') !== 'office') { const s0 = document.getElementById('hattsub'); if (s0) s0.textContent = 'প্রযোজ্য নয় (বাসা থেকে)'; } else sb.from('attendance').select('*').eq('user_id', state.profile.id).eq('work_date', todayDhaka()).order('shift', { ascending: false }).limit(1).then(({ data: t0, error }) => { const t = t0 && t0[0];
       const s = document.getElementById('hattsub'); if (!s) return;
-      s.textContent = error ? 'সেটআপ বাকি' : !t ? (state.profile.att_start > todayDhaka() ? 'শুরু হবে ' + new Date(state.profile.att_start + 'T00:00:00').toLocaleDateString('bn-BD', { day: 'numeric', month: 'long' }) : 'আজ এখনো দেননি') : !t.check_out_at ? `ঢোকা ${fmtTime(t.check_in_at)}${t.late_minutes ? ' · দেরি' : ' ✓'}` : (t.shift || 1) < ((state.profile.shifts || []).length || 1) ? 'শিফট ' + (t.shift || 1) + ' শেষ · পরের শিফট বাকি' : 'আজ সম্পূর্ণ ✓';
-      if (!error && !t && !(state.profile.att_start > todayDhaka())) document.getElementById('hatt').classList.add('warn');
+      s.textContent = error ? 'সেটআপ বাকি' : !t ? (state.profile.att_start > todayDhaka() ? 'শুরু হবে ' + new Date(state.profile.att_start + 'T00:00:00').toLocaleDateString('bn-BD', { day: 'numeric', month: 'long' }) : (new Date(todayDhaka() + 'T00:00:00Z').getUTCDay() === 5 ? '🕌 শুক্রবার — ছুটি' : 'আজ এখনো দেননি')) : !t.check_out_at ? `ঢোকা ${fmtTime(t.check_in_at)}${t.late_minutes ? ' · দেরি' : ' ✓'}` : (t.shift || 1) < ((state.profile.shifts || []).length || 1) ? 'শিফট ' + (t.shift || 1) + ' শেষ · পরের শিফট বাকি' : 'আজ সম্পূর্ণ ✓';
+      if (!error && !t && !(state.profile.att_start > todayDhaka()) && !(new Date(todayDhaka() + 'T00:00:00Z').getUTCDay() === 5)) document.getElementById('hatt').classList.add('warn');
     });
     if (isAdmin()) sb.from('leave_requests').select('id', { count: 'exact', head: true }).eq('status', 'pending').then(({ count }) => { const s = document.getElementById('hlvsub'); if (s && count) { s.innerHTML = `<b style="color:var(--red)">${count}টা আবেদন অপেক্ষমাণ</b>`; document.getElementById('hlv').onclick = () => { leaveTab = 'pending'; viewLeave(); }; } });
   }
@@ -2978,7 +2979,8 @@ async function perfData(ids, r) {
     const hs = d.map(t => (Date.parse(t.completed_at) - Date.parse(t.created_at)) / 3600000).filter(h => h >= 0);
     const leaveDays = (lv.data || []).filter(l => l.user_id === id).reduce((a, l) => a + dCount(l.start_date < r.from ? r.from : l.start_date, l.end_date > r.to ? r.to : l.end_date), 0);
     const preDays = p.att_start && p.att_start > r.from ? dCount(r.from, p.att_start <= r.to ? dateAdd(p.att_start, -1) : r.to) : 0;
-    const workDays = Math.max(0, days - leaveDays - preDays);
+    const fs0 = p.att_start && p.att_start > r.from ? p.att_start : r.from; let friN = 0; for (let fd = fs0; fd <= r.to; fd = dateAdd(fd, 1)) if (new Date(fd + 'T00:00:00Z').getUTCDay() === 5) friN++;
+    const workDays = Math.max(0, days - leaveDays - preDays - friN);
     const a0 = (att.data || []).filter(x => x.user_id === id && x.check_in_at);
     const a = a0.filter((x, i) => a0.findIndex(y => y.work_date === x.work_date) === i);
     const lates = a0.filter(x => x.late_minutes > 0);
