@@ -50,7 +50,7 @@ async function viewTargets(uid, date) {
   const D = await tgLoad([uid], from, date);
   const el = document.getElementById('tgb'); if (!el) return;
   if (D.error) { el.innerHTML = '<div class="msg err">' + esc(friendlyError(D.error)) + '</div>'; return; }
-  if (!D.targets.length) { el.innerHTML = '<div class="card na-card"><div class="bigic" style="background:#EEF6FF">🎯</div><h3>এখনো কোনো টার্গেট সেট করা হয়নি</h3><p class="mut">' + (isAdmin() ? 'উপরের ⚙️ থেকে টার্গেট সেট করুন।' : 'অ্যাডমিন টার্গেট সেট করলে এখানে দেখাবে।') + '</p></div>'; return; }
+  if (!D.targets.length) { el.innerHTML = '<div class="card na-card"><div class="bigic" style="background:#EEF6FF">🎯</div><h3>এখনো কোনো টার্গেট সেট করা হয়নি</h3><p class="mut">' + (isAdmin() ? 'উপরের ⚙️ থেকে টার্গেট সেট করুন।' : 'অ্যাডমিন টার্গেট সেট করলে এখানে দেখাবে।') + '</p></div>'; const trN = tgTrendRange(null); tgTrend(trN).then(rows => { const h = document.getElementById('tgb'); if (h && !h.querySelector('.tgc')) { h.insertAdjacentHTML('beforeend', '<div class="hsec" style="margin-top:16px"><span class="hsi">📈</span><b>টিমের অগ্রগতি (শেষ ৮ সপ্তাহ)</b></div>' + tgChart(rows, trN)); tgChartWire(h, rows, trN); } }); return; }
   const cfg = tgCfg(D.cfg[uid]), work = cfg.workdays.includes(tgDow(date));
   const ws = tgWk(date), we = dateAdd(ws, 6), ms = tgMonS(date), me2 = tgMonE(date);
     const pace = date === today && work ? tgPaceNow(cfg.pace) : null;
@@ -70,6 +70,7 @@ async function viewTargets(uid, date) {
     + (canEdit ? '<div class="mut" style="font-size:12px;margin-top:8px">সারাদিনে যতবার খুশি আপডেট দিন — সংখ্যা নিজে থেকেই সেভ হয়। <span id="tgst"></span></div>' : '')
     + cards
     + '<label style="margin-top:14px">আজকের নোট (কী করেছেন / কেন কম হলো)</label><textarea class="in" id="tgnote" maxlength="1000" ' + (canEdit ? '' : 'disabled') + ' placeholder="যেমন: বিদ্যুৎ ছিল না ২ ঘণ্টা">' + esc(note) + '</textarea>';
+  const tr8 = tgTrendRange(null); tgTrend(tr8).then(rows => { const host = document.getElementById('tgb'); if (!host || host.querySelector('.tgc')) return; host.insertAdjacentHTML('beforeend', '<div class="hsec" style="margin-top:16px"><span class="hsi">📈</span><b>টিমের অগ্রগতি (শেষ ৮ সপ্তাহ)</b></div>' + tgChart(rows, tr8)); tgChartWire(host, rows, tr8); });
   document.getElementById('tgprev').onclick = () => viewTargets(uid, dateAdd(date, -1));
   document.getElementById('tgnext').onclick = () => { if (date < today) viewTargets(uid, dateAdd(date, 1)); };
   if (!canEdit) return;
@@ -129,8 +130,65 @@ async function tgSetup(uid, after) {
   });
 }
 
+
+/* ---- trend chart: % of target per week (or month) per member ---- */
+const TG_COL = ['#2a78d6', '#eb6834', '#1baf7a', '#eda100', '#e87ba4', '#6250d6'];
+function tgTrendRange(r) {
+  const t = todayDhaka(), w8 = dateAdd(tgWk(t), -49);
+  const from = r && r.from < w8 ? r.from : w8, to = r ? r.to : t;
+  return { from, to, bucket: (Date.parse(to) - Date.parse(from)) / 86400000 > 200 ? 'month' : 'week' };
+}
+async function tgTrend(tr) {
+  const { data, error } = await sb.rpc('yg_target_trend', { p_from: tr.from, p_to: tr.to, p_bucket: tr.bucket });
+  return error ? null : (data || []);
+}
+function tgChart(rows, tr) {
+  if (!rows || !rows.length) return '<div class="card tgc" style="margin-top:10px"><b>📈 টার্গেট অর্জনের ট্রেন্ড</b><p class="mut" style="font-size:12.5px;margin:6px 0 0">এখনো কোনো আপডেট নেই — প্রতিদিন আপডেট জমা হলে এখানে সপ্তাহভিত্তিক গ্রাফ দেখাবে।</p></div>';
+  const us = [...new Map(rows.map(r => [r.user_id, r.full_name])).entries()].sort((a, b) => a[1].localeCompare(b[1])).slice(0, TG_COL.length);
+  const bk = [...new Set(rows.map(r => r.bucket))].sort();
+  const W = 340, H = 190, L = 34, Rr = 12, T = 12, B = 26, pw = W - L - Rr, ph = H - T - B;
+  const ymax = Math.max(120, Math.ceil(Math.max(...rows.map(r => r.pct)) / 20) * 20);
+  const X = i => L + (bk.length === 1 ? pw / 2 : i * pw / (bk.length - 1)), Y = v => T + ph - v / ymax * ph;
+  const lab = d => tr.bucket === 'month' ? new Date(d + 'T00:00:00').toLocaleDateString('bn-BD', { month: 'short' }) : new Date(d + 'T00:00:00').toLocaleDateString('bn-BD', { day: 'numeric', month: 'short' });
+  const step = Math.ceil(bk.length / 6);
+  let g = '';
+  [0, 50, 100].filter(v => v <= ymax).forEach(v => { g += '<line x1="' + L + '" x2="' + (W - Rr) + '" y1="' + Y(v) + '" y2="' + Y(v) + '" stroke="' + (v === 100 ? '#9aa4b2' : '#e8edf3') + '" stroke-width="1"' + (v === 100 ? ' stroke-dasharray="4 3"' : '') + '/><text x="' + (L - 6) + '" y="' + (Y(v) + 4) + '" text-anchor="end" font-size="10" fill="#6b7280">' + v + '%</text>'; });
+  bk.forEach((d, i) => { if (i % step === 0 || i === bk.length - 1) g += '<text x="' + X(i) + '" y="' + (H - 8) + '" text-anchor="middle" font-size="10" fill="#6b7280">' + lab(d) + '</text>'; });
+  us.forEach(([u], k) => {
+    const c = TG_COL[k], pts = bk.map((d, i) => { const r = rows.find(x => x.user_id === u && x.bucket === d); return r ? { x: X(i), y: Y(r.pct), p: r.partial } : null; });
+    const segs = []; let cur = []; pts.forEach(p => { if (p) cur.push(p); else if (cur.length) { segs.push(cur); cur = []; } }); if (cur.length) segs.push(cur);
+    segs.forEach(sg => { if (sg.length > 1) g += '<polyline fill="none" stroke="' + c + '" stroke-width="2" stroke-linejoin="round" stroke-linecap="round" points="' + sg.map(p => p.x.toFixed(1) + ',' + p.y.toFixed(1)).join(' ') + '"/>'; });
+    pts.forEach(p => { if (p) g += '<circle cx="' + p.x.toFixed(1) + '" cy="' + p.y.toFixed(1) + '" r="4" fill="' + (p.p ? '#fff' : c) + '" stroke="' + (p.p ? c : '#fff') + '" stroke-width="2"/>'; });
+  });
+  const svg = '<svg viewBox="0 0 ' + W + ' ' + H + '" width="100%" role="img" aria-label="টার্গেট অর্জনের ট্রেন্ড" style="display:block;touch-action:pan-y"><g>' + g + '</g><line class="tgx" x1="0" x2="0" y1="' + T + '" y2="' + (T + ph) + '" stroke="#9aa4b2" stroke-width="1" visibility="hidden"/></svg>';
+  const leg = us.map(([u, n], k) => {
+    const mine = rows.filter(r => r.user_id === u).sort((a, b) => a.bucket < b.bucket ? -1 : 1), last = mine[mine.length - 1], prev = mine[mine.length - 2];
+    const dlt = last && prev ? last.pct - prev.pct : null;
+    const tag = dlt == null ? '' : dlt > 2 ? ' <span style="color:#16a34a;font-weight:600">▲ ' + tgN(dlt) + ' পয়েন্ট উন্নতি</span>' : dlt < -2 ? ' <span style="color:#dc2626;font-weight:600">▼ ' + tgN(-dlt) + ' পয়েন্ট অবনতি</span>' : ' <span class="mut">● আগের মতোই</span>';
+    return '<div style="display:flex;align-items:center;gap:6px;font-size:12.5px;margin-top:4px"><span style="width:10px;height:10px;border-radius:50%;background:' + TG_COL[k] + ';flex:none"></span><span>' + esc(n) + ' — <b>' + (last ? last.pct + '%' : '—') + '</b>' + tag + '</span></div>';
+  }).join('');
+  const unit = tr.bucket === 'month' ? 'মাস' : 'সপ্তাহ';
+  return '<div class="card tgc" style="margin-top:10px"><b>📈 টার্গেট অর্জনের ট্রেন্ড (' + unit + ' অনুযায়ী)</b><div class="mut" style="font-size:12px;margin:2px 0 6px">প্রতিটা বিন্দু = সেই ' + unit + 'ে দৈনিক টার্গেটের গড়ে কত % পূরণ হয়েছে। ড্যাশ লাইন = ১০০% লক্ষ্য। ফাঁপা বিন্দু = চলতি ' + unit + ' (এখন পর্যন্ত)।</div><div class="tgcw" style="position:relative">' + svg + '<div class="tgtip" style="position:absolute;top:0;pointer-events:none;background:#0B3B5A;color:#fff;font-size:11.5px;padding:6px 8px;border-radius:8px;display:none;white-space:nowrap;line-height:1.5"></div></div>' + leg + '<div class="mut" style="font-size:11.5px;margin-top:6px">উন্নতি/অবনতি = শেষ ' + unit + ' বনাম তার আগের ' + unit + '।</div></div>';
+}
+function tgChartWire(root, rows, tr) {
+  const w = root.querySelector('.tgcw'); if (!w || !rows || !rows.length) return;
+  const svg = w.querySelector('svg'), tip = w.querySelector('.tgtip'), ln = svg.querySelector('.tgx');
+  const us = [...new Map(rows.map(r => [r.user_id, r.full_name])).entries()].sort((a, b) => a[1].localeCompare(b[1])).slice(0, TG_COL.length);
+  const bk = [...new Set(rows.map(r => r.bucket))].sort(), L = 34, pw = 340 - 34 - 12;
+  const move = e => {
+    const bx = svg.getBoundingClientRect(), vx = (e.clientX - bx.left) / bx.width * 340;
+    const i = bk.length === 1 ? 0 : Math.max(0, Math.min(bk.length - 1, Math.round((vx - L) / (pw / (bk.length - 1)))));
+    const x = bk.length === 1 ? L + pw / 2 : L + i * pw / (bk.length - 1), d = bk[i];
+    ln.setAttribute('x1', x); ln.setAttribute('x2', x); ln.setAttribute('visibility', 'visible');
+    tip.innerHTML = '<b>' + (tr.bucket === 'month' ? new Date(d + 'T00:00:00').toLocaleDateString('bn-BD', { month: 'long', year: 'numeric' }) : 'সপ্তাহ শুরু ' + tgDate(d)) + '</b>' + us.map(([u, n], k) => { const r = rows.find(z => z.user_id === u && z.bucket === d); return '<br><span style="color:' + TG_COL[k] + '">●</span> ' + esc(n) + ': ' + (r ? r.pct + '%' + (r.partial ? ' (চলতি)' : '') : '—'); }).join('');
+    tip.style.display = 'block'; const px = x / 340 * bx.width; tip.style.left = Math.max(0, Math.min(bx.width - tip.offsetWidth, px - tip.offsetWidth / 2)) + 'px'; tip.style.top = '-6px'; tip.style.transform = 'translateY(-100%)';
+  };
+  svg.addEventListener('pointermove', move); svg.addEventListener('pointerdown', move);
+  svg.addEventListener('pointerleave', () => { tip.style.display = 'none'; ln.setAttribute('visibility', 'hidden'); });
+}
+
 /* team view: everyone's progress + PDF */
-const TGP = [['d0', 'আজ'], ['w0', 'এই সপ্তাহ'], ['w1', 'গত সপ্তাহ'], ['m0', 'এই মাস'], ['m1', 'গত মাস']];
+const TGP = [['d0', 'আজ'], ['w0', 'এই সপ্তাহ'], ['w1', 'গত সপ্তাহ'], ['m0', 'এই মাস'], ['m1', 'গত মাস'], ['d90', 'শেষ ৯০ দিন'], ['h6', 'শেষ ৬ মাস'], ['y1', 'শেষ ১২ মাস'], ['y0', 'এই বছর']];
 let tgPeriod = 'w0';
 function tgRange(k) {
   const t = todayDhaka();
@@ -138,6 +196,10 @@ function tgRange(k) {
   if (k === 'w0') return { from: tgWk(t), to: t, end: dateAdd(tgWk(t), 6) };
   if (k === 'w1') { const s = dateAdd(tgWk(t), -7); return { from: s, to: dateAdd(s, 6), end: dateAdd(s, 6) }; }
   if (k === 'm1') { const e = dateAdd(tgMonS(t), -1); return { from: tgMonS(e), to: e, end: e }; }
+  if (k === 'd90') return { from: dateAdd(t, -89), to: t, end: t };
+  if (k === 'h6') return { from: dateAdd(t, -182), to: t, end: t };
+  if (k === 'y1') return { from: dateAdd(t, -364), to: t, end: t };
+  if (k === 'y0') return { from: t.slice(0, 4) + '-01-01', to: t, end: t };
   return { from: tgMonS(t), to: t, end: tgMonE(t) };
 }
 async function viewTargetsTeam() {
@@ -163,18 +225,20 @@ async function viewTargetsTeam() {
     return { u, p: ui.people[u], items, pe, upd, sofar, notes, lastU };
   }).sort((a, b) => b.pe - a.pe);
   const lbl = (TGP.find(x => x[0] === tgPeriod) || [])[1] || '';
-  box.innerHTML = (rep.length ? '<div class="mut" style="font-size:12.5px">' + tgDate(r.from) + (r.from !== r.to ? ' – ' + tgDate(r.to) : '') + ' · রঙ বোঝায় এ পর্যন্ত যতটুকু হওয়া উচিত ছিল তার তুলনায় কতটুকু হয়েছে</div><div class="two" style="margin-top:10px"><button class="btn" id="tgsh" style="margin-top:0">📤 WhatsApp-এ শেয়ার</button><button class="btn ghost" id="tgdl" style="margin-top:0">⬇️ PDF</button></div>' : '')
+  const tr = tgTrendRange(r), trows = await tgTrend(tr), chart = tgChart(trows, tr);
+  box.innerHTML = chart + (rep.length ? '<div class="mut" style="font-size:12.5px">' + tgDate(r.from) + (r.from !== r.to ? ' – ' + tgDate(r.to) : '') + ' · রঙ বোঝায় এ পর্যন্ত যতটুকু হওয়া উচিত ছিল তার তুলনায় কতটুকু হয়েছে</div><div class="two" style="margin-top:10px"><button class="btn" id="tgsh" style="margin-top:0">📤 WhatsApp-এ শেয়ার</button><button class="btn ghost" id="tgdl" style="margin-top:0">⬇️ PDF</button></div>' : '')
     + rep.map(x => '<div class="card" style="margin-top:12px"><div class="row">' + avatar(x.p.full_name, x.u, 40) + '<div class="rt"><b>' + tgDot(x.pe) + ' ' + esc(x.p.full_name) + '</b><span>লক্ষ্যের ' + x.pe + '% · আপডেট দিয়েছেন ' + tgN(x.upd) + '/' + tgN(x.sofar) + ' দিন' + (x.lastU ? '<br>শেষ আপডেট: ' + new Date(x.lastU).toLocaleString('bn-BD', { weekday: 'short', hour: 'numeric', minute: '2-digit' }) : '<br>এই সময়ে কোনো আপডেট নেই') + '</span></div></div>'
       + x.items.map(i => '<div style="margin-top:8px;font-size:13px"><div style="display:flex;justify-content:space-between;gap:8px"><span>' + (i.t.star ? '★ ' : '') + esc(i.t.label) + '</span><b>' + tgN(i.done) + ' / ' + tgN(i.tgt) + ' ' + esc(i.t.unit) + '</b></div>' + tgBar(i.p, tgCol(i.pe)) + '</div>').join('')
       + (x.notes.length ? '<div class="mut" style="font-size:12px;margin-top:8px">📝 ' + esc(x.notes[0].note) + ' (' + tgDate(x.notes[0].log_date) + ')</div>' : '')
       + '<div class="two" style="margin-top:8px"><button class="btn ghost" data-open="' + x.u + '" style="margin-top:0;padding:8px">বিস্তারিত</button>' + (isAdmin() ? '<button class="btn ghost" data-set="' + x.u + '" style="margin-top:0;padding:8px">⚙️ টার্গেট সেট</button>' : '') + '</div></div>').join('')
     + (isAdmin() ? '<button class="btn ghost" id="tgnew" style="margin-top:14px">+ অন্য কারো টার্গেট সেট করুন</button>' : (rep.length ? '' : '<div class="empty">এখনো কারো টার্গেট সেট করা হয়নি</div>'));
+  tgChartWire(box, trows, tr);
   box.querySelectorAll('[data-open]').forEach(b => b.onclick = () => viewTargets(b.dataset.open));
   box.querySelectorAll('[data-set]').forEach(b => b.onclick = () => tgSetup(b.dataset.set, viewTargetsTeam));
   if (isAdmin()) document.getElementById('tgnew').onclick = () => { const ps = Object.values(ui.people).sort((a, b) => a.full_name.localeCompare(b.full_name)); sheet('<h3>কার টার্গেট সেট করবেন?</h3><select class="in" id="tgwho">' + ps.map(p => '<option value="' + p.id + '">' + esc(p.full_name) + '</option>').join('') + '</select><button class="btn" id="tgok">পরবর্তী</button>', (el, close) => { el.querySelector('#tgok').onclick = () => { const u = el.querySelector('#tgwho').value; close(); tgSetup(u, viewTargetsTeam); }; }); };
   if (!rep.length) return;
   const dt = tgDate(r.from) + (r.from !== r.to ? ' – ' + tgDate(r.to) : '');
-  const html = '<div class="trep pdf"><div class="trh"><img src="mark.jpg" alt=""><div><b>Yaqeen Group</b><span>Target Report · টার্গেট রিপোর্ট (' + lbl + ')</span></div><div class="trd">' + dt + '</div></div>'
+  const html = '<div class="trep pdf"><div class="trh"><img src="mark.jpg" alt=""><div><b>Yaqeen Group</b><span>Target Report · টার্গেট রিপোর্ট (' + lbl + ')</span></div><div class="trd">' + dt + '</div></div>' + chart.replace(/<div class="tgtip"[^>]*><\/div>/, '')
     + rep.map(x => '<div style="margin-top:14px"><b style="font-size:15px;color:#0B3B5A">' + esc(x.p.full_name) + '</b> <span style="color:#45545f">— লক্ষ্যের ' + x.pe + '% · আপডেট ' + x.upd + '/' + x.sofar + ' দিন</span></div><table class="trt"><thead><tr><th>কাজ</th><th>দৈনিক</th><th>টার্গেট</th><th>অর্জন</th><th>%</th></tr></thead><tbody>'
       + x.items.map(i => '<tr><td>' + (i.t.star ? '★ ' : '') + esc(i.t.label) + '</td><td class="n">' + tgN(i.t.daily) + ' ' + esc(i.t.unit) + '</td><td class="n">' + tgN(i.tgt) + '</td><td class="n">' + tgN(i.done) + '</td><td class="n">' + i.p + '%</td></tr>').join('') + '</tbody></table>'
       + (x.notes.length ? '<div style="font-size:11.5px;color:#45545f;margin-top:4px">' + x.notes.slice(0, 5).map(n => '📝 ' + tgDate(n.log_date) + ': ' + esc(n.note)).join('<br>') + '</div>' : '')).join('')
@@ -184,6 +248,19 @@ async function viewTargetsTeam() {
   document.getElementById('tgdl').onclick = () => exportHtmlPdf(html, fn, '', false);
 }
 window.viewTargets = viewTargets; window.viewTargetsTeam = viewTargetsTeam;
+
+/* performance page: add the target trend on top */
+const TGPP = { d0: 0, w0: 0, w1: 0, m0: 0, m1: 0, d30: 29, d90: 89, h6: 182, y1: 364 };
+let tgPpBusy = false;
+new MutationObserver(() => {
+  const box = document.getElementById('ptb');
+  if (!box || tgPpBusy || box.querySelector('.tgc') || box.querySelector('.spin')) return;
+  tgPpBusy = true;
+  const on = document.querySelector('[data-pp].on'), k = on && on.dataset.pp, t = todayDhaka();
+  const r = k === 'y0' ? { from: t.slice(0, 4) + '-01-01', to: t } : TGPP[k] ? { from: dateAdd(t, -TGPP[k]), to: t } : null;
+  const tr = tgTrendRange(r);
+  tgTrend(tr).then(rows => { const b2 = document.getElementById('ptb'); if (b2 && !b2.querySelector('.tgc')) { b2.insertAdjacentHTML('afterbegin', tgChart(rows, tr)); tgChartWire(b2, rows, tr); } tgPpBusy = false; }, () => { tgPpBusy = false; });
+}).observe(document.body, { childList: true, subtree: true });
 
 /* hooks: home card, menu tile, admin tile */
 const _vhTg = viewHome;
