@@ -139,11 +139,11 @@ function tgTrendRange(r) {
   return { from, to, bucket: (Date.parse(to) - Date.parse(from)) / 86400000 > 200 ? 'month' : 'week' };
 }
 async function tgTrend(tr) {
-  const { data, error } = await sb.rpc('yg_target_trend', { p_from: tr.from, p_to: tr.to, p_bucket: tr.bucket });
-  return error ? null : (data || []);
+  const { data, error } = await sb.rpc('yg_perf_trend', { p_from: tr.from, p_to: tr.to, p_bucket: tr.bucket });
+  return error ? null : (data || []).map(r => ({ ...r, pct: r.score }));
 }
 function tgChart(rows, tr) {
-  if (!rows || !rows.length) return '<div class="card tgc" style="margin-top:10px"><b>📈 টার্গেট অর্জনের ট্রেন্ড</b><p class="mut" style="font-size:12.5px;margin:6px 0 0">এখনো কোনো আপডেট নেই — প্রতিদিন আপডেট জমা হলে এখানে সপ্তাহভিত্তিক গ্রাফ দেখাবে।</p></div>';
+  if (!rows || !rows.length) return '<div class="card tgc" style="margin-top:10px"><b>📈 পারফরম্যান্স স্কোরের ট্রেন্ড</b><p class="mut" style="font-size:12.5px;margin:6px 0 0">এই সময়ে কোনো টাস্ক বা টার্গেটের হিসাব নেই।</p></div>';
   const us = [...new Map(rows.map(r => [r.user_id, r.full_name])).entries()].sort((a, b) => a[1].localeCompare(b[1])).slice(0, TG_COL.length);
   const bk = [...new Set(rows.map(r => r.bucket))].sort();
   const W = 340, H = 190, L = 34, Rr = 12, T = 12, B = 26, pw = W - L - Rr, ph = H - T - B;
@@ -160,7 +160,7 @@ function tgChart(rows, tr) {
     segs.forEach(sg => { if (sg.length > 1) g += '<polyline fill="none" stroke="' + c + '" stroke-width="2" stroke-linejoin="round" stroke-linecap="round" points="' + sg.map(p => p.x.toFixed(1) + ',' + p.y.toFixed(1)).join(' ') + '"/>'; });
     pts.forEach(p => { if (p) g += '<circle cx="' + p.x.toFixed(1) + '" cy="' + p.y.toFixed(1) + '" r="4" fill="' + (p.p ? '#fff' : c) + '" stroke="' + (p.p ? c : '#fff') + '" stroke-width="2"/>'; });
   });
-  const svg = '<svg viewBox="0 0 ' + W + ' ' + H + '" width="100%" role="img" aria-label="টার্গেট অর্জনের ট্রেন্ড" style="display:block;touch-action:pan-y"><g>' + g + '</g><line class="tgx" x1="0" x2="0" y1="' + T + '" y2="' + (T + ph) + '" stroke="#9aa4b2" stroke-width="1" visibility="hidden"/></svg>';
+  const svg = '<svg viewBox="0 0 ' + W + ' ' + H + '" width="100%" role="img" aria-label="পারফরম্যান্স স্কোরের ট্রেন্ড" style="display:block;touch-action:pan-y"><g>' + g + '</g><line class="tgx" x1="0" x2="0" y1="' + T + '" y2="' + (T + ph) + '" stroke="#9aa4b2" stroke-width="1" visibility="hidden"/></svg>';
   const leg = us.map(([u, n], k) => {
     const mine = rows.filter(r => r.user_id === u).sort((a, b) => a.bucket < b.bucket ? -1 : 1), last = mine[mine.length - 1], prev = mine[mine.length - 2];
     const dlt = last && prev ? last.pct - prev.pct : null;
@@ -168,7 +168,7 @@ function tgChart(rows, tr) {
     return '<div style="display:flex;align-items:center;gap:6px;font-size:12.5px;margin-top:4px"><span style="width:10px;height:10px;border-radius:50%;background:' + TG_COL[k] + ';flex:none"></span><span>' + esc(n) + ' — <b>' + (last ? last.pct + '%' : '—') + '</b>' + tag + '</span></div>';
   }).join('');
   const unit = tr.bucket === 'month' ? 'মাস' : 'সপ্তাহ';
-  return '<div class="card tgc" style="margin-top:10px"><b>📈 টার্গেট অর্জনের ট্রেন্ড (' + unit + ' অনুযায়ী)</b><div class="mut" style="font-size:12px;margin:2px 0 6px">প্রতিটা বিন্দু = সেই ' + unit + 'ে দৈনিক টার্গেটের গড়ে কত % পূরণ হয়েছে। ড্যাশ লাইন = ১০০% লক্ষ্য। ফাঁপা বিন্দু = চলতি ' + unit + ' (এখন পর্যন্ত)।</div><div class="tgcw" style="position:relative">' + svg + '<div class="tgtip" style="position:absolute;top:0;pointer-events:none;background:#0B3B5A;color:#fff;font-size:11.5px;padding:6px 8px;border-radius:8px;display:none;white-space:nowrap;line-height:1.5"></div></div>' + leg + '<div class="mut" style="font-size:11.5px;margin-top:6px">উন্নতি/অবনতি = শেষ ' + unit + ' বনাম তার আগের ' + unit + '।</div></div>';
+  return '<div class="card tgc" style="margin-top:10px"><b>📈 পারফরম্যান্স স্কোরের ট্রেন্ড (' + unit + ' অনুযায়ী)</b><div class="mut" style="font-size:12px;margin:2px 0 6px">স্কোর = সময়মতো টাস্ক শেষের % (দেরিতে শেষ = অর্ধেক), আর যাদের দৈনিক টার্গেট আছে তাদের টার্গেট পূরণের % — দুটোর গড়। ড্যাশ লাইন = ১০০%। ফাঁপা বিন্দু = চলতি ' + unit + ' (এখন পর্যন্ত)।</div><div class="tgcw" style="position:relative">' + svg + '<div class="tgtip" style="position:absolute;top:0;pointer-events:none;background:#0B3B5A;color:#fff;font-size:11.5px;padding:6px 8px;border-radius:8px;display:none;width:max-content;max-width:250px;line-height:1.5"></div></div>' + leg + '<div class="mut" style="font-size:11.5px;margin-top:6px">উন্নতি/অবনতি = শেষ ' + unit + ' বনাম তার আগের ' + unit + '।</div></div>';
 }
 function tgChartWire(root, rows, tr) {
   const w = root.querySelector('.tgcw'); if (!w || !rows || !rows.length) return;
@@ -180,7 +180,7 @@ function tgChartWire(root, rows, tr) {
     const i = bk.length === 1 ? 0 : Math.max(0, Math.min(bk.length - 1, Math.round((vx - L) / (pw / (bk.length - 1)))));
     const x = bk.length === 1 ? L + pw / 2 : L + i * pw / (bk.length - 1), d = bk[i];
     ln.setAttribute('x1', x); ln.setAttribute('x2', x); ln.setAttribute('visibility', 'visible');
-    tip.innerHTML = '<b>' + (tr.bucket === 'month' ? new Date(d + 'T00:00:00').toLocaleDateString('bn-BD', { month: 'long', year: 'numeric' }) : 'সপ্তাহ শুরু ' + tgDate(d)) + '</b>' + us.map(([u, n], k) => { const r = rows.find(z => z.user_id === u && z.bucket === d); return '<br><span style="color:' + TG_COL[k] + '">●</span> ' + esc(n) + ': ' + (r ? r.pct + '%' + (r.partial ? ' (চলতি)' : '') : '—'); }).join('');
+    tip.innerHTML = '<b>' + (tr.bucket === 'month' ? new Date(d + 'T00:00:00').toLocaleDateString('bn-BD', { month: 'long', year: 'numeric' }) : 'সপ্তাহ শুরু ' + tgDate(d)) + '</b>' + us.map(([u, n], k) => { const r = rows.find(z => z.user_id === u && z.bucket === d); return '<br><span style="color:' + TG_COL[k] + '">●</span> ' + esc(n) + ': ' + (r ? '<b>' + r.pct + '%</b>' + (r.task_pct != null ? ' · টাস্ক ' + r.task_pct + '% (' + r.tasks_n + 'টা)' : '') + (r.target_pct != null ? ' · টার্গেট ' + r.target_pct + '%' : '') + (r.partial ? ' (চলতি)' : '') : '—'); }).join('');
     tip.style.display = 'block'; const px = x / 340 * bx.width; tip.style.left = Math.max(0, Math.min(bx.width - tip.offsetWidth, px - tip.offsetWidth / 2)) + 'px'; tip.style.top = '-6px'; tip.style.transform = 'translateY(-100%)';
   };
   svg.addEventListener('pointermove', move); svg.addEventListener('pointerdown', move);
