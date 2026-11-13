@@ -12,10 +12,12 @@ const tgDot = p => p >= 90 ? '🟢' : p >= 70 ? '🟡' : '🔴';
 const tgDate = d => new Date(d + 'T00:00:00').toLocaleDateString('bn-BD', { weekday: 'short', day: 'numeric', month: 'short' });
 const tgT12 = s => { const [h, m] = s.split(':').map(Number); return ((h % 12) || 12) + ':' + String(m).padStart(2, '0') + (h < 12 ? ' AM' : ' PM'); };
 const tgCfg = c => ({ workdays: (c && c.workdays) || [0, 1, 2, 3, 4, 6], pace: (c && c.pace) || null });
+const tgStart = t => new Date(Date.parse(t.created_at) + 6 * 3600000).toISOString().slice(0, 10);
+const tgMax = (a, b) => a > b ? a : b;
 const tgBar = (p, c) => '<div style="height:7px;background:#e8edf3;border-radius:6px;overflow:hidden;margin-top:6px"><div style="height:100%;width:' + Math.min(100, Math.max(0, p)) + '%;background:' + (c || tgCol(p)) + '"></div></div>';
 
 async function tgLoad(uids, from, to) {
-  let q1 = sb.from('yg_targets').select('*').eq('active', true).order('sort'), q2 = sb.from('yg_target_cfg').select('*'), q3 = sb.from('yg_target_logs').select('user_id,target_id,log_date,value').gte('log_date', from).lte('log_date', to), q4 = sb.from('yg_target_notes').select('user_id,log_date,note').gte('log_date', from).lte('log_date', to);
+  let q1 = sb.from('yg_targets').select('*').eq('active', true).order('sort'), q2 = sb.from('yg_target_cfg').select('*'), q3 = sb.from('yg_target_logs').select('user_id,target_id,log_date,value,updated_at').gte('log_date', from).lte('log_date', to), q4 = sb.from('yg_target_notes').select('user_id,log_date,note').gte('log_date', from).lte('log_date', to);
   if (uids) { q1 = q1.in('user_id', uids); q2 = q2.in('user_id', uids); q3 = q3.in('user_id', uids); q4 = q4.in('user_id', uids); }
   const [t, c, l, n] = await Promise.all([q1, q2, q3, q4]);
   const cfg = {}; (c.data || []).forEach(x => cfg[x.user_id] = x);
@@ -37,32 +39,31 @@ async function viewTargets(uid, date) {
   cleanupChannels();
   uid = uid || state.profile.id; date = date || todayDhaka();
   const me = uid === state.profile.id, today = todayDhaka();
-  const canEdit = (me && date >= dateAdd(today, -1)) || isMgr();
+  const canEdit = (me && date >= dateAdd(today, -1)) || isAdmin();
   await loadPeople();
   const pn = (ui.people[uid] && ui.people[uid].full_name) || '';
-  $app.innerHTML = '<div class="shell"><div class="view"><div class="top"><button class="back" id="bk">←</button><h1 style="font-size:17px">🎯 ' + (me ? 'আমার টার্গেট' : esc(pn)) + '</h1>' + (isMgr() ? '<div class="act"><button id="tgset" title="টার্গেট সেট করুন">⚙️</button></div>' : '') + '</div><div class="pad" id="tgb" style="padding-top:8px"><div class="cen"><div class="spin dark"></div></div></div></div>' + (me ? tabbar() : '') + '</div>';
+  $app.innerHTML = '<div class="shell"><div class="view"><div class="top"><button class="back" id="bk">←</button><h1 style="font-size:17px">🎯 ' + (me ? 'আমার টার্গেট' : esc(pn)) + '</h1>' + (isAdmin() ? '<div class="act"><button id="tgset" title="টার্গেট সেট করুন">⚙️</button></div>' : '') + '</div><div class="pad" id="tgb" style="padding-top:8px"><div class="cen"><div class="spin dark"></div></div></div></div>' + (me ? tabbar() : '') + '</div>';
   document.querySelectorAll('.tb').forEach(b => b.onclick = () => go(b.dataset.t));
   document.getElementById('bk').onclick = () => me ? go('home') : viewTargetsTeam();
-  if (isMgr()) document.getElementById('tgset').onclick = () => tgSetup(uid, () => viewTargets(uid, date));
+  if (isAdmin()) document.getElementById('tgset').onclick = () => tgSetup(uid, () => viewTargets(uid, date));
   const from = tgWk(date) < tgMonS(date) ? tgWk(date) : tgMonS(date);
   const D = await tgLoad([uid], from, date);
   const el = document.getElementById('tgb'); if (!el) return;
   if (D.error) { el.innerHTML = '<div class="msg err">' + esc(friendlyError(D.error)) + '</div>'; return; }
-  if (!D.targets.length) { el.innerHTML = '<div class="card na-card"><div class="bigic" style="background:#EEF6FF">🎯</div><h3>এখনো কোনো টার্গেট সেট করা হয়নি</h3><p class="mut">' + (isMgr() ? 'উপরের ⚙️ থেকে টার্গেট সেট করুন।' : 'অ্যাডমিন টার্গেট সেট করলে এখানে দেখাবে।') + '</p></div>'; return; }
+  if (!D.targets.length) { el.innerHTML = '<div class="card na-card"><div class="bigic" style="background:#EEF6FF">🎯</div><h3>এখনো কোনো টার্গেট সেট করা হয়নি</h3><p class="mut">' + (isAdmin() ? 'উপরের ⚙️ থেকে টার্গেট সেট করুন।' : 'অ্যাডমিন টার্গেট সেট করলে এখানে দেখাবে।') + '</p></div>'; return; }
   const cfg = tgCfg(D.cfg[uid]), work = cfg.workdays.includes(tgDow(date));
   const ws = tgWk(date), we = dateAdd(ws, 6), ms = tgMonS(date), me2 = tgMonE(date);
-  const remD = tgWD(date, me2, cfg.workdays);
-  const pace = date === today && work ? tgPaceNow(cfg.pace) : null;
+    const pace = date === today && work ? tgPaceNow(cfg.pace) : null;
   const note = (D.notes.find(n => n.log_date === date) || {}).note || '';
   const cards = D.targets.map(t => {
     const v = tgSum(D.logs, t.id, date, date), wk = tgSum(D.logs, t.id, ws, date), mo = tgSum(D.logs, t.id, ms, date);
-    const wT = t.daily * tgWD(ws, we, cfg.workdays), mT = t.daily * tgWD(ms, me2, cfg.workdays);
-    const need = Math.max(0, mT - (mo - v)), perDay = remD ? Math.ceil(need / remD) : 0;
+    const s0 = tgStart(t), wT = t.daily * tgWD(tgMax(ws, s0), we, cfg.workdays), mT = t.daily * tgWD(tgMax(ms, s0), me2, cfg.workdays), rD = tgWD(tgMax(date, s0), me2, cfg.workdays);
+    const need = Math.max(0, mT - (mo - v)), perDay = rD ? Math.ceil(need / rD) : 0;
     const p = t.daily ? Math.round(v / t.daily * 100) : 0;
     const exp = pace ? Math.round(t.daily * pace.cur / 100) : null;
     return '<div class="card" style="margin-top:10px' + (t.star ? ';border:1.5px solid #f5c26b' : '') + '"><div style="display:flex;justify-content:space-between;align-items:center;gap:8px"><b>' + (t.star ? '★ ' : '') + esc(t.label) + '</b><span class="mut" style="font-size:12px">দৈনিক ' + tgN(t.daily) + ' ' + esc(t.unit) + '</span></div>'
       + '<div style="display:flex;align-items:center;gap:8px;margin-top:8px">' + (canEdit ? '<button class="btn ghost" data-m="' + t.id + '" style="margin:0;width:44px;padding:8px 0;font-size:18px">−</button>' : '') + '<input class="in" data-v="' + t.id + '" type="number" inputmode="numeric" min="0" value="' + (v || '') + '" placeholder="0" ' + (canEdit ? '' : 'disabled') + ' style="margin:0;text-align:center;font-size:18px;font-weight:700">' + (canEdit ? '<button class="btn" data-p="' + t.id + '" style="margin:0;width:44px;padding:8px 0;font-size:18px">+</button>' : '') + '</div>'
-      + tgBar(p) + '<div class="mut" style="font-size:12px;margin-top:6px;line-height:1.6">আজ <b data-pc="' + t.id + '">' + p + '%</b>' + (exp != null ? ' · এখন পর্যন্ত হওয়া উচিত ~' + tgN(exp) : '') + '<br>সপ্তাহ ' + tgN(wk) + '/' + tgN(wT) + ' · মাস ' + tgN(mo) + '/' + tgN(mT) + (remD && need > 0 ? ' · মাস পূরণে বাকি দিনে প্রতিদিন ' + tgN(perDay) : need <= 0 ? ' · ✅ মাসের টার্গেট পূরণ' : '') + '</div></div>';
+      + tgBar(p) + '<div class="mut" style="font-size:12px;margin-top:6px;line-height:1.6">আজ <b data-pc="' + t.id + '">' + p + '%</b>' + (exp != null ? ' · এখন পর্যন্ত হওয়া উচিত ~' + tgN(exp) : '') + '<br>সপ্তাহ ' + tgN(wk) + '/' + tgN(wT) + ' · মাস ' + tgN(mo) + '/' + tgN(mT) + (rD && need > 0 ? ' · মাস পূরণে বাকি দিনে প্রতিদিন ' + tgN(perDay) : need <= 0 ? ' · ✅ মাসের টার্গেট পূরণ' : '') + '</div></div>';
   }).join('');
   el.innerHTML = '<div style="display:flex;align-items:center;justify-content:space-between;gap:8px"><button class="btn ghost" id="tgprev" style="margin:0;width:auto;padding:8px 12px">‹</button><div style="text-align:center"><b>' + tgDate(date) + '</b><div class="mut" style="font-size:12px">' + (date === today ? 'আজ' : date === dateAdd(today, -1) ? 'গতকাল' : '') + (work ? '' : ' · ছুটির দিন') + '</div></div><button class="btn ghost" id="tgnext" style="margin:0;width:auto;padding:8px 12px" ' + (date >= today ? 'disabled' : '') + '>›</button></div>'
     + (pace ? '<div class="msg info" style="margin-top:10px;font-size:12.5px">⏱️ এখন পর্যন্ত দৈনিক টার্গেটের <b>' + pace.cur + '%</b> হওয়া উচিত' + (pace.next ? ' · ' + tgT12(pace.next.t) + '-এর মধ্যে ' + pace.next.p + '%' : '') + '</div>' : '')
@@ -143,7 +144,7 @@ async function viewTargetsTeam() {
   cleanupChannels();
   const r = tgRange(tgPeriod);
   $app.innerHTML = '<div class="top"><button class="back" id="bk">←</button><h1>🎯 টিমের টার্গেট</h1></div><div class="chips">' + TGP.map(([k, l]) => '<button class="chip ' + (k === tgPeriod ? 'on' : '') + '" data-tp="' + k + '">' + l + '</button>').join('') + '</div><div class="pad" id="ttb" style="padding-top:8px"><div class="cen"><div class="spin dark"></div></div></div>';
-  document.getElementById('bk').onclick = viewAdmin;
+  document.getElementById('bk').onclick = () => isAdmin() ? viewAdmin() : go('home');
   document.querySelectorAll('[data-tp]').forEach(b => b.onclick = () => { tgPeriod = b.dataset.tp; viewTargetsTeam(); });
   await loadPeople();
   const D = await tgLoad(null, r.from, r.to);
@@ -152,23 +153,25 @@ async function viewTargetsTeam() {
   const uids = [...new Set(D.targets.map(t => t.user_id))].filter(u => ui.people[u]);
   const rep = uids.map(u => {
     const cfg = tgCfg(D.cfg[u]);
-    const full = tgWD(r.from, r.end, cfg.workdays), sofar = tgWD(r.from, r.to, cfg.workdays);
-    const items = D.targets.filter(t => t.user_id === u).map(t => { const done = tgSum(D.logs, t.id, r.from, r.to), tgt = t.daily * full, exp = t.daily * sofar; return { t, done, tgt, exp, p: tgt ? Math.round(done / tgt * 100) : 0, pe: exp ? Math.round(done / exp * 100) : 100 }; });
+    const mine = D.targets.filter(t => t.user_id === u), st0 = mine.map(tgStart).sort()[0] || r.from;
+    const sofar = r.to < st0 ? 0 : tgWD(tgMax(r.from, st0), r.to, cfg.workdays);
+    const items = mine.map(t => { const s0 = tgMax(r.from, tgStart(t)), done = tgSum(D.logs, t.id, r.from, r.to), tgt = r.end < s0 ? 0 : t.daily * tgWD(s0, r.end, cfg.workdays), exp = r.to < s0 ? 0 : t.daily * tgWD(s0, r.to, cfg.workdays); return { t, done, tgt, exp, p: tgt ? Math.round(done / tgt * 100) : 0, pe: exp ? Math.round(done / exp * 100) : 100 }; });
     const pe = items.length ? Math.round(items.reduce((a, x) => a + Math.min(x.pe, 150), 0) / items.length) : 0;
     const upd = new Set(D.logs.filter(l => l.user_id === u).map(l => l.log_date)).size;
     const notes = D.notes.filter(n => n.user_id === u && n.note).sort((a, b) => a.log_date < b.log_date ? 1 : -1);
-    return { u, p: ui.people[u], items, pe, upd, sofar, notes };
+    const lastU = D.logs.filter(l => l.user_id === u && l.updated_at).map(l => l.updated_at).sort().pop();
+    return { u, p: ui.people[u], items, pe, upd, sofar, notes, lastU };
   }).sort((a, b) => b.pe - a.pe);
   const lbl = (TGP.find(x => x[0] === tgPeriod) || [])[1] || '';
   box.innerHTML = (rep.length ? '<div class="mut" style="font-size:12.5px">' + tgDate(r.from) + (r.from !== r.to ? ' – ' + tgDate(r.to) : '') + ' · রঙ বোঝায় এ পর্যন্ত যতটুকু হওয়া উচিত ছিল তার তুলনায় কতটুকু হয়েছে</div><div class="two" style="margin-top:10px"><button class="btn" id="tgsh" style="margin-top:0">📤 WhatsApp-এ শেয়ার</button><button class="btn ghost" id="tgdl" style="margin-top:0">⬇️ PDF</button></div>' : '')
-    + rep.map(x => '<div class="card" style="margin-top:12px"><div class="row">' + avatar(x.p.full_name, x.u, 40) + '<div class="rt"><b>' + tgDot(x.pe) + ' ' + esc(x.p.full_name) + '</b><span>লক্ষ্যের ' + x.pe + '% · আপডেট দিয়েছেন ' + tgN(x.upd) + '/' + tgN(x.sofar) + ' দিন</span></div></div>'
+    + rep.map(x => '<div class="card" style="margin-top:12px"><div class="row">' + avatar(x.p.full_name, x.u, 40) + '<div class="rt"><b>' + tgDot(x.pe) + ' ' + esc(x.p.full_name) + '</b><span>লক্ষ্যের ' + x.pe + '% · আপডেট দিয়েছেন ' + tgN(x.upd) + '/' + tgN(x.sofar) + ' দিন' + (x.lastU ? '<br>শেষ আপডেট: ' + new Date(x.lastU).toLocaleString('bn-BD', { weekday: 'short', hour: 'numeric', minute: '2-digit' }) : '<br>এই সময়ে কোনো আপডেট নেই') + '</span></div></div>'
       + x.items.map(i => '<div style="margin-top:8px;font-size:13px"><div style="display:flex;justify-content:space-between;gap:8px"><span>' + (i.t.star ? '★ ' : '') + esc(i.t.label) + '</span><b>' + tgN(i.done) + ' / ' + tgN(i.tgt) + ' ' + esc(i.t.unit) + '</b></div>' + tgBar(i.p, tgCol(i.pe)) + '</div>').join('')
       + (x.notes.length ? '<div class="mut" style="font-size:12px;margin-top:8px">📝 ' + esc(x.notes[0].note) + ' (' + tgDate(x.notes[0].log_date) + ')</div>' : '')
-      + '<div class="two" style="margin-top:8px"><button class="btn ghost" data-open="' + x.u + '" style="margin-top:0;padding:8px">বিস্তারিত</button><button class="btn ghost" data-set="' + x.u + '" style="margin-top:0;padding:8px">⚙️ টার্গেট সেট</button></div></div>').join('')
-    + '<button class="btn ghost" id="tgnew" style="margin-top:14px">+ অন্য কারো টার্গেট সেট করুন</button>';
+      + '<div class="two" style="margin-top:8px"><button class="btn ghost" data-open="' + x.u + '" style="margin-top:0;padding:8px">বিস্তারিত</button>' + (isAdmin() ? '<button class="btn ghost" data-set="' + x.u + '" style="margin-top:0;padding:8px">⚙️ টার্গেট সেট</button>' : '') + '</div></div>').join('')
+    + (isAdmin() ? '<button class="btn ghost" id="tgnew" style="margin-top:14px">+ অন্য কারো টার্গেট সেট করুন</button>' : (rep.length ? '' : '<div class="empty">এখনো কারো টার্গেট সেট করা হয়নি</div>'));
   box.querySelectorAll('[data-open]').forEach(b => b.onclick = () => viewTargets(b.dataset.open));
   box.querySelectorAll('[data-set]').forEach(b => b.onclick = () => tgSetup(b.dataset.set, viewTargetsTeam));
-  document.getElementById('tgnew').onclick = () => { const ps = Object.values(ui.people).sort((a, b) => a.full_name.localeCompare(b.full_name)); sheet('<h3>কার টার্গেট সেট করবেন?</h3><select class="in" id="tgwho">' + ps.map(p => '<option value="' + p.id + '">' + esc(p.full_name) + '</option>').join('') + '</select><button class="btn" id="tgok">পরবর্তী</button>', (el, close) => { el.querySelector('#tgok').onclick = () => { const u = el.querySelector('#tgwho').value; close(); tgSetup(u, viewTargetsTeam); }; }); };
+  if (isAdmin()) document.getElementById('tgnew').onclick = () => { const ps = Object.values(ui.people).sort((a, b) => a.full_name.localeCompare(b.full_name)); sheet('<h3>কার টার্গেট সেট করবেন?</h3><select class="in" id="tgwho">' + ps.map(p => '<option value="' + p.id + '">' + esc(p.full_name) + '</option>').join('') + '</select><button class="btn" id="tgok">পরবর্তী</button>', (el, close) => { el.querySelector('#tgok').onclick = () => { const u = el.querySelector('#tgwho').value; close(); tgSetup(u, viewTargetsTeam); }; }); };
   if (!rep.length) return;
   const dt = tgDate(r.from) + (r.from !== r.to ? ' – ' + tgDate(r.to) : '');
   const html = '<div class="trep pdf"><div class="trh"><img src="mark.jpg" alt=""><div><b>Yaqeen Group</b><span>Target Report · টার্গেট রিপোর্ট (' + lbl + ')</span></div><div class="trd">' + dt + '</div></div>'
@@ -204,7 +207,7 @@ const _vmTg = viewMenu;
 viewMenu = function () {
   const r = _vmTg();
   const t = document.querySelector('.tiles');
-  if (t && !document.getElementById('m-tg')) { t.insertAdjacentHTML('afterbegin', '<button class="tile" id="m-tg"><span class="ic">🎯</span><b>টার্গেট</b><small>আজকের আপডেট দিন</small></button>'); document.getElementById('m-tg').onclick = () => viewTargets(); }
+  if (t && !document.getElementById('m-tg')) { t.insertAdjacentHTML('afterbegin', '<button class="tile" id="m-tg"><span class="ic">🎯</span><b>টার্গেট</b><small>আজকের আপডেট দিন</small></button>' + (isMgr() ? '<button class="tile" id="m-tgt"><span class="ic">📊</span><b>টিমের টার্গেট</b><small>সবার আজকের অবস্থা</small></button>' : '')); document.getElementById('m-tg').onclick = () => viewTargets(); const tt = document.getElementById('m-tgt'); if (tt) tt.onclick = viewTargetsTeam; }
   return r;
 };
 const _vaTg = viewAdmin;
