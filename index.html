@@ -790,7 +790,7 @@ function lvLine(id) {
   const pct = nx ? Math.min(100, Math.round((L.points - LV[k][2]) / (LV[nx][2] - LV[k][2]) * 100)) : 100;
   return `<small class="lvln">${LV[k][0]} ${LV[k][1]} · ${L.points} পয়েন্ট · ${L.awards}টা অ্যাওয়ার্ড${nx ? ` · ${LV[nx][1]} হতে আর ${LV[nx][2] - L.points}` : ' · সর্বোচ্চ লেভেল!'}</small><div class="lvbar"><i style="width:${pct}%"></i></div>`;
 }
-const avatar = (name, id, size = 44) => { const inner = avatarInner(name, id, size); const L = ui.levels && ui.levels[id]; if (!L || !L.level || L.level === 'bronze') return inner; return `<span class="avl lv-${L.level}" title="${LV[L.level][1]}">${inner}<i class="avb" style="font-size:${Math.max(11, Math.round(size / 3))}px">${LV[L.level][0]}</i></span>`; };
+const avatar = (name, id, size = 44) => { const inner0 = avatarInner(name, id, size); const inner = (window.ygCrown && window.ygCrown.has(id)) ? `<span class="ygcr" style="--s:${size}px">${inner0}<i>👑</i></span>` : inner0; const L = ui.levels && ui.levels[id]; if (!L || !L.level || L.level === 'bronze') return inner; return `<span class="avl lv-${L.level}" title="${LV[L.level][1]}">${inner}<i class="avb" style="font-size:${Math.max(11, Math.round(size / 3))}px">${LV[L.level][0]}</i></span>`; };
 const avatarInner = (name, id, size = 44) => { const u = photoOf(id); return u ? `<img class="av" src="${esc(u)}" alt="" style="width:${size}px;height:${size}px;object-fit:cover">` : `<div class="av" style="width:${size}px;height:${size}px;background:${colorFor(id)};font-size:${Math.round(size / 3.2)}px">${esc(initials(name))}</div>`; };
 const personName = id => (ui.people[id] && ui.people[id].full_name) || 'Former member';
 const isOnline = p => p && p.last_seen && (Date.now() - new Date(p.last_seen).getTime() < 4 * 60 * 1000);
@@ -893,7 +893,8 @@ async function viewNotif() {
     const n = list.find(x => String(x.id) === b.dataset.id); if (!n) return;
     if (!n.read_at) { n.read_at = new Date().toISOString(); sb.from('yg_notifications').update({ read_at: n.read_at }).eq('id', n.id).then(() => {}); }
     const href = new URL(n.url || './', location.href).href;
-    if (/[?&](c|t|n|crm|call)=/.test(href)) handleDeepLink(href);
+    if (n.kind === 'award' && window.ygSpotlight) ygSpotlight(new URL(href).searchParams.get('aw'));
+    else if (/[?&](c|t|n|crm|call)=/.test(href)) handleDeepLink(href);
     else if (n.kind === 'notice') go('notices');
     else if (n.kind === 'remind') go('home');
     else { b.classList.remove('new'); const d = b.querySelector('.nf-dot'); if (d) d.remove(); }
@@ -3165,5 +3166,6 @@ window.viewPerfTeam = viewPerfTeam;
 </script>
 <script src="targets.js?v=6"></script>
 <script src="ux.js?v=2"></script>
+<script src="fame.js?v=1"></script>
 </body>
 </html>
