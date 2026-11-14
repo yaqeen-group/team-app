@@ -298,13 +298,13 @@ viewAdmin = async function () {
 };
 
 /* ---------- 🧾 discipline points (monthly 100) ---------- */
-const DC_KIND = { late_att: '⏰', late_streak: '🔁', late_task: '📋', task_overdue: '🚫', salah_missing: '🕌', salah_waqt: '🕌', salah_bonus: '🌟', manual: '✍️' };
+const DC_KIND = { late_att: '⏰', late_streak: '🔁', late_task: '📋', task_overdue: '🚫', salah_missing: '🕌', salah_waqt: '🕌', salah_bonus: '🌟', manual: '✍️', meet_late: '🎙️', meet_absent: '🎙️', report_missing: '📝' };
 const dcCol = b => b >= 80 ? '#16a34a' : b >= 60 ? '#d97706' : '#dc2626';
 const dcMon = d => d.slice(0, 8) + '01';
 const dcMonAdd = (m, n) => { const [y, mo] = m.split('-').map(Number); return new Date(Date.UTC(y, mo - 1 + n, 1)).toISOString().slice(0, 10); };
 const dcMonTxt = m => new Date(m + 'T00:00:00').toLocaleDateString('bn-BD', { month: 'long', year: 'numeric' });
 const dcBal = es => 100 + es.filter(e => !e.waived).reduce((a, e) => a + e.points, 0);
-const DC_RULES = '<details class="card" style="margin-top:12px"><summary style="cursor:pointer"><b>📜 নিয়মগুলো</b></summary><div class="mut" style="font-size:12.5px;line-height:1.7;margin-top:6px">• প্রতি মাসের ১ তারিখে সবাই ১০০ পয়েন্ট নিয়ে শুরু করেন।<br>• দেরিতে হাজিরা: প্রথম ৫ মিনিট ছাড়, এর বেশি হলে পুরো দেরির প্রতি মিনিট −১ (দিনে সর্বোচ্চ −৩০)। মাসে ৫ম বার থেকে প্রতিবার বাড়তি −১০। শুক্রবার ও ছুটিতে কাটে না।<br>• দেরিতে টাস্ক: ডেডলাইনের পর প্রতি ঘণ্টা −১ (একটা টাস্কে সর্বোচ্চ −১০)। ৭ দিন পরেও শেষ না হলে −১০।<br>• নামাজ: দিনের হিসাব না দিলে −৩, প্রতি বাকি ওয়াক্ত −১ (দিনে সর্বোচ্চ −৫)। ওজর দিলে কাটে না। পুরো সপ্তাহ পূরণে +৫।<br>• বিশেষ কারণে অ্যাডমিন কারণ লিখে মাফ করতে পারেন।</div></details>';
+const DC_RULES = '<details class="card" style="margin-top:12px"><summary style="cursor:pointer"><b>📜 নিয়মগুলো</b></summary><div class="mut" style="font-size:12.5px;line-height:1.7;margin-top:6px">• প্রতি মাসের ১ তারিখে সবাই ১০০ পয়েন্ট নিয়ে শুরু করেন।<br>• দেরিতে হাজিরা: প্রথম ৫ মিনিট ছাড়, এর বেশি হলে পুরো দেরির প্রতি মিনিট −১ (দিনে সর্বোচ্চ −৩০)। মাসে ৫ম বার থেকে প্রতিবার বাড়তি −১০। শুক্রবার ও ছুটিতে কাটে না।<br>• দেরিতে টাস্ক: ডেডলাইনের পর প্রতি ঘণ্টা −১ (একটা টাস্কে সর্বোচ্চ −১০)। ৭ দিন পরেও শেষ না হলে −১০।<br>• নামাজ: দিনের হিসাব না দিলে −৩, প্রতি বাকি ওয়াক্ত −১ (দিনে সর্বোচ্চ −৫)। ওজর দিলে কাটে না। পুরো সপ্তাহ পূরণে +৫।<br>• মিটিং: ৫ মিনিটের বেশি দেরিতে যোগ দিলে −২, অনুপস্থিত থাকলে −৫। মিটিং বাতিল হলে বা ছুটিতে থাকলে কাটে না।<br>• ডেইলি রিপোর্ট: কোনো কর্মদিবসে জমা না দিলে −৫ (পরদিন সকাল ৯টায় হিসাব হয়)। শুক্রবার ও ছুটিতে কাটে না।<br>• বিশেষ কারণে অ্যাডমিন কারণ লিখে মাফ করতে পারেন।</div></details>';
 
 async function viewDiscipline(uid, month) {
   cleanupChannels();
