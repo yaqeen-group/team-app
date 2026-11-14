@@ -90,6 +90,62 @@ async function mtMine(box) {
 }
 window.viewMeetings = viewMeetings;
 
+/* ---------- ⚠️ overdue tasks: explain why ---------- */
+const OD_PFX = '⚠️ দেরির কারণ / আপডেট: ';
+async function odLoad() {
+  const me = state.profile.id;
+  const { data: ts } = await sb.from('tasks').select('id,title,due_date,status,created_by').eq('assigned_to', me).not('status', 'in', '("completed","under_review")').lt('due_date', new Date().toISOString()).order('due_date');
+  const list = ts || [];
+  let said = {};
+  if (list.length) {
+    const s0 = new Date(todayDhaka() + 'T00:00:00+06:00').toISOString();
+    const { data: us } = await sb.from('task_updates').select('task_id,comment,created_at').eq('user_id', me).in('task_id', list.map(t => t.id)).like('comment', '⚠️ দেরির কারণ%').order('created_at');
+    (us || []).forEach(u => said[u.task_id] = { text: u.comment.replace(OD_PFX, ''), today: u.created_at >= s0, at: u.created_at });
+  }
+  return { list, said };
+}
+async function viewOverdue() {
+  cleanupChannels();
+  $app.innerHTML = '<div class="top"><button class="back" id="bk">←</button><h1>⚠️ ডেডলাইন পার হওয়া কাজ</h1></div><div class="pad" id="odb" style="padding-top:8px"><div class="cen"><div class="spin dark"></div></div></div>';
+  document.getElementById('bk').onclick = () => go('home');
+  await loadPeople();
+  const { list, said } = await odLoad();
+  const box = document.getElementById('odb'); if (!box) return;
+  if (!list.length) { box.innerHTML = '<div class="empty">🎉 আপনার কোনো কাজ ডেডলাইন পার হয়নি</div>'; return; }
+  const ago = d => { const h = Math.floor((Date.now() - Date.parse(d)) / 3600000); return h < 24 ? tgN(h) + ' ঘণ্টা' : tgN(Math.floor(h / 24)) + ' দিন'; };
+  box.innerHTML = '<div class="mut" style="font-size:12.5px">এই কাজগুলোর ডেডলাইন পার হয়ে গেছে। প্রতিটার জন্য কেন শেষ হয়নি বা এখন কী অবস্থা — লিখে পাঠান। যিনি কাজ দিয়েছেন আর অ্যাডমিন সাথে সাথে নোটিফিকেশন পাবেন। শেষ হয়ে গেলে টাস্ক খুলে "সম্পন্ন" করে দিন।</div>'
+    + list.map(t => { const sd = said[t.id]; return '<div class="card" style="margin-top:10px;border:' + (sd && sd.today ? '1.5px solid #16a34a' : '1.5px solid #fca5a5') + '"><b>' + esc(t.title) + '</b><div class="mut" style="font-size:12px;margin-top:2px">ডেডলাইন ছিল ' + tgDate(new Date(Date.parse(t.due_date) + 6 * 3600000).toISOString().slice(0, 10)) + ' · ' + ago(t.due_date) + ' পার' + (ui.people[t.created_by] ? ' · দিয়েছেন ' + esc(ui.people[t.created_by].full_name) : '') + '</div>'
+      + (sd ? '<div style="font-size:12.5px;margin-top:6px;background:#f6f8fb;border-radius:8px;padding:6px 8px">' + (sd.today ? '✅ আজ জানিয়েছেন: ' : '🕘 শেষ জানিয়েছিলেন (' + tgDate(new Date(Date.parse(sd.at) + 6 * 3600000).toISOString().slice(0, 10)) + '): ') + esc(sd.text) + '</div>' : '')
+      + '<textarea class="in" data-r="' + t.id + '" rows="2" placeholder="কেন শেষ হয়নি / এখন কী অবস্থা / কবে শেষ হবে" style="margin-top:8px"></textarea><div class="two" style="margin-top:6px"><button class="btn" data-send="' + t.id + '" style="margin-top:0;padding:9px">📨 পাঠান</button><button class="btn ghost" data-open="' + t.id + '" style="margin-top:0;padding:9px">টাস্ক খুলুন</button></div></div>'; }).join('');
+  box.querySelectorAll('[data-open]').forEach(b => b.onclick = () => viewTask(b.dataset.open));
+  box.querySelectorAll('[data-send]').forEach(b => b.onclick = async () => {
+    const id = b.dataset.send, v = (box.querySelector('[data-r="' + id + '"]').value || '').trim();
+    if (v.length < 3) return toast('কারণটা একটু লিখে দিন');
+    b.disabled = true;
+    const { error } = await sb.rpc('yg_overdue_reason', { p_task: id, p_reason: v });
+    if (error) { b.disabled = false; return toast(friendlyError(error)); }
+    toast('পাঠানো হয়েছে ✓'); viewOverdue();
+  });
+}
+window.viewOverdue = viewOverdue;
+const _hdlM = handleDeepLink;
+handleDeepLink = function (href) {
+  let u; try { u = new URL(href || location.href, location.href); } catch (e) { return _hdlM(href); }
+  if (u.searchParams.has('od')) { try { history.replaceState(null, '', location.pathname); } catch (e) {} return viewOverdue(); }
+  return _hdlM(href);
+};
+async function odHomeCard() {
+  try {
+    if (!state.profile || state.profile.observer || document.getElementById('hod')) return;
+    const { list, said } = await odLoad(); if (!list.length) return;
+    const left = list.filter(t => !(said[t.id] && said[t.id].today)).length;
+    const anchor = document.getElementById('hmt') || document.getElementById('hdc') || document.getElementById('htg') || (document.getElementById('hatt') && document.getElementById('hatt').closest('.hrow2')) || document.getElementById('scard') || document.querySelector('.qgrid');
+    if (!anchor || document.getElementById('hod')) return;
+    anchor.insertAdjacentHTML('beforebegin', '<button class="card" id="hod" style="display:block;width:100%;text-align:left;margin-bottom:10px;cursor:pointer;border:1.5px solid ' + (left ? '#dc2626' : '#16a34a') + '"><div style="display:flex;justify-content:space-between;align-items:center"><b>⚠️ ডেডলাইন পার হওয়া কাজ</b><b style="color:#dc2626">' + tgN(list.length) + 'টা</b></div><div class="mut" style="font-size:12px;margin-top:4px">' + (left ? tgN(left) + 'টার কারণ আজ এখনো জানাননি — চাপ দিয়ে জানান' : '✅ আজ সবগুলোর আপডেট দিয়েছেন') + '</div></button>');
+    document.getElementById('hod').onclick = viewOverdue;
+  } catch (e) {}
+}
+
 /* ---------- 📥 daily full report (admin only) ---------- */
 const dfT = ts => ts ? new Date(ts).toLocaleTimeString('en-GB', { timeZone: 'Asia/Dhaka', hour: '2-digit', minute: '2-digit', hour12: true }) : '—';
 const dfD = ts => ts ? new Date(ts).toLocaleDateString('en-GB', { timeZone: 'Asia/Dhaka', day: '2-digit', month: 'short' }) : '—';
@@ -113,6 +169,8 @@ async function dfBuild(day) {
     sb.from('yg_award_log').select('*').order('week_start', { ascending: false }).limit(3)]);
   const { data: CX0 } = await sb.from('yg_meeting_cancel').select('meeting,reason').eq('day', day); const CX = CX0 || [], cxd = k => CX.find(x => x.meeting === k);
   const T = tgLoad(null, day, day);
+  const { data: RS0 } = await sb.from('task_updates').select('task_id,comment,created_at').gte('created_at', s).lte('created_at', e).like('comment', '⚠️ দেরির কারণ%').order('created_at');
+  const rsn = {}; (RS0 || []).forEach(x => rsn[x.task_id] = x.comment.replace(/^⚠️ দেরির কারণ \/ আপডেট: /, ''));
   const tasks = (tk.data || []).filter(t => ids.includes(t.assigned_to));
   const done = tasks.filter(t => t.completed_at && t.completed_at >= s && t.completed_at <= e);
   const open = tasks.filter(t => t.status !== 'completed' || (t.completed_at && t.completed_at > e));
@@ -135,7 +193,7 @@ async function dfBuild(day) {
     if (!d1.length && !o1.length) return;
     h += '<div style="margin-top:10px;font-size:12px;line-height:1.6"><b style="font-size:13px">' + esc(p.full_name) + '</b><br>'
       + d1.map(t => '✅ ' + esc(t.title) + ' <span style="color:#666">(' + dfT(t.completed_at) + (t.due_date && t.completed_at > t.due_date ? ', ডেডলাইনের পরে' : '') + ')</span>').join('<br>') + (d1.length && o1.length ? '<br>' : '')
-      + o1.map(t => { const od = t.due_date && Date.parse(t.due_date) < ref; return (od ? '🔴 ' : '🕒 ') + esc(t.title) + ' <span style="color:' + (od ? '#DC2626' : '#666') + '">(' + (t.due_date ? 'ডেডলাইন ' + dfD(t.due_date) + ' ' + dfT(t.due_date) : 'ডেডলাইন নেই') + (od ? ' — ওভারডিউ' : '') + ')</span>'; }).join('<br>') + '</div>';
+      + o1.map(t => { const od = t.due_date && Date.parse(t.due_date) < ref; return (od ? '🔴 ' : '🕒 ') + esc(t.title) + ' <span style="color:' + (od ? '#DC2626' : '#666') + '">(' + (t.due_date ? 'ডেডলাইন ' + dfD(t.due_date) + ' ' + dfT(t.due_date) : 'ডেডলাইন নেই') + (od ? ' — ওভারডিউ' : '') + ')</span>' + (rsn[t.id] ? '<br><span style="color:#444;padding-left:18px">💬 কারণ: ' + esc(rsn[t.id]) + '</span>' : (od ? '<br><span style="color:#999;padding-left:18px">💬 আজ কোনো কারণ জানাননি</span>' : '')); }).join('<br>') + '</div>';
   });
 
   // 2. targets
@@ -223,7 +281,8 @@ async function mtHomeCard() {
   } catch (e) {}
 }
 const _vhMt = viewHome;
-viewHome = async function () { const pr = _vhMt(); setTimeout(mtHomeCard, 400); return pr; };
+viewHome = async function () { const pr = _vhMt(); setTimeout(mtHomeCard, 400); setTimeout(odHomeCard, 700); return pr; };
+if (document.getElementById('hatt') || document.getElementById('scard')) setTimeout(odHomeCard, 700);
 if (document.getElementById('hatt') || document.getElementById('scard')) setTimeout(mtHomeCard, 400);
 const _vmMt = viewMenu;
 viewMenu = function () {
