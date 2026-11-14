@@ -108,4 +108,49 @@ async function uxStart() {
   document.getElementById('uxrx').onclick = () => finish(false);
   document.getElementById('uxrs').onclick = () => finish(true);
 }
+
+/* 5) colourful MY TravelMate branded PDFs */
+const pdfCss = document.createElement('style');
+pdfCss.textContent = `
+.trep.pdf.mtm{position:relative;overflow:hidden;padding:30px 36px 46px;background:#fff;color:#111}
+.trep.pdf.mtm::before{content:'';position:absolute;right:-80px;top:-78px;width:230px;height:130px;background:linear-gradient(135deg,#E11D2E,#9F1239);transform:rotate(-16deg);border-radius:0 0 0 130px}
+.trep.pdf.mtm::after{content:'';position:absolute;left:0;right:0;bottom:0;height:14px;background:linear-gradient(90deg,#141414 0,#141414 32%,#E11D2E 32%,#E11D2E 100%)}
+.trep.pdf.mtm .mh{display:grid;grid-template-columns:auto 1fr;grid-template-areas:"lg tt" "lg dt";column-gap:22px;row-gap:8px;align-items:center;position:relative;z-index:1;margin-bottom:18px;padding:0 110px 16px 0;border-bottom:2px solid #F0F0F0}
+.trep.pdf.mtm .mh-l{grid-area:lg;padding-right:22px;border-right:3px solid #1c1c1c}
+.trep.pdf.mtm .mh-l img{height:56px;width:auto;display:block}
+.trep.pdf.mtm .mh-r{grid-area:tt}
+.trep.pdf.mtm .mh-t{font-size:24px;font-weight:800;color:#141414;letter-spacing:.4px;line-height:1.1}
+.trep.pdf.mtm .mh-t span{color:#E11D2E}
+.trep.pdf.mtm .mh-s{font-size:13px;color:#555;margin-top:3px}
+.trep.pdf.mtm .mh .trd{grid-area:dt;justify-self:start;background:#FDE2E4;color:#141414;font-weight:700;font-size:13.5px;padding:6px 16px;border-radius:999px}
+.trep.pdf.mtm .trs{gap:10px;margin:4px 0 6px;position:relative;z-index:1}
+.trep.pdf.mtm .trs div{border-radius:14px;padding:12px 6px 10px;border-bottom:4px solid #2563EB;background:#EAF1FF;box-shadow:0 2px 8px rgba(0,0,0,.06)}
+.trep.pdf.mtm .trs div:nth-child(4n+1){background:#E7F8EE;border-color:#16A34A}
+.trep.pdf.mtm .trs div:nth-child(4n+2){background:#FFF6DA;border-color:#EAB308}
+.trep.pdf.mtm .trs div:nth-child(4n+3){background:#FDECEC;border-color:#DC2626}
+.trep.pdf.mtm .trs b{font-size:26px;color:#141414}
+.trep.pdf.mtm .trs span{font-size:11.5px;color:#333;font-weight:600}
+.trep.pdf.mtm .trt{border-radius:10px;overflow:hidden;box-shadow:0 0 0 1px #EEE}
+.trep.pdf.mtm .trt th{background:#D7192D;color:#fff;font-weight:700;padding:9px 7px}
+.trep.pdf.mtm .trt tr:nth-child(even) td{background:#FAFAFA}
+.trep.pdf.mtm .trt td{border-bottom:1px solid #EEE}
+.trep.pdf.mtm .trt td:first-child{font-weight:600}
+.trep.pdf.mtm .trf{text-align:center;color:#555;margin-top:20px;position:relative;z-index:1}
+.trep.pdf.mtm .trf b{color:#E11D2E}
+`;
+document.head.appendChild(pdfCss);
+const PDF_T = [[/Daily Task Report/, 'DAILY TASK'], [/Daily Salah Report/, 'DAILY SALAH'], [/Daily Attendance/, 'DAILY ATTENDANCE'], [/Team Performance Report/, 'TEAM PERFORMANCE'], [/Performance Report/, 'PERFORMANCE'], [/Target Report/, 'TARGET']];
+function mtmPdf(html) {
+  const m = html.match(/<div class="trh">[\s\S]*?<span>([^<]*)<\/span><\/div><div class="trd">([\s\S]*?)<\/div><\/div>/);
+  if (!m) return html;
+  const t = PDF_T.find(x => x[0].test(m[1])), sub = (m[1].split('·')[1] || '').trim();
+  const head = '<div class="mh"><div class="mh-l"><img src="https://mytravelmateofficial.com/wp-content/uploads/2026/10/mytravelmate-logo.png" crossorigin="anonymous" alt="MY TravelMate"></div><div class="mh-r"><div class="mh-t">' + (t ? t[1] : 'TEAM') + ' <span>REPORT</span></div>' + (sub ? '<div class="mh-s">' + sub + '</div>' : '') + '</div><div class="trd">📅 ' + m[2] + '</div></div>';
+  return html.replace(m[0], head).replace('class="trep pdf"', 'class="trep pdf mtm"').replace(/(<div class="trf">[\s\S]*?)Yaqeen Group Team App/, '$1<b>MY TravelMate</b> Team App');
+}
+window.mtmPdf = mtmPdf;
+const _xpU = exportHtmlPdf;
+exportHtmlPdf = async function (html, name, text, share) {
+  try { html = mtmPdf(html); if (text) text = text.replace(/Yaqeen Group/g, 'MY TravelMate'); if (name) name = name.replace(/^Yaqeen-/, 'MY-TravelMate-'); } catch (e) {}
+  return _xpU(html, name, text, share);
+};
 }
