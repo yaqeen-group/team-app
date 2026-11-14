@@ -2,7 +2,7 @@
 {
 const MT = [{ k: 'morning', name: 'সকালের মিটিং', t: '09:15' }, { k: 'night', name: 'রাতের মিটিং', t: '19:30' }];
 const MT_GRACE = 5;
-const MT_ST = { ok: ['✅', 'সময়মতো', '#16a34a'], late: ['⏰', 'দেরিতে', '#d97706'], absent: ['❌', 'অনুপস্থিত', '#dc2626'], leave: ['🏖', 'ছুটিতে', '#2563eb'] };
+const MT_ST = { cancel: ['🚫', 'মিটিং বাতিল', '#6b7280'], ok: ['✅', 'সময়মতো', '#16a34a'], late: ['⏰', 'দেরিতে', '#d97706'], absent: ['❌', 'অনুপস্থিত', '#dc2626'], leave: ['🏖', 'ছুটিতে', '#2563eb'] };
 /* local copies (targets.js keeps its helpers block-scoped) */
 const tgDow = d => new Date(d + 'T00:00:00Z').getUTCDay();
 const tgWk = d => dateAdd(d, -((tgDow(d) + 1) % 7));
@@ -35,26 +35,31 @@ async function viewMeetings(day, mk) {
   await loadPeople();
   const box = document.getElementById('mtb'); if (!box) return;
   if (!mg) return mtMine(box);
-  const [{ data: rows, error }, { data: lv }] = await Promise.all([
+  const [{ data: rows, error }, { data: cx }, { data: lv }] = await Promise.all([
     sb.from('yg_meeting_att').select('*').eq('day', day).eq('meeting', mk),
+    sb.from('yg_meeting_cancel').select('*').eq('day', day).eq('meeting', mk).maybeSingle(),
     sb.from('leave_requests').select('user_id,status,start_date,end_date').eq('status', 'approved').lte('start_date', day)]);
+  const cxRpc = async (on, reason) => { const { error: e } = await sb.rpc('yg_meeting_cancel', { p_day: day, p_meeting: mk, p_reason: reason || '', p_cancel: on }); if (e) return toast(friendlyError(e)); toast(on ? 'মিটিং বাতিল করা হয়েছে' : 'বাতিল প্রত্যাহার করা হয়েছে'); viewMeetings(day, mk); };
   if (error) { box.innerHTML = '<div class="msg err">' + esc(friendlyError(error)) + '</div>'; return; }
   const by = {}; (rows || []).forEach(r => by[r.user_id] = r);
   const ps = mtPeople(), cnt = k => ps.filter(p => by[p.id] && by[p.id].status === k).length, un = ps.filter(p => !by[p.id]);
   box.innerHTML = '<div style="display:flex;gap:8px;align-items:center"><button class="btn ghost" id="mtp" style="margin:0;width:auto;padding:8px 12px">‹</button><input type="date" class="in" id="mtd" value="' + day + '" max="' + today + '" style="margin:0;flex:1"><button class="btn ghost" id="mtn" style="margin:0;width:auto;padding:8px 12px" ' + (day >= today ? 'disabled' : '') + '>›</button></div>'
     + '<div class="chips" style="padding:10px 0 0">' + MT.map(x => '<button class="chip ' + (x.k === mk ? 'on' : '') + '" data-mk="' + x.k + '">' + x.name + ' · ' + tgT12(x.t) + '</button>').join('') + '</div>'
-    + (mtFri(day) ? '<div class="empty">শুক্রবার মিটিং নেই 🌙</div>' :
+    + (mtFri(day) ? '<div class="empty">শুক্রবার মিটিং নেই 🌙</div>' : cx ? '<div class="card" style="margin-top:12px;border:1.5px solid #dc2626;text-align:center"><div style="font-size:30px">🚫</div><b>' + m.name + ' বাতিল করা হয়েছে</b>' + (cx.reason ? '<div class="mut" style="font-size:13px;margin-top:4px">কারণ: ' + esc(cx.reason) + '</div>' : '') + '<div class="mut" style="font-size:12px;margin-top:6px">এই মিটিংয়ের জন্য কারো পয়েন্ট কাটবে না। ' + (ui.people[cx.cancelled_by] ? 'বাতিল করেছেন ' + esc(ui.people[cx.cancelled_by].full_name) : '') + '</div><button class="btn ghost" id="mtunc">↩️ বাতিল প্রত্যাহার করুন</button></div>' :
       '<div class="card" style="margin-top:10px;display:flex;justify-content:space-around;text-align:center;font-size:12.5px"><div><b style="font-size:20px;color:#16a34a">' + cnt('ok') + '</b><br>সময়মতো</div><div><b style="font-size:20px;color:#d97706">' + cnt('late') + '</b><br>দেরিতে</div><div><b style="font-size:20px;color:#dc2626">' + cnt('absent') + '</b><br>অনুপস্থিত</div><div><b style="font-size:20px;color:#2563eb">' + cnt('leave') + '</b><br>ছুটি</div><div><b style="font-size:20px">' + un.length + '</b><br>বাকি</div></div>'
       + '<div class="mut" style="font-size:12px;margin-top:6px">শুরু ' + tgT12(m.t) + ' · ' + MT_GRACE + ' মিনিটের পরে যোগ দিলে দেরি (−২), না এলে অনুপস্থিত (−৫)। ছুটিতে থাকলে কাটে না।</div>'
       + ps.map(p => { const r = by[p.id], s = r && MT_ST[r.status], onLv = mtLeaveOn(lv || [], p.id, day);
         return '<div class="card" style="margin-top:10px"><div class="row">' + avatar(p.full_name, p.id, 36) + '<div class="rt"><b>' + esc(p.full_name) + '</b><span>' + (s ? '<b style="color:' + s[2] + '">' + s[0] + ' ' + s[1] + '</b>' + (r.join_at && r.status !== 'absent' && r.status !== 'leave' ? ' · যোগ ' + tgT12(r.join_at.slice(0, 5)) + (r.late_min > 0 ? ' (' + tgN(r.late_min) + ' মি. পরে)' : '') : '') : (onLv ? '🏖 অনুমোদিত ছুটিতে আছেন' : 'এখনো দেওয়া হয়নি')) + '</span></div></div>'
           + '<div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:6px;margin-top:8px"><button class="btn ghost" data-in="' + p.id + '" style="margin:0;padding:8px">✅ এসেছে</button><button class="btn ghost" data-ab="' + p.id + '" style="margin:0;padding:8px">❌ আসেনি</button><button class="btn ghost" data-lv="' + p.id + '" style="margin:0;padding:8px">🏖 ছুটি</button></div></div>'; }).join('')
-      + (un.length ? '<div class="two" style="margin-top:14px"><button class="btn" id="mtall" style="margin-top:0">✅ বাকি সবাই সময়মতো</button><button class="btn ghost" id="mtabs" style="margin-top:0">❌ বাকিরা অনুপস্থিত</button></div>' : ''));
+      + (un.length ? '<div class="two" style="margin-top:14px"><button class="btn" id="mtall" style="margin-top:0">✅ বাকি সবাই সময়মতো</button><button class="btn ghost" id="mtabs" style="margin-top:0">❌ বাকিরা অনুপস্থিত</button></div>' : '')
+      + '<button class="btn ghost" id="mtcx" style="margin-top:14px;color:#dc2626">🚫 এই মিটিং বাতিল করুন</button>');
   document.getElementById('mtd').onchange = e => e.target.value && viewMeetings(e.target.value > today ? today : e.target.value, mk);
   document.getElementById('mtp').onclick = () => viewMeetings(dateAdd(day, -1), mk);
   document.getElementById('mtn').onclick = () => { if (day < today) viewMeetings(dateAdd(day, 1), mk); };
   box.querySelectorAll('[data-mk]').forEach(b => b.onclick = () => viewMeetings(day, b.dataset.mk));
   if (mtFri(day)) return;
+  if (cx) { document.getElementById('mtunc').onclick = () => cxRpc(false); return; }
+  document.getElementById('mtcx').onclick = () => sheet('<h3>🚫 ' + m.name + ' বাতিল (' + tgDate(day) + ')</h3><input class="in" id="mtcr" placeholder="কারণ (যেমন: ক্লায়েন্ট মিটিং, ছুটির দিন)"><div class="mut" style="font-size:12px;margin-top:6px">বাতিল করলে এই মিটিংয়ে দেওয়া সব হাজিরা মুছে যাবে আর কাটা পয়েন্ট (যদি থাকে) ফেরত যাবে। পরে প্রত্যাহারও করা যাবে।</div><button class="btn" id="mtcok" style="background:#dc2626">বাতিল নিশ্চিত করুন</button>', (el, close) => { el.querySelector('#mtcok').onclick = () => { const r = el.querySelector('#mtcr').value; close(); cxRpc(true, r); }; });
   const save = async list => {
     const { error: e } = await sb.from('yg_meeting_att').upsert(list.map(x => Object.assign({ day, meeting: mk, marked_by: state.profile.id, marked_at: new Date().toISOString(), late_min: 0, join_at: null }, x)), { onConflict: 'day,meeting,user_id' });
     if (e) return toast(friendlyError(e));
@@ -78,8 +83,8 @@ async function viewMeetings(day, mk) {
 
 async function mtMine(box) {
   const from = dateAdd(todayDhaka(), -29);
-  const { data } = await sb.from('yg_meeting_att').select('*').eq('user_id', state.profile.id).gte('day', from).order('day', { ascending: false });
-  const rs = data || [], c = k => rs.filter(r => r.status === k).length;
+  const [{ data }, { data: cxs }] = await Promise.all([sb.from('yg_meeting_att').select('*').eq('user_id', state.profile.id).gte('day', from).order('day', { ascending: false }), sb.from('yg_meeting_cancel').select('day,meeting,reason').gte('day', from)]);
+  const rs = (data || []).concat((cxs || []).map(x => Object.assign({ status: 'cancel', late_min: 0 }, x))).sort((a, b) => a.day < b.day ? 1 : a.day > b.day ? -1 : (a.meeting === 'night' ? -1 : 1)), c = k => rs.filter(r => r.status === k).length;
   box.innerHTML = '<div class="card" style="display:flex;justify-content:space-around;text-align:center;font-size:12.5px"><div><b style="font-size:20px;color:#16a34a">' + c('ok') + '</b><br>সময়মতো</div><div><b style="font-size:20px;color:#d97706">' + c('late') + '</b><br>দেরিতে</div><div><b style="font-size:20px;color:#dc2626">' + c('absent') + '</b><br>অনুপস্থিত</div></div><div class="mut" style="font-size:12px;margin-top:6px">শেষ ৩০ দিন · হাজিরা নেন অ্যাডমিন/ম্যানেজার। সকাল ' + tgT12(MT[0].t) + ', রাত ' + tgT12(MT[1].t) + '; ' + MT_GRACE + ' মিনিটের পরে দেরি (−২), না এলে −৫।</div>'
     + (rs.length ? rs.map(r => { const s = MT_ST[r.status]; return '<div class="card" style="margin-top:8px;display:flex;justify-content:space-between;gap:8px"><span>' + tgDate(r.day) + ' · ' + (r.meeting === 'morning' ? 'সকাল' : 'রাত') + '</span><b style="color:' + s[2] + '">' + s[0] + ' ' + s[1] + (r.late_min > 0 && r.status === 'late' ? ' (' + tgN(r.late_min) + ' মি.)' : '') + '</b></div>'; }).join('') : '<div class="empty">এখনো কোনো হাজিরা নেই</div>');
 }
@@ -106,6 +111,7 @@ async function dfBuild(day) {
     sb.from('yg_discipline').select('user_id,day,points,kind,reason,waived').eq('month', mon),
     sb.rpc('yg_perf_trend', { p_from: ws, p_to: day, p_bucket: 'week' }),
     sb.from('yg_award_log').select('*').order('week_start', { ascending: false }).limit(3)]);
+  const { data: CX0 } = await sb.from('yg_meeting_cancel').select('meeting,reason').eq('day', day); const CX = CX0 || [], cxd = k => CX.find(x => x.meeting === k);
   const T = tgLoad(null, day, day);
   const tasks = (tk.data || []).filter(t => ids.includes(t.assigned_to));
   const done = tasks.filter(t => t.completed_at && t.completed_at >= s && t.completed_at <= e);
@@ -118,7 +124,7 @@ async function dfBuild(day) {
 
   let h = '<div class="trs" style="display:grid;grid-template-columns:repeat(4,1fr);text-align:center">'
     + [[present + '/' + offc.length, 'অফিসে উপস্থিত'], [done.length, 'আজ শেষ হওয়া টাস্ক'], [over.length, 'ওভারডিউ টাস্ক'], [R.length + '/' + repN, 'ডেইলি রিপোর্ট'],
-       [mc('morning', ['ok', 'late']) + '/' + ps.length, 'সকালের মিটিং'], [mc('night', ['ok', 'late']) + '/' + ps.length, 'রাতের মিটিং'], [L.filter(l => l.status === 'approved' && l.start_date <= day).length, 'আজ ছুটিতে'], [DC.filter(x => x.day === day && !x.waived && x.points < 0).length, 'আজ পয়েন্ট কাটা']]
+       [cxd('morning') ? '🚫' : mc('morning', ['ok', 'late']) + '/' + ps.length, cxd('morning') ? 'সকালের মিটিং বাতিল' : 'সকালের মিটিং'], [cxd('night') ? '🚫' : mc('night', ['ok', 'late']) + '/' + ps.length, cxd('night') ? 'রাতের মিটিং বাতিল' : 'রাতের মিটিং'], [L.filter(l => l.status === 'approved' && l.start_date <= day).length, 'আজ ছুটিতে'], [DC.filter(x => x.day === day && !x.waived && x.points < 0).length, 'আজ পয়েন্ট কাটা']]
       .map(([b, t]) => '<div><b>' + b + '</b><br><span>' + t + '</span></div>').join('') + '</div>';
 
   // 1. tasks per member
@@ -152,7 +158,7 @@ async function dfBuild(day) {
 
   // 4. meetings
   h += dfH('🎙️ মিটিং হাজিরা');
-  const ms = (u, k) => { const r = M.find(x => x.user_id === u && x.meeting === k); if (!r) return mtFri(day) ? '—' : 'দেওয়া হয়নি'; const st = MT_ST[r.status]; return st[0] + ' ' + st[1] + (r.status === 'late' ? ' (' + r.late_min + ' মি.)' : ''); };
+  const ms = (u, k) => { if (cxd(k)) return '🚫 বাতিল' + (cxd(k).reason ? ' (' + esc(cxd(k).reason) + ')' : ''); const r = M.find(x => x.user_id === u && x.meeting === k); if (!r) return mtFri(day) ? '—' : 'দেওয়া হয়নি'; const st = MT_ST[r.status]; return st[0] + ' ' + st[1] + (r.status === 'late' ? ' (' + r.late_min + ' মি.)' : ''); };
   h += dfTable(['সদস্য', 'সকাল ' + tgT12(MT[0].t), 'রাত ' + tgT12(MT[1].t)], ps.map(p => [esc(p.full_name), ms(p.id, 'morning'), ms(p.id, 'night')]));
 
   // 5. leave
@@ -206,12 +212,13 @@ async function mtHomeCard() {
     if (!state.profile || !isMgr() || document.getElementById('hmt')) return;
     const d = todayDhaka(); if (mtFri(d)) return;
     await loadPeople();
-    const { data } = await sb.from('yg_meeting_att').select('meeting,status').eq('day', d);
+    const [{ data }, { data: cxs }] = await Promise.all([sb.from('yg_meeting_att').select('meeting,status').eq('day', d), sb.from('yg_meeting_cancel').select('meeting').eq('day', d)]);
+    const cxd = k => (cxs || []).some(x => x.meeting === k);
     const n = mtPeople().length, c = k => (data || []).filter(r => r.meeting === k).length, ok = k => (data || []).filter(r => r.meeting === k && (r.status === 'ok' || r.status === 'late')).length;
-    const now = mtNowHM(), due = MT.filter(m => now >= m.t && c(m.k) < n);
+    const now = mtNowHM(), due = MT.filter(m => now >= m.t && c(m.k) < n && !cxd(m.k));
     const anchor = document.getElementById('hdc') || document.getElementById('htg') || (document.getElementById('hatt') && document.getElementById('hatt').closest('.hrow2')) || document.getElementById('scard') || document.querySelector('.qgrid');
     if (!anchor || document.getElementById('hmt')) return;
-    anchor.insertAdjacentHTML('beforebegin', '<button class="card" id="hmt" style="display:block;width:100%;text-align:left;margin-bottom:10px;cursor:pointer;border:' + (due.length ? '1.5px solid #d97706' : '0') + '"><div style="display:flex;justify-content:space-between;align-items:center"><b>🎙️ আজকের মিটিং</b><span style="font-size:12.5px">সকাল ' + (c('morning') ? ok('morning') + '/' + n : '—') + ' · রাত ' + (c('night') ? ok('night') + '/' + n : '—') + '</span></div><div class="mut" style="font-size:12px;margin-top:4px">' + (due.length ? '⚠️ ' + due[0].name + 'ের হাজিরা বাকি — চাপুন' : 'হাজিরা দেখতে বা নিতে চাপুন') + '</div></button>');
+    anchor.insertAdjacentHTML('beforebegin', '<button class="card" id="hmt" style="display:block;width:100%;text-align:left;margin-bottom:10px;cursor:pointer;border:' + (due.length ? '1.5px solid #d97706' : '0') + '"><div style="display:flex;justify-content:space-between;align-items:center"><b>🎙️ আজকের মিটিং</b><span style="font-size:12.5px">সকাল ' + (cxd('morning') ? '🚫 বাতিল' : c('morning') ? ok('morning') + '/' + n : '—') + ' · রাত ' + (cxd('night') ? '🚫 বাতিল' : c('night') ? ok('night') + '/' + n : '—') + '</span></div><div class="mut" style="font-size:12px;margin-top:4px">' + (due.length ? '⚠️ ' + due[0].name + 'ের হাজিরা বাকি — চাপুন' : 'হাজিরা দেখতে বা নিতে চাপুন') + '</div></button>');
     document.getElementById('hmt').onclick = () => viewMeetings(d, due.length ? due[0].k : undefined);
   } catch (e) {}
 }
