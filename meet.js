@@ -3,7 +3,20 @@
 const MT = [{ k: 'morning', name: 'সকালের মিটিং', t: '09:15' }, { k: 'night', name: 'রাতের মিটিং', t: '19:30' }];
 const MT_GRACE = 5;
 const MT_ST = { ok: ['✅', 'সময়মতো', '#16a34a'], late: ['⏰', 'দেরিতে', '#d97706'], absent: ['❌', 'অনুপস্থিত', '#dc2626'], leave: ['🏖', 'ছুটিতে', '#2563eb'] };
-try { DC_KIND.meet_late = '🎙️'; DC_KIND.meet_absent = '🎙️'; } catch (e) {}
+/* local copies (targets.js keeps its helpers block-scoped) */
+const tgDow = d => new Date(d + 'T00:00:00Z').getUTCDay();
+const tgWk = d => dateAdd(d, -((tgDow(d) + 1) % 7));
+const tgN = v => Number(v || 0).toLocaleString('bn-BD', { maximumFractionDigits: 1 });
+const tgDate = d => new Date(d + 'T00:00:00').toLocaleDateString('bn-BD', { weekday: 'short', day: 'numeric', month: 'short' });
+const tgT12 = s => { const [h, m] = s.split(':').map(Number); return ((h % 12) || 12) + ':' + String(m).padStart(2, '0') + (h < 12 ? ' AM' : ' PM'); };
+const tgStart = t => new Date(Date.parse(t.created_at) + 6 * 3600000).toISOString().slice(0, 10);
+const tgSum = (logs, tid, from, to) => logs.filter(l => l.target_id === tid && l.log_date >= from && l.log_date <= to).reduce((a, l) => a + Number(l.value || 0), 0);
+const dcBal = es => 100 + es.filter(e => !e.waived).reduce((a, e) => a + e.points, 0);
+const dcMonTxt = m => new Date(m + 'T00:00:00').toLocaleDateString('bn-BD', { month: 'long', year: 'numeric' });
+async function tgLoad(uids, from, to) {
+  const [t, l, n] = await Promise.all([sb.from('yg_targets').select('*').eq('active', true).order('sort'), sb.from('yg_target_logs').select('user_id,target_id,log_date,value').gte('log_date', from).lte('log_date', to), sb.from('yg_target_notes').select('user_id,log_date,note').gte('log_date', from).lte('log_date', to)]);
+  return { targets: t.data || [], logs: l.data || [], notes: n.data || [] };
+}
 const mtMin = s => { const [h, m] = String(s).split(':').map(Number); return h * 60 + m; };
 const mtNowHM = () => new Date(Date.now() + 6 * 3600000).toISOString().slice(11, 16);
 const mtFri = d => new Date(d + 'T00:00:00Z').getUTCDay() === 5;
@@ -99,12 +112,12 @@ async function dfBuild(day) {
   const open = tasks.filter(t => t.status !== 'completed' || (t.completed_at && t.completed_at > e));
   const over = open.filter(t => t.due_date && Date.parse(t.due_date) < ref);
   const A = att.data || [], M = mt.data || [], L = (lv.data || []).filter(l => l.start_date <= day && (l.end_date || l.start_date) >= day || (l.created_at >= s && l.created_at <= e)), R = rp.data || [], S = sl.data || [], DC = dc.data || [];
-  const present = new Set(A.map(a => a.user_id)).size;
+  const offc = ps.filter(p => p.work_mode !== 'remote'), present = new Set(A.map(a => a.user_id)).size, repN = ps.filter(p => p.daily_report !== false).length;
   const mc = (k, st) => M.filter(r => r.meeting === k && st.includes(r.status)).length;
   const D = await T;
 
   let h = '<div class="trs" style="display:grid;grid-template-columns:repeat(4,1fr);text-align:center">'
-    + [[present + '/' + ps.length, 'অফিসে উপস্থিত'], [done.length, 'আজ শেষ হওয়া টাস্ক'], [over.length, 'ওভারডিউ টাস্ক'], [R.length + '/' + ps.length, 'ডেইলি রিপোর্ট'],
+    + [[present + '/' + offc.length, 'অফিসে উপস্থিত'], [done.length, 'আজ শেষ হওয়া টাস্ক'], [over.length, 'ওভারডিউ টাস্ক'], [R.length + '/' + repN, 'ডেইলি রিপোর্ট'],
        [mc('morning', ['ok', 'late']) + '/' + ps.length, 'সকালের মিটিং'], [mc('night', ['ok', 'late']) + '/' + ps.length, 'রাতের মিটিং'], [L.filter(l => l.status === 'approved' && l.start_date <= day).length, 'আজ ছুটিতে'], [DC.filter(x => x.day === day && !x.waived && x.points < 0).length, 'আজ পয়েন্ট কাটা']]
       .map(([b, t]) => '<div><b>' + b + '</b><br><span>' + t + '</span></div>').join('') + '</div>';
 
@@ -135,7 +148,7 @@ async function dfBuild(day) {
 
   // 3. office attendance
   h += dfH('🏢 অফিস হাজিরা');
-  h += dfTable(['সদস্য', 'শিফট', 'ঢোকা', 'বের হওয়া', 'দেরি'], ps.flatMap(p => { const a = A.filter(x => x.user_id === p.id).sort((x, y) => (x.shift || 0) - (y.shift || 0)); if (!a.length) return [[esc(p.full_name), '—', mtLeaveOn(L, p.id, day) ? '🏖 ছুটি' : (mtFri(day) ? 'শুক্রবার' : '❌ আসেননি'), '—', '—']]; return a.map(x => [esc(p.full_name), x.shift || 1, dfT(x.check_in_at), dfT(x.check_out_at), x.late_minutes > 0 ? x.late_minutes + ' মি.' : '✓']); }));
+  h += dfTable(['সদস্য', 'শিফট', 'ঢোকা', 'বের হওয়া', 'দেরি'], ps.flatMap(p => { const a = A.filter(x => x.user_id === p.id).sort((x, y) => (x.shift || 0) - (y.shift || 0)); if (!a.length && p.work_mode === 'remote') return [[esc(p.full_name), '—', '🏠 রিমোট', '—', '—']]; if (!a.length) return [[esc(p.full_name), '—', mtLeaveOn(L, p.id, day) ? '🏖 ছুটি' : (mtFri(day) ? 'শুক্রবার' : '❌ আসেননি'), '—', '—']]; return a.map(x => [esc(p.full_name), x.shift || 1, dfT(x.check_in_at), dfT(x.check_out_at), x.late_minutes > 0 ? x.late_minutes + ' মি.' : '✓']); }));
 
   // 4. meetings
   h += dfH('🎙️ মিটিং হাজিরা');
