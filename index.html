@@ -1749,6 +1749,7 @@ function viewMenu() {
     <div class="tiles">
       <button class="tile" id="m-notices" onclick="go('notices')"><span class="ic">📢</span><b>Notices</b><small>অফিসের নোটিশ</small></button>
       <button class="tile" id="m-edit"><span class="ic">✏️</span><b>Edit profile</b><small>ছবি, নাম, ফোন</small></button>
+      <button class="tile" id="m-lang" data-noi18n="1" onclick="ygToggleLang()"><span class="ic">🌐</span><b>Language · ভাষা</b><small>${ygLang() === 'en' ? 'English → বাংলা' : 'বাংলা → English'}</small></button>
       <button class="tile" id="m-push"><span class="ic">🔔</span><b>Notifications</b><small>${pushState() === 'granted' ? 'চালু আছে ✓' : pushState() === 'unsupported' ? 'সাপোর্ট নেই' : 'বন্ধ — চালু করুন'}</small></button>
       <button class="tile" id="m-team"><span class="ic">👥</span><b>Team</b><small>সব সদস্য</small></button>
       <button class="tile" id="m-rep"><span class="ic">📝</span><b>Daily report</b><small>আজকের কাজ</small></button>
@@ -3164,6 +3165,7 @@ window.viewPerfTeam = viewPerfTeam;
   };
 }
 </script>
+<script src="i18n.js?v=1"></script>
 <script src="targets.js?v=6"></script>
 <script src="ux.js?v=2"></script>
 <script src="fame.js?v=1"></script>
