@@ -10,7 +10,7 @@ fCss.textContent = `
 #ygsp .sp-x{position:absolute;right:12px;top:calc(env(safe-area-inset-top,0px) + 10px);width:40px;height:40px;border-radius:50%;background:rgba(255,255,255,.15);font-size:18px;color:#fff}
 #ygsp .sp-h{text-align:center;font-size:13px;letter-spacing:.5px;opacity:.85;margin-top:8px}
 #ygsp .sp-t{text-align:center;font-size:24px;font-weight:800;margin-top:2px;background:linear-gradient(90deg,#FFE27A,#F5B301,#FFE27A);-webkit-background-clip:text;background-clip:text;color:transparent}
-#ygsp .sp-w{display:flex;flex-direction:column;align-items:center;margin-top:34px}
+#ygsp .sp-w{display:flex;flex-direction:column;align-items:center;margin-top:68px}
 #ygsp .sp-av{position:relative;border-radius:50%;padding:5px;background:conic-gradient(#FFE27A,#F5B301,#FFB800,#FFE27A);animation:spGlow 2.4s ease-in-out infinite;line-height:0}
 #ygsp .sp-av .av{border:3px solid #fff}
 #ygsp .sp-cr{position:absolute;left:50%;top:-46px;font-size:56px;transform:translateX(-50%);animation:spCrown .9s .35s cubic-bezier(.2,1.6,.4,1) both;filter:drop-shadow(0 4px 6px rgba(0,0,0,.35))}
