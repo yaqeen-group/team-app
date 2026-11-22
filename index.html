@@ -1666,6 +1666,9 @@ function taskForm(t) {
     <label>Assign to</label><select class="in" id="ta"><option value="">বেছে নিন</option>${people.map(p => `<option value="${p.id}" ${t && t.assigned_to === p.id ? 'selected' : ''}>${esc(p.full_name)}</option>`).join('')}</select>
     <label>Priority</label><select class="in" id="tp">${['low', 'medium', 'high', 'urgent'].map(p => `<option value="${p}" ${(t ? t.priority : 'medium') === p ? 'selected' : ''}>${p[0].toUpperCase() + p.slice(1)}</option>`).join('')}</select>
     <label>প্রুফ লাগবে?</label><select class="in" id="tpf">${[['', 'না'], ['file', '📷 স্ক্রিনশট / PDF'], ['link', '🔗 লিংক'], ['any', '📷 স্ক্রিনশট / PDF অথবা 🔗 লিংক']].map(([v, l]) => `<option value="${v}" ${((t && t.proof_type) || '') === v ? 'selected' : ''}>${l}</option>`).join('')}</select>
+    ${t ? '' : `<label>চেকলিস্ট — কয়টা ঘর? (ঐচ্ছিক)</label><div class="two"><input class="in" id="tcn" type="number" min="0" max="200" inputmode="numeric" placeholder="যেমন ৫০" style="margin-top:0"><select class="in" id="tcl" style="margin-top:0">${['পেজ', 'গ্রুপ', 'পোস্ট', 'লিংক', 'ক্লায়েন্ট', 'কাজ'].map(x => `<option value="${x}">${x}</option>`).join('')}</select></div>
+    <label class="wd" style="margin-top:8px"><input type="checkbox" id="tck" checked> প্রতিটা ঘরে লিংক দিতে হবে</label>
+    <p class="mut" style="margin:4px 0 0;font-size:12px">যেমন ৫০ + পেজ দিলে টাস্কে "পেজ ১ … পেজ ৫০" ঘর হবে; প্রতিটা ঘরে লিংক দিয়ে টিক দিতে হবে, সব ঘর পূরণ না হলে টাস্ক শেষ হবে না।</p>`}
     ${t ? '' : `<label>রিপিট</label><select class="in" id="trp"><option value="">একবারের কাজ</option><option value="daily">🔁 প্রতিদিন</option><option value="weekly">🔁 সপ্তাহের নির্দিষ্ট দিন</option><option value="monthly">🔁 প্রতি মাসে</option></select>
     <div class="wdays" id="trwd" hidden>${['রবি', 'সোম', 'মঙ্গল', 'বুধ', 'বৃহঃ', 'শুক্র', 'শনি'].map((d, i) => `<label class="wd"><input type="checkbox" value="${i}">${d}</label>`).join('')}</div>
     <div id="trmd" hidden><label>মাসের কত তারিখে (১–২৮)</label><input class="in" id="trday" type="number" min="1" max="28" value="${Math.min(28, new Date().getDate())}"></div>
@@ -1677,11 +1680,13 @@ function taskForm(t) {
     el.querySelector('#ts').onclick = async () => {
       const title = el.querySelector('#tt').value.trim(), assigned_to = el.querySelector('#ta').value;
       if (!title) return toast('টাস্কের নাম দিন'); if (!assigned_to) return toast('কাকে দেবেন বেছে নিন');
+      const ckN = Math.min(200, Math.max(0, parseInt((el.querySelector('#tcn') || {}).value, 10) || 0)), ckL = (el.querySelector('#tcl') || {}).value || 'পেজ', ckLink = !!(el.querySelector('#tck') || {}).checked;
+      const ckItems = ckN ? Array.from({ length: ckN }, (_, k) => ({ label: ckL + ' ' + String(k + 1).replace(/\d/g, d => '০১২৩৪৫৬৭৮৯'[d]), need_link: ckLink })) : null;
       const rp = trp ? trp.value : '';
       if (rp) {
         const wd = [...el.querySelectorAll('#trwd input:checked')].map(x => +x.value);
         if (rp === 'weekly' && !wd.length) return toast('কোন কোন দিন, বেছে নিন');
-        const tpl = { title, description: el.querySelector('#td').value.trim() || null, assigned_to, priority: el.querySelector('#tp').value, proof_type: el.querySelector('#tpf').value || null, freq: rp, weekdays: rp === 'weekly' ? wd : null, month_day: rp === 'monthly' ? Math.min(28, Math.max(1, +el.querySelector('#trday').value || 1)) : null, created_by: state.profile.id };
+        const tpl = { title, description: el.querySelector('#td').value.trim() || null, assigned_to, priority: el.querySelector('#tp').value, proof_type: el.querySelector('#tpf').value || null, items: ckItems, freq: rp, weekdays: rp === 'weekly' ? wd : null, month_day: rp === 'monthly' ? Math.min(28, Math.max(1, +el.querySelector('#trday').value || 1)) : null, created_by: state.profile.id };
         const { data: nt, error: e1 } = await sb.from('yg_task_templates').insert(tpl).select('id').single();
         if (e1) return toast(friendlyError(e1));
         const { data: made } = await sb.rpc('yg_template_run_now', { p_id: nt.id });
@@ -1689,8 +1694,9 @@ function taskForm(t) {
       }
       const dd = el.querySelector('#tdd').value;
       const row = { title, description: el.querySelector('#td').value.trim() || null, assigned_to, priority: el.querySelector('#tp').value, proof_type: el.querySelector('#tpf').value || null, due_date: dd ? new Date(dd).toISOString() : null, department_id: (ui.people[assigned_to] || {}).department_id || null };
-      const { error } = t ? await sb.from('tasks').update(row).eq('id', t.id) : await sb.from('tasks').insert({ ...row, created_by: state.profile.id });
+      const { data: nt2, error } = t ? await sb.from('tasks').update(row).eq('id', t.id).select('id').single() : await sb.from('tasks').insert({ ...row, created_by: state.profile.id }).select('id').single();
       if (error) return toast(friendlyError(error));
+      if (!t && ckItems && nt2) { const { error: e3 } = await sb.rpc('yg_task_add_items', { p_task: nt2.id, p_items: ckItems }); if (e3) toast(friendlyError(e3)); }
       close(); toast('সেভ হয়েছে ✓'); t ? viewTask(t.id) : viewTasks();
     };
   });
