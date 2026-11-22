@@ -1665,6 +1665,7 @@ function taskForm(t) {
     <label>Description</label><textarea class="in" id="td" maxlength="5000">${esc(t ? t.description || '' : '')}</textarea>
     <label>Assign to</label><select class="in" id="ta"><option value="">বেছে নিন</option>${people.map(p => `<option value="${p.id}" ${t && t.assigned_to === p.id ? 'selected' : ''}>${esc(p.full_name)}</option>`).join('')}</select>
     <label>Priority</label><select class="in" id="tp">${['low', 'medium', 'high', 'urgent'].map(p => `<option value="${p}" ${(t ? t.priority : 'medium') === p ? 'selected' : ''}>${p[0].toUpperCase() + p.slice(1)}</option>`).join('')}</select>
+    <label>প্রুফ লাগবে?</label><select class="in" id="tpf">${[['', 'না'], ['file', '📷 স্ক্রিনশট / PDF'], ['link', '🔗 লিংক'], ['any', '📷 স্ক্রিনশট / PDF অথবা 🔗 লিংক']].map(([v, l]) => `<option value="${v}" ${((t && t.proof_type) || '') === v ? 'selected' : ''}>${l}</option>`).join('')}</select>
     ${t ? '' : `<label>রিপিট</label><select class="in" id="trp"><option value="">একবারের কাজ</option><option value="daily">🔁 প্রতিদিন</option><option value="weekly">🔁 সপ্তাহের নির্দিষ্ট দিন</option><option value="monthly">🔁 প্রতি মাসে</option></select>
     <div class="wdays" id="trwd" hidden>${['রবি', 'সোম', 'মঙ্গল', 'বুধ', 'বৃহঃ', 'শুক্র', 'শনি'].map((d, i) => `<label class="wd"><input type="checkbox" value="${i}">${d}</label>`).join('')}</div>
     <div id="trmd" hidden><label>মাসের কত তারিখে (১–২৮)</label><input class="in" id="trday" type="number" min="1" max="28" value="${Math.min(28, new Date().getDate())}"></div>
@@ -1680,14 +1681,14 @@ function taskForm(t) {
       if (rp) {
         const wd = [...el.querySelectorAll('#trwd input:checked')].map(x => +x.value);
         if (rp === 'weekly' && !wd.length) return toast('কোন কোন দিন, বেছে নিন');
-        const tpl = { title, description: el.querySelector('#td').value.trim() || null, assigned_to, priority: el.querySelector('#tp').value, freq: rp, weekdays: rp === 'weekly' ? wd : null, month_day: rp === 'monthly' ? Math.min(28, Math.max(1, +el.querySelector('#trday').value || 1)) : null, created_by: state.profile.id };
+        const tpl = { title, description: el.querySelector('#td').value.trim() || null, assigned_to, priority: el.querySelector('#tp').value, proof_type: el.querySelector('#tpf').value || null, freq: rp, weekdays: rp === 'weekly' ? wd : null, month_day: rp === 'monthly' ? Math.min(28, Math.max(1, +el.querySelector('#trday').value || 1)) : null, created_by: state.profile.id };
         const { data: nt, error: e1 } = await sb.from('yg_task_templates').insert(tpl).select('id').single();
         if (e1) return toast(friendlyError(e1));
         const { data: made } = await sb.rpc('yg_template_run_now', { p_id: nt.id });
         close(); toast(made ? '🔁 রিপিট টাস্ক সেট হয়েছে · আজকেরটা তৈরি ✓' : '🔁 রিপিট টাস্ক সেট হয়েছে ✓'); return viewTasks();
       }
       const dd = el.querySelector('#tdd').value;
-      const row = { title, description: el.querySelector('#td').value.trim() || null, assigned_to, priority: el.querySelector('#tp').value, due_date: dd ? new Date(dd).toISOString() : null, department_id: (ui.people[assigned_to] || {}).department_id || null };
+      const row = { title, description: el.querySelector('#td').value.trim() || null, assigned_to, priority: el.querySelector('#tp').value, proof_type: el.querySelector('#tpf').value || null, due_date: dd ? new Date(dd).toISOString() : null, department_id: (ui.people[assigned_to] || {}).department_id || null };
       const { error } = t ? await sb.from('tasks').update(row).eq('id', t.id) : await sb.from('tasks').insert({ ...row, created_by: state.profile.id });
       if (error) return toast(friendlyError(error));
       close(); toast('সেভ হয়েছে ✓'); t ? viewTask(t.id) : viewTasks();
@@ -3199,8 +3200,9 @@ window.viewPerfTeam = viewPerfTeam;
 <script src="targets.js?v=7"></script>
 <script src="ux.js?v=2"></script>
 <script src="fame.js?v=1"></script>
-<script src="meet.js?v=4"></script>
+<script src="meet.js?v=5"></script>
 <script src="notes.js?v=1"></script>
 <script src="checklist.js?v=1"></script>
+<script src="proof.js?v=1"></script>
 </body>
 </html>

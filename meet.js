@@ -168,6 +168,7 @@ async function dfBuild(day) {
     sb.rpc('yg_perf_trend', { p_from: ws, p_to: day, p_bucket: 'week' }),
     sb.from('yg_award_log').select('*').order('week_start', { ascending: false }).limit(3)]);
   const { data: CX0 } = await sb.from('yg_meeting_cancel').select('meeting,reason').eq('day', day); const CX = CX0 || [], cxd = k => CX.find(x => x.meeting === k);
+  const { data: MR0 } = await sb.from('yg_meeting_reasons').select('user_id,meeting,reason').eq('day', day); const MR = MR0 || [];
   const T = tgLoad(null, day, day);
   const { data: RS0 } = await sb.from('task_updates').select('task_id,comment,created_at').gte('created_at', s).lte('created_at', e).like('comment', '⚠️ দেরির কারণ%').order('created_at');
   const rsn = {}; (RS0 || []).forEach(x => rsn[x.task_id] = x.comment.replace(/^⚠️ দেরির কারণ \/ আপডেট: /, ''));
@@ -216,7 +217,7 @@ async function dfBuild(day) {
 
   // 4. meetings
   h += dfH('🎙️ মিটিং হাজিরা');
-  const ms = (u, k) => { if (cxd(k)) return '🚫 বাতিল' + (cxd(k).reason ? ' (' + esc(cxd(k).reason) + ')' : ''); const r = M.find(x => x.user_id === u && x.meeting === k); if (!r) return mtFri(day) ? '—' : 'দেওয়া হয়নি'; const st = MT_ST[r.status]; return st[0] + ' ' + st[1] + (r.status === 'late' ? ' (' + r.late_min + ' মি.)' : ''); };
+  const ms = (u, k) => { if (cxd(k)) return '🚫 বাতিল' + (cxd(k).reason ? ' (' + esc(cxd(k).reason) + ')' : ''); const r = M.find(x => x.user_id === u && x.meeting === k); if (!r) return mtFri(day) ? '—' : 'দেওয়া হয়নি'; const st = MT_ST[r.status]; const why = MR.find(x => x.user_id === u && x.meeting === k); return st[0] + ' ' + st[1] + (r.status === 'late' ? ' (' + r.late_min + ' মি.)' : '') + (why ? '<br><span style="color:#444;font-weight:400;font-size:11.5px">💬 ' + esc(String(why.reason).slice(0, 140)) + '</span>' : (r.status === 'late' || r.status === 'absent' ? '<br><span style="color:#b91c1c;font-weight:400;font-size:11.5px">💬 কারণ জানাননি</span>' : '')); };
   h += dfTable(['সদস্য', 'সকাল ' + tgT12(MT[0].t), 'রাত ' + tgT12(MT[1].t)], ps.map(p => [esc(p.full_name), ms(p.id, 'morning'), ms(p.id, 'night')]));
 
   // 5. leave
