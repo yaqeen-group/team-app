@@ -177,7 +177,7 @@
     var C2 = CanvasRenderingContext2D.prototype;
     ['fillText', 'strokeText', 'measureText'].forEach(function (m) {
       var o = C2[m];
-      C2[m] = function (txt) { var a = Array.prototype.slice.call(arguments); if (typeof txt === 'string') a[0] = window.ygTr(txt); return o.apply(this, a); };
+      C2[m] = function (txt) { var a = Array.prototype.slice.call(arguments); if (typeof txt === 'string' && !window.ygPdfDrawing) a[0] = window.ygTr(txt); return o.apply(this, a); };
     });
   } catch (e) {}
   var t0 = document.title; if (BN.test(t0)) { var tt = tr(t0); if (tt) document.title = tt; }

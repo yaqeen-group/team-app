@@ -2229,7 +2229,8 @@ async function exportTaskReport(r, share) {
     document.body.appendChild(host);
     await Promise.all([...host.querySelectorAll('img')].map(i => i.complete ? 0 : new Promise(res => { i.onload = i.onerror = res; })));
     if (document.fonts && document.fonts.ready) await document.fonts.ready;
-    const canvas = await html2canvas(host.firstElementChild, { scale: 2, backgroundColor: '#ffffff', useCORS: true });
+    window.ygPdfDrawing = true; let canvas;
+    try { canvas = await html2canvas(host.firstElementChild, { scale: 2, backgroundColor: '#ffffff', useCORS: true }); } finally { window.ygPdfDrawing = false; }
     const cuts = pdfCuts(host.firstElementChild), cssW = host.firstElementChild.offsetWidth || 794;
     host.remove();
     const { jsPDF } = window.jspdf;
@@ -2401,7 +2402,8 @@ async function exportHtmlPdf(html, name, text, share) {
     const host = document.createElement('div'); host.className = 'pdfhost'; host.innerHTML = html; document.body.appendChild(host);
     await Promise.all([...host.querySelectorAll('img')].map(i => i.complete ? 0 : new Promise(res => { i.onload = i.onerror = res; })));
     if (document.fonts && document.fonts.ready) await document.fonts.ready;
-    const canvas = await html2canvas(host.firstElementChild, { scale: 2, backgroundColor: '#ffffff', useCORS: true });
+    window.ygPdfDrawing = true; let canvas;
+    try { canvas = await html2canvas(host.firstElementChild, { scale: 2, backgroundColor: '#ffffff', useCORS: true }); } finally { window.ygPdfDrawing = false; }
     const cuts = pdfCuts(host.firstElementChild), cssW = host.firstElementChild.offsetWidth || 794;
     host.remove();
     const { jsPDF } = window.jspdf; const pdf = new jsPDF({ unit: 'pt', format: 'a4' });
@@ -3193,7 +3195,7 @@ window.viewPerfTeam = viewPerfTeam;
   };
 }
 </script>
-<script src="i18n.js?v=3"></script>
+<script src="i18n.js?v=4"></script>
 <script src="targets.js?v=7"></script>
 <script src="ux.js?v=2"></script>
 <script src="fame.js?v=1"></script>
