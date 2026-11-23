@@ -1,7 +1,8 @@
 /* 📘 rulebook · ⚖️ appeals · 📊 weekly review · 🧩 SOP checklists */
 {
-const RB_VER = 1;
+const RB_VER = 2;
 const RULES = [
+  ['🔒', 'গোপনীয়তা — জিরো টলারেন্স', ['ব্যবসার কোনো তথ্য টিম মেম্বারের বাইরে কারো সাথে শেয়ার করা সম্পূর্ণ নিষেধ — এমনকি নিজের পরিবারের সদস্যদের সাথেও না।', 'গোপন রাখতে হবে: বিজনেস পলিসি ও সিদ্ধান্ত, কাজের কৌশল ও বিজনেস ট্রিক্স, লাভ-আয়-খরচ ও দামের হিসাব, ক্লায়েন্ট/কাস্টমারের তথ্য, টার্গেট ও প্ল্যান।', 'অ্যাপ, WhatsApp গ্রুপ বা অফিসের কোনো আলোচনা, স্ক্রিনশট, ফাইল বা ডকুমেন্ট বাইরে পাঠানো যাবে না।', 'কেউ এসব জানতে চাইলে বিনয়ের সাথে বলুন "এটা কোম্পানির ভেতরের বিষয়" — প্রয়োজনে অ্যাডমিনকে জানান।', 'তথ্য বাইরে গেছে প্রমাণিত হলে দায়ী ব্যক্তিকে সঙ্গে সঙ্গে টিম থেকে বহিষ্কারসহ কঠোর ব্যবস্থা নেওয়া হতে পারে — এ বিষয়ে কোনো ছাড় নেই।'], 1],
   ['🕘', 'অফিস ও হাজিরা', ['অফিসের শিফট: সকাল ৯টা–দুপুর ১টা ও বিকেল ৩টা–রাত ৮টা (লাঞ্চ ১টা–৩টা)।', 'অ্যাপ থেকে সেলফিসহ হাজিরা দিতে হবে।', '৫ মিনিটের বেশি দেরিতে হাজিরা দিলে প্রতি মিনিটে −১ (দিনে সর্বোচ্চ −৩০)।', 'মাসে ৫ম বার দেরি থেকে প্রতিবার আরও −১০।']],
   ['🎙️', 'মিটিং', ['সকালের মিটিং ৯:১৫, রাতের মিটিং ৮:০০ — অ্যাপের "All Team" গ্রুপে নিজে থেকে কল আসবে।', '৫ মিনিটের বেশি দেরি −২, অনুপস্থিত −৫।', 'দেরি বা মিস হলে পরদিন সকাল ১০টার মধ্যে অ্যাপে লিখিত কারণ দিতে হবে, না দিলে আরও −৫।']],
   ['✅', 'টাস্ক', ['ডেডলাইনের পরে শেষ করলে প্রতি ঘণ্টায় −১ (সর্বোচ্চ −১০)।', 'ডেডলাইনের ৭ দিন পরেও শেষ না হলে −১০।', 'দেরিতে জমা দেওয়ার আগে কারণ লেখা বাধ্যতামূলক।', 'যে টাস্কে প্রুফ লাগে (স্ক্রিনশট/PDF/লিংক), প্রুফ ছাড়া শেষ হবে না।', 'চেকলিস্ট টাস্কে প্রতিটা ঘরে লিংক দিয়ে টিক দিতে হবে।', 'কাজ না করে "Complete" দেখানো শৃঙ্খলা ভঙ্গ — শাস্তিযোগ্য।']],
@@ -13,7 +14,7 @@ const RULES = [
   ['⚖️', 'পয়েন্ট ও আপিল', ['প্রতি মাস ১০০ পয়েন্ট দিয়ে শুরু হয়।', 'কোনো পয়েন্ট ভুলভাবে বা যুক্তিসঙ্গত কারণে কাটা গেলে ৭ দিনের মধ্যে অ্যাপ থেকে আপিল করুন — অ্যাডমিন দেখে সিদ্ধান্ত দেবেন।']],
   ['📊', 'সাপ্তাহিক রিভিউ', ['প্রতি শনিবার রাতের মিটিংয়ে ১৫ মিনিট: কী ভালো হলো, কোথায় আটকে আছি, সামনের সপ্তাহের ৩টা লক্ষ্য।']]
 ];
-const TM_CSS = '<style id="tmcss">.rb-s{background:rgba(255,255,255,.9);border-radius:16px;padding:12px 14px;margin-top:10px;box-shadow:0 6px 18px rgba(11,42,111,.07)}.rb-s h4{font-size:15px;color:#0B2A6F;display:flex;gap:8px;align-items:center}.rb-s li{font-size:13.5px;line-height:1.6;margin:4px 0 0 18px}.tm-t{width:100%;border-collapse:collapse;font-size:12.5px;margin-top:10px;background:rgba(255,255,255,.9);border-radius:12px;overflow:hidden}.tm-t th{background:#0B2A6F;color:#fff;padding:7px 4px;font-weight:600}.tm-t td{padding:7px 4px;border-bottom:1px solid #eef2f6;text-align:center}.tm-t td:first-child{text-align:left}.tm-bad{color:#dc2626;font-weight:700}.tm-good{color:#16a34a;font-weight:700}.ap-st{font-size:12px;font-weight:700}</style>';
+const TM_CSS = '<style id="tmcss">.rb-s{background:rgba(255,255,255,.9);border-radius:16px;padding:12px 14px;margin-top:10px;box-shadow:0 6px 18px rgba(11,42,111,.07)}.rb-red{border:2px solid #dc2626;background:#FEF2F2!important}.rb-red h4{color:#b91c1c!important}.rb-s h4{font-size:15px;color:#0B2A6F;display:flex;gap:8px;align-items:center}.rb-s li{font-size:13.5px;line-height:1.6;margin:4px 0 0 18px}.tm-t{width:100%;border-collapse:collapse;font-size:12.5px;margin-top:10px;background:rgba(255,255,255,.9);border-radius:12px;overflow:hidden}.tm-t th{background:#0B2A6F;color:#fff;padding:7px 4px;font-weight:600}.tm-t td{padding:7px 4px;border-bottom:1px solid #eef2f6;text-align:center}.tm-t td:first-child{text-align:left}.tm-bad{color:#dc2626;font-weight:700}.tm-good{color:#16a34a;font-weight:700}.ap-st{font-size:12px;font-weight:700}</style>';
 const tmStyle = () => { if (!document.getElementById('tmcss')) document.head.insertAdjacentHTML('beforeend', TM_CSS); };
 const me = () => state.profile && state.profile.id;
 const bn = n => String(n).replace(/\d/g, d => '০১২৩৪৫৬৭৮৯'[d]);
@@ -24,7 +25,7 @@ async function viewRules() {
   const box = shell('📘 টিম রুলবুক');
   const { data: ack } = await sb.from('yg_rule_ack').select('version').eq('user_id', me()).eq('version', RB_VER).maybeSingle();
   let h = '<div class="mut" style="font-size:12.5px">সবার জন্য একই নিয়ম। পয়েন্ট প্রতি মাসে ১০০ থেকে শুরু।</div>'
-    + RULES.map(r => '<div class="rb-s" data-noi18n><h4><span>' + r[0] + '</span>' + r[1] + '</h4><ul>' + r[2].map(x => '<li>' + x + '</li>').join('') + '</ul></div>').join('');
+    + RULES.map(r => '<div class="rb-s' + (r[3] ? ' rb-red' : '') + '" data-noi18n><h4><span>' + r[0] + '</span>' + r[1] + '</h4><ul>' + r[2].map(x => '<li>' + x + '</li>').join('') + '</ul></div>').join('');
   if (!state.profile.observer) h += ack ? '<div class="msg info" style="margin-top:12px">✅ আপনি রুলবুক পড়েছেন বলে নিশ্চিত করেছেন।</div>' : '<button class="btn" id="rbok" style="margin-top:14px">✅ পড়েছি ও মেনে চলব</button>';
   if (isMgr()) h += '<div class="sec" style="margin-top:16px">কে কে পড়েছেন</div><div id="rbw"></div>';
   box.innerHTML = h;
@@ -44,7 +45,7 @@ async function rbHome() {
     const { data } = await sb.from('yg_rule_ack').select('version').eq('user_id', me()).eq('version', RB_VER).maybeSingle();
     if (data || document.getElementById('hrb')) return;
     const anchor = document.getElementById('hsc') || document.getElementById('hmr') || document.getElementById('hmt') || document.querySelector('.qgrid'); if (!anchor) return;
-    anchor.insertAdjacentHTML('beforebegin', '<button class="card" id="hrb" style="display:block;width:100%;text-align:left;margin-bottom:10px;cursor:pointer;border:1.5px solid #1E6FE0"><b style="color:#0B2A6F">📘 টিম রুলবুক পড়ুন</b><div class="mut" style="font-size:12.5px;margin-top:2px">অফিস, মিটিং, টাস্ক, পয়েন্ট ও পুরস্কারের সব নিয়ম এক জায়গায় — পড়ে "পড়েছি" চাপুন।</div></button>');
+    anchor.insertAdjacentHTML('beforebegin', '<button class="card" id="hrb" style="display:block;width:100%;text-align:left;margin-bottom:10px;cursor:pointer;border:1.5px solid #1E6FE0"><b style="color:#0B2A6F">📘 টিম রুলবুক পড়ুন</b><div class="mut" style="font-size:12.5px;margin-top:2px">🔒 নতুন নিয়ম: গোপনীয়তা (জিরো টলারেন্স) — রুলবুক পড়ে "পড়েছি" চাপুন।</div></button>');
     document.getElementById('hrb').onclick = viewRules;
   } catch (e) {}
 }
