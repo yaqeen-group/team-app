@@ -1,6 +1,6 @@
 /* 🎙️ meeting attendance + 📥 daily full report (admin) */
 {
-const MT = [{ k: 'morning', name: 'সকালের মিটিং', t: '09:15' }, { k: 'night', name: 'রাতের মিটিং', t: '19:30' }];
+const MT = [{ k: 'morning', name: 'সকালের মিটিং', t: '09:15' }, { k: 'night', name: 'রাতের মিটিং', t: '20:00' }];
 const MT_GRACE = 5;
 const MT_ST = { cancel: ['🚫', 'মিটিং বাতিল', '#6b7280'], ok: ['✅', 'সময়মতো', '#16a34a'], late: ['⏰', 'দেরিতে', '#d97706'], absent: ['❌', 'অনুপস্থিত', '#dc2626'], leave: ['🏖', 'ছুটিতে', '#2563eb'] };
 /* local copies (targets.js keeps its helpers block-scoped) */
@@ -298,7 +298,7 @@ const _vaMt = viewAdmin;
 viewAdmin = async function () {
   const pr = _vaMt(); const t = document.querySelector('.tiles');
   if (t && !document.getElementById('x-df')) {
-    t.insertAdjacentHTML('afterbegin', '<button class="tile hl" id="x-df"><span class="ic">📥</span><b>দৈনিক সম্পূর্ণ রিপোর্ট</b><small>সব কিছু এক PDF-এ</small></button><button class="tile hl" id="x-mt"><span class="ic">🎙️</span><b>মিটিং হাজিরা</b><small>সকাল ৯:১৫ · রাত ৭:৩০</small></button>');
+    t.insertAdjacentHTML('afterbegin', '<button class="tile hl" id="x-df"><span class="ic">📥</span><b>দৈনিক সম্পূর্ণ রিপোর্ট</b><small>সব কিছু এক PDF-এ</small></button><button class="tile hl" id="x-mt"><span class="ic">🎙️</span><b>মিটিং হাজিরা</b><small>সকাল ৯:১৫ · রাত ৮:০০</small></button>');
     document.getElementById('x-df').onclick = dfSheet; document.getElementById('x-mt').onclick = () => viewMeetings();
   }
   return pr;

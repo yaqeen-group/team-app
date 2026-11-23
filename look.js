@@ -89,6 +89,42 @@ body[data-lk="tasks"] #lkfx{display:block}
 .lk-on .p i{width:20px;height:20px;border-radius:50%;background:#fff;color:#0B2A6F;font-style:normal;font-weight:800;font-size:10px;display:inline-flex;align-items:center;justify-content:center;position:relative}
 .lk-on .p i::after{content:"";position:absolute;right:-1px;bottom:-1px;width:7px;height:7px;border-radius:50%;background:#22c55e;border:1.5px solid #0B2A6F}
 .lk-on .p img{width:20px;height:20px;border-radius:50%;object-fit:cover}
+/* ===== v2: living background + glass surfaces ===== */
+html,body{background:linear-gradient(160deg,#D6E4FF 0%,#E8DCFF 36%,#D4F3E7 70%,#FFE9CF 100%) fixed!important}
+#app{background:transparent!important}
+#lkbg i{opacity:.7!important;filter:blur(50px)!important}
+#lkbg i:nth-child(1){background:var(--lk1,#93B8FF)!important}
+#lkbg i:nth-child(2){background:var(--lk2,#C4B5FD)!important}
+#lkbg i:nth-child(3){background:var(--lk3,#99F6E4)!important}
+#lkbg::before{content:"";position:absolute;inset:0;background-image:radial-gradient(rgba(11,42,111,.09) 1px,transparent 1.2px);background-size:18px 18px;mask-image:linear-gradient(180deg,rgba(0,0,0,.7),transparent 70%);-webkit-mask-image:linear-gradient(180deg,rgba(0,0,0,.7),transparent 70%)}
+#lkbg b{position:absolute;border-radius:50%;background:radial-gradient(circle at 30% 30%,rgba(255,255,255,.95),rgba(255,255,255,.15));box-shadow:0 0 0 1px rgba(255,255,255,.5) inset;opacity:0;animation:lkBub 18s linear infinite}
+@keyframes lkBub{0%{transform:translateY(0) scale(.7);opacity:0}10%{opacity:.6}90%{opacity:.4}100%{transform:translateY(-105vh) scale(1.1);opacity:0}}
+#lkbg em{position:absolute;top:18%;left:-60px;font-style:normal;font-size:22px;opacity:.35;animation:lkFly 28s linear infinite;filter:drop-shadow(0 4px 6px rgba(11,42,111,.25))}
+@keyframes lkFly{0%{transform:translate(0,0) rotate(8deg)}50%{transform:translate(55vw,-6vh) rotate(-4deg)}100%{transform:translate(120vw,4vh) rotate(8deg)}}
+body[data-lk="tasks"]{--lk1:#86EFAC;--lk2:#93C5FD;--lk3:#FDE68A}
+body[data-lk="notif"]{--lk1:#FCD34D;--lk2:#F9A8D4;--lk3:#A5B4FC}
+body[data-lk="crm"]{--lk1:#FDA4AF;--lk2:#FDBA74;--lk3:#A5B4FC}
+body[data-lk="menu"]{--lk1:#C4B5FD;--lk2:#7DD3FC;--lk3:#F9A8D4}
+.top{background:rgba(255,255,255,.72)!important;backdrop-filter:blur(14px) saturate(1.4);-webkit-backdrop-filter:blur(14px) saturate(1.4);border-bottom-color:rgba(255,255,255,.6)!important}
+.tabbar{background:rgba(255,255,255,.82)!important;backdrop-filter:blur(16px) saturate(1.5);-webkit-backdrop-filter:blur(16px) saturate(1.5);border-top:1px solid rgba(255,255,255,.7)!important;box-shadow:0 -6px 24px rgba(11,42,111,.08)}
+.card{background:rgba(255,255,255,.86)!important;border-color:rgba(255,255,255,.9)!important;box-shadow:0 6px 20px rgba(11,42,111,.07);backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px)}
+.card.amb{background:rgba(255,248,236,.92)!important}
+.tile{background:rgba(255,255,255,.8)!important;backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px);border:1px solid rgba(255,255,255,.9)!important;box-shadow:0 8px 24px rgba(11,42,111,.08)!important}
+.chip{background:rgba(255,255,255,.75)!important;box-shadow:0 2px 8px rgba(11,42,111,.06)}
+.chip.on{background:linear-gradient(135deg,#1E6FE0,#0B2A6F)!important;color:#fff!important}
+.hero{box-shadow:0 14px 30px rgba(11,42,111,.28)}
+/* menu tiles: gradient glyph icons */
+.tile .ic.lkm{background:var(--lkg)!important;box-shadow:0 8px 18px var(--lks),inset 0 -3px 0 rgba(0,0,0,.08)!important;position:relative;overflow:hidden}
+.tile .ic.lkm svg{width:30px;height:30px;fill:none;stroke:#fff;stroke-width:1.9;stroke-linecap:round;stroke-linejoin:round;overflow:visible;position:relative;z-index:1;filter:drop-shadow(0 1px 1px rgba(0,0,0,.15))}
+.tile .ic.lkm::after{content:"";position:absolute;inset:-40%;background:linear-gradient(115deg,transparent 40%,rgba(255,255,255,.45) 50%,transparent 60%);transform:translateX(-100%);animation:lkShine 5.5s ease-in-out infinite;animation-delay:var(--lkd,0s)}
+.lk-tick{transform-box:fill-box;transform-origin:center;animation:lkTick 4s steps(12) infinite}
+@keyframes lkTick{to{transform:rotate(360deg)}}
+.lk-glow{animation:lkGlow 2.4s ease-in-out infinite}
+@keyframes lkGlow{0%,100%{opacity:.5}50%{opacity:1}}
+.lk-sway{transform-box:fill-box;transform-origin:50% 100%;animation:lkSway 3s ease-in-out infinite}
+@keyframes lkSway{0%,100%{transform:rotate(-5deg)}50%{transform:rotate(5deg)}}
+.lk-pulse{transform-box:fill-box;transform-origin:center;animation:lkPulse 2s ease-in-out infinite}
+@keyframes lkPulse{0%,100%{transform:scale(1)}50%{transform:scale(1.15)}}
 </style>`;
 
 const NAV = {
@@ -112,6 +148,39 @@ const QI = {
   group: ['#FDBA74', '#F59E0B', '<svg viewBox="0 0 24 24"><circle cx="8" cy="8.5" r="3" fill="' + W + '"/><path d="M2.8 20a5.2 5.2 0 0 1 10.4 0"/><circle cx="14.5" cy="9" r="2.4"/><g class="lk-pl"><path d="M19.5 13.5v6M16.5 16.5h6"/></g></svg>']
 };
 
+const GW = 'rgba(255,255,255,.28)';
+const G = {
+  doc: ['#FB923C', '#DC2626', '<svg viewBox="0 0 24 24"><path d="M6 3h9l4 4v14H6z" fill="' + GW + '"/><path class="lk-ln" d="M9 10h7"/><path class="lk-ln lk-ln2" d="M9 13.5h7"/><circle class="lk-pulse" cx="15" cy="18" r="2"/></svg>'],
+  note: ['#FDE047', '#EAB308', '<svg viewBox="0 0 24 24"><rect x="5" y="3" width="13" height="18" rx="2" fill="' + GW + '"/><path d="M8.5 3v18"/><path class="lk-ln" d="M11 8h4.5"/><path class="lk-ln lk-ln2" d="M11 11.5h4.5"/><g class="lk-pen"><path d="m16 20.5.6-2.4 3.9-3.9a1.3 1.3 0 0 1 1.8 1.8l-3.9 3.9z" fill="#fff"/></g></svg>'],
+  trophy: ['#FCD34D', '#D97706', '<svg viewBox="0 0 24 24"><g class="lk-sway"><path d="M7 4h10v5a5 5 0 0 1-10 0z" fill="' + GW + '"/><path d="M7 6H4.5a2.5 2.5 0 0 0 2.6 3.2M17 6h2.5a2.5 2.5 0 0 1-2.6 3.2"/><path d="M12 14v3.5M8.5 21h7l-1-3.5h-5z"/></g><path class="lk-glow" d="M12 1.5v1M20 3l-.7.7M4 3l.7.7"/></svg>'],
+  target: ['#F87171', '#BE123C', '<svg viewBox="0 0 24 24"><circle cx="11" cy="13" r="8" fill="' + GW + '"/><circle cx="11" cy="13" r="4.5"/><circle class="lk-pulse" cx="11" cy="13" r="1.3" fill="#fff"/><path d="M11 13 19 5M16 4.5V8h3.5"/></svg>'],
+  chart: ['#60A5FA', '#4F46E5', '<svg viewBox="0 0 24 24"><path d="M3 21h18"/><rect class="lk-b" x="4.5" y="11" width="3.6" height="8" rx="1" fill="#fff"/><rect class="lk-b lk-b2" x="10.2" y="5" width="3.6" height="14" rx="1" fill="#fff"/><rect class="lk-b lk-b3" x="15.9" y="8.5" width="3.6" height="10.5" rx="1" fill="#fff"/></svg>'],
+  clock: ['#22D3EE', '#0369A1', '<svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="8.5" fill="' + GW + '"/><path d="M12 7.5V12"/><path class="lk-tick" d="M12 12h4"/><path d="M9 2.5h6"/></svg>'],
+  cal: ['#A78BFA', '#7C3AED', '<svg viewBox="0 0 24 24"><rect x="4" y="5" width="16" height="15.5" rx="2.5" fill="' + GW + '"/><path d="M4 9.5h16M8.5 3v4M15.5 3v4"/><path class="lk-chk" d="m9 14.5 2 2 4-4"/></svg>'],
+  mic: ['#34D399', '#0F766E', '<svg viewBox="0 0 24 24"><rect x="9" y="3" width="6" height="11" rx="3" fill="' + GW + '"/><path d="M6 11a6 6 0 0 0 12 0M12 17v4M9 21h6"/><path class="lk-w1" d="M3.5 9.5v3"/><path class="lk-w2" d="M20.5 9.5v3"/></svg>'],
+  moon: ['#2DD4BF', '#115E59', '<svg viewBox="0 0 24 24"><path d="M16.5 15.8A7.5 7.5 0 0 1 9.2 4a8 8 0 1 0 10.3 10.6 7.4 7.4 0 0 1-3 1.2z" fill="' + GW + '"/><path class="lk-glow" d="m17.5 5 .6 1.4 1.4.6-1.4.6-.6 1.4-.6-1.4-1.4-.6 1.4-.6z" fill="#fff"/></svg>'],
+  medal: ['#F59E0B', '#B45309', '<svg viewBox="0 0 24 24"><path d="M8 3h3l1 5M16 3h-3l-1 5"/><g class="lk-sway"><circle cx="12" cy="15" r="6" fill="' + GW + '"/><path d="m12 12 .9 1.9 2 .3-1.5 1.4.4 2-1.8-1-1.8 1 .4-2-1.5-1.4 2-.3z" fill="#fff"/></g></svg>'],
+  mega: ['#FBBF24', '#F97316', '<svg viewBox="0 0 24 24"><path d="M3.5 10v4h3l7.5 4.5V5.5L6.5 10z" fill="' + GW + '"/><path d="M6.5 14.2 8 20h2.2"/><path class="lk-w1" d="M17 9.3a3.8 3.8 0 0 1 0 5.4"/><path class="lk-w2" d="M19.6 6.7a7.6 7.6 0 0 1 0 10.6"/></svg>'],
+  globe: ['#38BDF8', '#1D4ED8', '<svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="8.5" fill="' + GW + '"/><g class="lk-sway"><path d="M3.5 12h17M12 3.5c2.5 2.6 2.5 14.4 0 17M12 3.5c-2.5 2.6-2.5 14.4 0 17"/></g></svg>'],
+  bell: ['#FB7185', '#E11D48', '<svg viewBox="0 0 24 24"><g class="lk-sway"><path d="M6 16.5V11a6 6 0 1 1 12 0v5.5l1.8 1.8H4.2z" fill="' + GW + '"/><path d="M10 20.5a2 2 0 0 0 4 0"/></g></svg>'],
+  dl: ['#4ADE80', '#15803D', '<svg viewBox="0 0 24 24"><path d="M6 3h8.5L19 7.5V21H6z" fill="' + GW + '"/><g class="lk-h1"><path d="M12.5 9v7M9.5 13l3 3 3-3"/></g></svg>'],
+  build: ['#94A3B8', '#334155', '<svg viewBox="0 0 24 24"><path d="M4 21V7l8-4 8 4v14" fill="' + GW + '"/><path d="M3 21h18M9 21v-5h6v5"/><path class="lk-glow" d="M8.5 9.5h1M14.5 9.5h1M8.5 12.5h1M14.5 12.5h1"/></svg>'],
+  alert: ['#FCA5A5', '#B91C1C', '<svg viewBox="0 0 24 24"><path d="M12 3 2.5 20h19z" fill="' + GW + '"/><path class="lk-pulse" d="M12 9.5v5"/><circle cx="12" cy="17.3" r=".9" fill="#fff"/></svg>'],
+  approve: ['#86EFAC', '#16A34A', '<svg viewBox="0 0 24 24"><circle cx="9" cy="8" r="3.5" fill="' + GW + '"/><path d="M2.8 20a6.2 6.2 0 0 1 11-3.9"/><path class="lk-chk" d="m15 17 2.2 2.2 4.3-4.5"/></svg>'],
+  repeat: ['#7DD3FC', '#0284C7', '<svg viewBox="0 0 24 24"><g class="lk-tick" style="animation-duration:6s"><path d="M4 12a8 8 0 0 1 13.6-5.7L20 8.5"/><path d="M20 4v4.5h-4.5"/><path d="M20 12a8 8 0 0 1-13.6 5.7L4 15.5"/><path d="M4 20v-4.5h4.5"/></g></svg>']
+};
+G.profile = QI.profile; G.team = QI.team; G.report = QI.report; G.shield = QI.admin; G.group = QI.group; G.chats = QI.chats; G.tasks = QI.tasks; G.crm = QI.crm;
+const TILE = { 'm-sc': 'doc', 'x-cs': 'approve', 'm-notes': 'note', 'm-fame': 'trophy', 'm-aw': 'trophy', 'x-aw': 'trophy', 'm-tg': 'target', 'x-tg': 'target', 'm-tgt': 'chart', 'x-tr': 'chart', 'm-att': 'clock', 'x-att': 'clock', 'm-lv': 'cal', 'x-lv': 'cal', 'x-lvs': 'cal', 'm-mt': 'mic', 'x-mt': 'mic', 'm-sal': 'moon', 'x-sal': 'moon', 'm-dc': 'medal', 'm-dct': 'medal', 'x-dc': 'medal', 'm-notices': 'mega', 'x-nt': 'mega', 'm-edit': 'profile', 'm-lang': 'globe', 'm-push': 'bell', 'm-team': 'team', 'x-mb': 'team', 'm-rep': 'report', 'x-rp': 'report', 'm-adm': 'shield', 'x-ap': 'approve', 'm-grp': 'group', 'x-gr': 'group', 'x-df': 'dl', 'x-off': 'build', 'x-co': 'build', 'x-stuck': 'alert', 'x-pf': 'chart' };
+function lkTiles() {
+  document.querySelectorAll('.tile[id]').forEach((t, i) => {
+    const ic = t.querySelector('.ic'); if (!ic || ic.classList.contains('lkm')) return;
+    if (t.id === 'm-wa') { ic.classList.add('lkm'); ic.style.setProperty('--lkg', 'linear-gradient(140deg,#4ADE80,#128C4A)'); ic.style.setProperty('--lks', '#128C4A55'); ic.innerHTML = '<svg viewBox="0 0 32 32" style="width:32px;height:32px;stroke:none"><path fill="#fff" d="M16 4C9.4 4 4 9.4 4 16c0 2.1.6 4.2 1.6 6L4 28l6.2-1.6c1.8 1 3.8 1.5 5.8 1.5 6.6 0 12-5.4 12-12S22.6 4 16 4z"/><path fill="#16A34A" d="M22.6 19.2c-.3-.2-2-1-2.3-1.1-.3-.1-.5-.2-.8.2-.2.3-.9 1.1-1.1 1.4-.2.2-.4.3-.7.1-.3-.2-1.4-.5-2.7-1.7-1-.9-1.7-2-1.9-2.4-.2-.3 0-.5.2-.7l.5-.6c.2-.2.2-.4.4-.6.1-.2 0-.5 0-.6-.1-.2-.8-1.9-1-2.6-.3-.7-.5-.6-.8-.6h-.6c-.2 0-.6.1-.9.4-.3.3-1.2 1.2-1.2 2.9s1.2 3.3 1.4 3.6c.2.2 2.4 3.7 5.9 5.2 2.9 1.2 3.5 1 4.1.9.6-.1 2-.8 2.3-1.7.3-.8.3-1.5.2-1.7-.1-.1-.3-.2-.6-.3z"/></svg>'; return; }
+    const g = G[TILE[t.id]]; if (!g) return;
+    ic.classList.add('lkm'); ic.style.setProperty('--lkg', 'linear-gradient(140deg,' + g[0] + ',' + g[1] + ')'); ic.style.setProperty('--lks', g[1] + '55'); ic.style.setProperty('--lkd', ((i % 6) * 0.5).toFixed(1) + 's');
+    ic.innerHTML = g[2];
+  });
+}
+
 function lkApply() {
   document.querySelectorAll('.tabbar .tb').forEach(b => {
     const k = b.dataset.t, ti = b.querySelector('.ti');
@@ -130,6 +199,7 @@ function lkApply() {
   if (document.body.dataset.lk !== tab) document.body.dataset.lk = tab;
   lkMoti();
   lkHero();
+  lkTiles();
 }
 
 const MOTI = [['🚀', 'আজকের কাজ আজই — সময়মতো শেষ করুন!'], ['🏆', 'প্রতিটা শেষ করা টাস্ক আপনাকে সেরা হওয়ার দিকে নেয়'], ['💪', 'ছোট ছোট কাজই বড় সাফল্য আনে'], ['⏳', 'ডেডলাইনের আগে শেষ = পয়েন্ট সুরক্ষিত'], ['🌟', 'আপনার পরিশ্রমই MY TravelMate-এর শক্তি'], ['✅', 'একটা একটা করে টিক দিন — দিন শেষে সব সম্পন্ন!']];
@@ -188,7 +258,7 @@ async function lkHero() {
 
 function lkInit() {
   if (!document.getElementById('lkcss')) document.head.insertAdjacentHTML('beforeend', LK_CSS);
-  if (!document.getElementById('lkbg')) document.body.insertAdjacentHTML('afterbegin', '<div id="lkbg" aria-hidden="true"><i></i><i></i><i></i></div><div id="lkfx" aria-hidden="true">' + ['✅', '⭐', '🏆', '💪', '🚀', '✨', '✅', '⭐'].map((s, i) => '<span style="left:' + (6 + i * 12) + '%;animation-delay:' + (i * 1.7).toFixed(1) + 's;font-size:' + (14 + (i % 3) * 5) + 'px">' + s + '</span>').join('') + '</div>');
+  if (!document.getElementById('lkbg')) document.body.insertAdjacentHTML('afterbegin', '<div id="lkbg" aria-hidden="true"><i></i><i></i><i></i>' + [8, 22, 37, 55, 71, 86].map((l, i) => '<b style="left:' + l + '%;bottom:-30px;width:' + (10 + (i % 3) * 8) + 'px;height:' + (10 + (i % 3) * 8) + 'px;animation-delay:' + (i * 3) + 's"></b>').join('') + '<em>✈️</em></div><div id="lkfx" aria-hidden="true">' + ['✅', '⭐', '🏆', '💪', '🚀', '✨', '✅', '⭐'].map((s, i) => '<span style="left:' + (6 + i * 12) + '%;animation-delay:' + (i * 1.7).toFixed(1) + 's;font-size:' + (14 + (i % 3) * 5) + 'px">' + s + '</span>').join('') + '</div>');
   lkApply();
 }
 let lkQ = false;
