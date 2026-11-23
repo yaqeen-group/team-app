@@ -90,7 +90,8 @@ body[data-lk="tasks"] #lkfx{display:block}
 .lk-on .p i::after{content:"";position:absolute;right:-1px;bottom:-1px;width:7px;height:7px;border-radius:50%;background:#22c55e;border:1.5px solid #0B2A6F}
 .lk-on .p img{width:20px;height:20px;border-radius:50%;object-fit:cover}
 /* ===== v2: living background + glass surfaces ===== */
-html,body{background:linear-gradient(160deg,#D6E4FF 0%,#E8DCFF 36%,#D4F3E7 70%,#FFE9CF 100%) fixed!important}
+html{background:linear-gradient(160deg,#D6E4FF 0%,#E8DCFF 36%,#D4F3E7 70%,#FFE9CF 100%) fixed!important;min-height:100%}
+body{background:transparent!important}
 #app{background:transparent!important}
 #lkbg i{opacity:.7!important;filter:blur(50px)!important}
 #lkbg i:nth-child(1){background:var(--lk1,#93B8FF)!important}
@@ -125,6 +126,38 @@ body[data-lk="menu"]{--lk1:#C4B5FD;--lk2:#7DD3FC;--lk3:#F9A8D4}
 @keyframes lkSway{0%,100%{transform:rotate(-5deg)}50%{transform:rotate(5deg)}}
 .lk-pulse{transform-box:fill-box;transform-origin:center;animation:lkPulse 2s ease-in-out infinite}
 @keyframes lkPulse{0%,100%{transform:scale(1)}50%{transform:scale(1.15)}}
+/* ===== v3: travel scene background ===== */
+#lkbg b,#lkbg em{display:none!important}
+.lk-cloud{position:absolute;width:220px;height:70px;border-radius:999px;background:rgba(255,255,255,.75);filter:blur(2px);opacity:.75;animation:lkCloud linear infinite}
+.lk-cloud::before,.lk-cloud::after{content:"";position:absolute;background:inherit;border-radius:50%}
+.lk-cloud::before{width:110px;height:110px;left:30px;top:-52px}
+.lk-cloud::after{width:80px;height:80px;left:110px;top:-34px}
+.lk-cloud.c1{top:9%;left:-260px;transform:scale(.8);animation-duration:70s}
+.lk-cloud.c2{top:34%;left:-260px;transform:scale(.55);opacity:.55;animation-duration:95s;animation-delay:-40s}
+.lk-cloud.c3{top:58%;left:-260px;transform:scale(.7);opacity:.6;animation-duration:80s;animation-delay:-20s}
+.lk-cloud.c4{top:80%;left:-260px;transform:scale(.45);opacity:.5;animation-duration:110s;animation-delay:-70s}
+@keyframes lkCloud{from{translate:0 0}to{translate:calc(100vw + 520px) 0}}
+#lkroute{position:absolute;inset:0;width:100%;height:100%;overflow:visible}
+#lkroute path{fill:none;stroke:#1E6FE0;stroke-width:2.2;stroke-linecap:round;stroke-dasharray:2 11;opacity:.35;animation:lkDash 2.5s linear infinite}
+@keyframes lkDash{to{stroke-dashoffset:-26}}
+#lkplane{position:absolute;left:0;top:0;width:34px;height:34px;offset-rotate:auto;animation:lkPlane 18s ease-in-out infinite;filter:drop-shadow(0 6px 8px rgba(11,42,111,.3))}
+@keyframes lkPlane{0%{offset-distance:0%;opacity:0}6%{opacity:1}92%{opacity:1}100%{offset-distance:100%;opacity:0}}
+#lkglobe{position:absolute;right:-70px;top:22%;width:230px;height:230px;opacity:.22;animation:lkFloat 9s ease-in-out infinite}
+#lkglobe ellipse{fill:none;stroke:#0B2A6F;stroke-width:1.4;animation:lkSpinE 12s linear infinite;transform-origin:center}
+#lkglobe ellipse:nth-of-type(2){animation-delay:-4s}#lkglobe ellipse:nth-of-type(3){animation-delay:-8s}
+@keyframes lkSpinE{0%{rx:2}25%{rx:100}50%{rx:2}75%{rx:100}100%{rx:2}}
+#lkglobe circle,#lkglobe line{fill:none;stroke:#0B2A6F;stroke-width:1.4}
+.lk-star{position:absolute;width:12px;height:12px;background:#fff;clip-path:polygon(50% 0,62% 38%,100% 50%,62% 62%,50% 100%,38% 62%,0 50%,38% 38%);filter:drop-shadow(0 0 4px rgba(255,255,255,.9)) drop-shadow(0 0 6px rgba(30,111,224,.6));animation:lkTw 3.2s ease-in-out infinite}
+@keyframes lkTw{0%,100%{transform:scale(.2) rotate(0);opacity:0}50%{transform:scale(1) rotate(45deg);opacity:1}}
+#lkwave{position:absolute;left:0;bottom:0;width:200%;height:150px}
+#lkwave path{animation:lkWaveX 14s linear infinite}
+#lkwave path:nth-child(2){animation-duration:20s;animation-direction:reverse}
+#lkwave path:nth-child(3){animation-duration:26s}
+@keyframes lkWaveX{from{transform:translateX(0)}to{transform:translateX(-50%)}}
+@media (prefers-reduced-motion:reduce){.lk-cloud,#lkroute path,#lkplane,#lkglobe,#lkglobe ellipse,.lk-star,#lkwave path{animation:none!important}}
+/* home: daily full report tile */
+.qi.lkdf .qic{background:linear-gradient(140deg,#4ADE80,#15803D)!important;box-shadow:0 6px 14px #15803D55,inset 0 -3px 0 rgba(0,0,0,.08)!important;position:relative;overflow:hidden}
+.qi.lkdf .qic svg{width:30px;height:30px;fill:none;stroke:#fff;stroke-width:1.9;stroke-linecap:round;stroke-linejoin:round;overflow:visible}
 </style>`;
 
 const NAV = {
@@ -181,6 +214,19 @@ function lkTiles() {
   });
 }
 
+/* home quick grid: move Team / Team report / My profile / New group to Menu; add Daily full report (admin) */
+function lkGrid() {
+  const g = document.querySelector('.qgrid'); if (!g) return;
+  const mgr = typeof isMgr === 'function' && isMgr();
+  ['team', 'profile', 'group'].concat(mgr ? ['report'] : []).forEach(k => { const b = g.querySelector('.qi[data-q="' + k + '"]'); if (b) b.remove(); });
+  if (isAdmin() && typeof window.dfSheet === 'function' && !g.querySelector('.lkdf')) {
+    const b = document.createElement('button'); b.className = 'qi lkdf'; b.type = 'button';
+    b.innerHTML = '<span class="qic"><svg viewBox="0 0 24 24"><path d="M6 3h8.5L19 7.5V21H6z" fill="rgba(255,255,255,.28)"/><g class="lk-h1"><path d="M12.5 9v7M9.5 13l3 3 3-3"/></g></svg></span><span>দৈনিক রিপোর্ট</span>';
+    b.onclick = () => window.dfSheet();
+    const adm = g.querySelector('.qi[data-q="admin"]'); if (adm) g.insertBefore(b, adm); else g.appendChild(b);
+  }
+}
+
 function lkApply() {
   document.querySelectorAll('.tabbar .tb').forEach(b => {
     const k = b.dataset.t, ti = b.querySelector('.ti');
@@ -200,6 +246,7 @@ function lkApply() {
   lkMoti();
   lkHero();
   lkTiles();
+  lkGrid();
 }
 
 const MOTI = [['🚀', 'আজকের কাজ আজই — সময়মতো শেষ করুন!'], ['🏆', 'প্রতিটা শেষ করা টাস্ক আপনাকে সেরা হওয়ার দিকে নেয়'], ['💪', 'ছোট ছোট কাজই বড় সাফল্য আনে'], ['⏳', 'ডেডলাইনের আগে শেষ = পয়েন্ট সুরক্ষিত'], ['🌟', 'আপনার পরিশ্রমই MY TravelMate-এর শক্তি'], ['✅', 'একটা একটা করে টিক দিন — দিন শেষে সব সম্পন্ন!']];
@@ -256,10 +303,31 @@ async function lkHero() {
   fill(); clearInterval(lkHT); lkHT = setInterval(fill, 60000);
 }
 
+/* v3 scene: clouds, dotted flight route with a plane, spinning globe, twinkling stars, waves */
+function lkScene() {
+  const bg = document.getElementById('lkbg'); if (!bg || bg.dataset.v3) return; bg.dataset.v3 = '1';
+  const stars = [[12, 14], [78, 9], [55, 26], [20, 46], [88, 52], [40, 68], [70, 78], [8, 86]].map((p, i) => '<span class="lk-star" style="left:' + p[0] + '%;top:' + p[1] + '%;animation-delay:' + (i * 0.6).toFixed(1) + 's"></span>').join('');
+  const wave = (y, a, c) => { let d = 'M0 ' + y; for (let x = 0, k = 0; x < 2400; x += 150, k++) d += ' Q ' + (x + 75) + ' ' + (k % 2 ? y + a : y - a) + ' ' + (x + 150) + ' ' + y; return '<path d="' + d + ' V150 H0 Z" fill="' + c + '"/>'; };
+  bg.insertAdjacentHTML('beforeend', '<div class="lk-cloud c1"></div><div class="lk-cloud c2"></div><div class="lk-cloud c3"></div><div class="lk-cloud c4"></div>'
+    + '<svg id="lkglobe" viewBox="0 0 230 230"><circle cx="115" cy="115" r="100"/><ellipse cx="115" cy="115" rx="100" ry="100"/><ellipse cx="115" cy="115" rx="60" ry="100"/><ellipse cx="115" cy="115" rx="20" ry="100"/><line x1="15" y1="115" x2="215" y2="115"/><line x1="30" y1="65" x2="200" y2="65"/><line x1="30" y1="165" x2="200" y2="165"/></svg>'
+    + stars
+    + '<svg id="lkroute"><path id="lkrp"/></svg><div id="lkplane"><svg viewBox="0 0 24 24" width="34" height="34"><path fill="#1E6FE0" d="M21.5 12 3 4.5l2.8 7.5L3 19.5z"/><path fill="#0B2A6F" d="M5.8 12h8"/></svg></div>'
+    + '<svg id="lkwave" viewBox="0 0 2400 150" preserveAspectRatio="none">' + wave(70, 26, 'rgba(30,111,224,.10)') + wave(92, 18, 'rgba(124,58,237,.08)') + wave(112, 14, 'rgba(16,185,129,.10)') + '</svg>');
+  const route = () => {
+    const w = innerWidth, h = innerHeight;
+    const d = 'M ' + (-40) + ' ' + (h * 0.82) + ' C ' + (w * 0.25) + ' ' + (h * 0.55) + ', ' + (w * 0.5) + ' ' + (h * 0.95) + ', ' + (w * 0.72) + ' ' + (h * 0.6) + ' S ' + (w * 0.95) + ' ' + (h * 0.2) + ', ' + (w + 60) + ' ' + (h * 0.12);
+    const p = document.getElementById('lkrp'), pl = document.getElementById('lkplane'), sv = document.getElementById('lkroute');
+    if (!p || !pl) return;
+    sv.setAttribute('viewBox', '0 0 ' + w + ' ' + h); p.setAttribute('d', d); pl.style.offsetPath = "path('" + d + "')";
+  };
+  route(); addEventListener('resize', route);
+}
+
 function lkInit() {
   if (!document.getElementById('lkcss')) document.head.insertAdjacentHTML('beforeend', LK_CSS);
   if (!document.getElementById('lkbg')) document.body.insertAdjacentHTML('afterbegin', '<div id="lkbg" aria-hidden="true"><i></i><i></i><i></i>' + [8, 22, 37, 55, 71, 86].map((l, i) => '<b style="left:' + l + '%;bottom:-30px;width:' + (10 + (i % 3) * 8) + 'px;height:' + (10 + (i % 3) * 8) + 'px;animation-delay:' + (i * 3) + 's"></b>').join('') + '<em>✈️</em></div><div id="lkfx" aria-hidden="true">' + ['✅', '⭐', '🏆', '💪', '🚀', '✨', '✅', '⭐'].map((s, i) => '<span style="left:' + (6 + i * 12) + '%;animation-delay:' + (i * 1.7).toFixed(1) + 's;font-size:' + (14 + (i % 3) * 5) + 'px">' + s + '</span>').join('') + '</div>');
   lkApply();
+  lkScene();
 }
 let lkQ = false;
 new MutationObserver(muts => {
