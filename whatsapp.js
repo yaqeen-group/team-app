@@ -43,7 +43,7 @@ window.viewWhatsApp = viewWhatsApp;
 function waTab() {
   const b = document.querySelector('.tabbar .tb[data-t="chats"]'); if (!b) return;
   b.dataset.t = 'whatsapp'; b.classList.remove('on');
-  b.innerHTML = '<span class="ti" style="display:inline-flex;justify-content:center">' + WA_IC.replace(/width="26" height="26"/, 'width="22" height="22"') + '</span>WhatsApp';
+  b.innerHTML = '<span class="ti" style="display:inline-flex;justify-content:center;filter:none;opacity:1">' + WA_IC.replace(/width="26" height="26"/, 'width="22" height="22"') + '</span><span style="color:#128C4A">WhatsApp</span>';
   b.onclick = e => { e.stopPropagation(); const l = waCache || []; if (l.length === 1) waOpen(l[0].url); else viewWhatsApp(); };
   if (!waCache || !waCache.length) waLinks(true);
 }
