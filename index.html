@@ -1681,7 +1681,8 @@ function taskForm(t) {
       const title = el.querySelector('#tt').value.trim(), assigned_to = el.querySelector('#ta').value;
       if (!title) return toast('টাস্কের নাম দিন'); if (!assigned_to) return toast('কাকে দেবেন বেছে নিন');
       const ckN = Math.min(200, Math.max(0, parseInt((el.querySelector('#tcn') || {}).value, 10) || 0)), ckL = (el.querySelector('#tcl') || {}).value || 'পেজ', ckLink = !!(el.querySelector('#tck') || {}).checked;
-      const ckItems = ckN ? Array.from({ length: ckN }, (_, k) => ({ label: ckL + ' ' + String(k + 1).replace(/\d/g, d => '০১২৩৪৫৬৭৮৯'[d]), need_link: ckLink })) : null;
+      const sopItems = (window.ygSopPick && window.ygSopPick(el)) || null;
+      const ckItems = sopItems ? sopItems : ckN ? Array.from({ length: ckN }, (_, k) => ({ label: ckL + ' ' + String(k + 1).replace(/\d/g, d => '০১২৩৪৫৬৭৮৯'[d]), need_link: ckLink })) : null;
       const rp = trp ? trp.value : '';
       if (rp) {
         const wd = [...el.querySelectorAll('#trwd input:checked')].map(x => +x.value);
@@ -3216,5 +3217,7 @@ window.viewPerfTeam = viewPerfTeam;
 <script src="crmstaff.js?v=1"></script>
 <script src="look.js?v=3"></script>
 <script src="fb.js?v=1"></script>
+<script src="team.js?v=1"></script>
+<script src="goals.js?v=1"></script>
 </body>
 </html>

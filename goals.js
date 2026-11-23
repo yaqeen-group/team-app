@@ -1,0 +1,80 @@
+/* 🎯 live company sales targets on home — admins log achievements, everyone sees progress */
+{
+const GL_CSS = '<style id="glcss">.gl{position:relative;margin-top:12px;padding:11px 12px 10px;border-radius:16px;background:rgba(255,255,255,.13);border:1px solid rgba(255,255,255,.22);backdrop-filter:blur(6px);-webkit-backdrop-filter:blur(6px);color:#fff;overflow:hidden}.gl::after{content:"";position:absolute;inset:-40%;background:linear-gradient(115deg,transparent 42%,rgba(255,255,255,.16) 50%,transparent 58%);animation:glSh 6s ease-in-out infinite;pointer-events:none}@keyframes glSh{0%,65%{transform:translateX(-60%)}100%{transform:translateX(60%)}}.gl h3{font-size:13.5px;display:flex;justify-content:space-between;align-items:center;gap:8px;position:relative;z-index:1;color:#fff}.gl h3 small{font-size:11px;font-weight:700;background:rgba(253,230,138,.95);color:#7c2d12;padding:2px 9px;border-radius:999px;white-space:nowrap;animation:glPu 2s ease-in-out infinite}@keyframes glPu{0%,100%{transform:scale(1)}50%{transform:scale(1.06)}}.gl-g{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:7px 12px;position:relative;z-index:1}.gl-r{margin-top:6px}.gl-l{font-size:11.5px;line-height:1.3;min-width:0}.gl-l b{display:block;font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.gl-l span{display:block;opacity:.92;font-size:11px;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.gl-b{height:7px;border-radius:99px;background:rgba(255,255,255,.22);margin-top:3px;overflow:hidden}.gl-b i{display:block;height:100%;border-radius:99px;background:linear-gradient(90deg,#FDE68A,#34D399);width:0;transition:width 1.2s cubic-bezier(.2,.9,.3,1);box-shadow:0 0 8px rgba(253,230,138,.7)}.gl-b i.done{background:linear-gradient(90deg,#34D399,#22C55E)}.gl-r .lf{font-size:10.5px;opacity:.85;margin-top:1px}.gl-p{margin-top:9px;padding-top:8px;border-top:1px dashed rgba(255,255,255,.35);position:relative;z-index:1}.gl-p h4{font-size:12.5px;display:flex;justify-content:space-between;color:#fff}.gl-p h4 small{font-size:10.5px;opacity:.9}.gl-a{display:flex;gap:8px;margin-top:9px;position:relative;z-index:1}.gl-a button{flex:1;background:rgba(255,255,255,.95);color:#0B2A6F;font-weight:700;font-size:12px;border-radius:11px;padding:7px}.gl-a button.gh{background:rgba(255,255,255,.18);color:#fff}</style>';
+const bnN = n => Number(n || 0).toLocaleString('en-IN').replace(/\d/g, d => '০১২৩৪৫৬৭৮৯'[d]);
+const fmt = (n, u) => u === '৳' ? '৳' + bnN(n) : bnN(n) + (u ? ' ' + u : '');
+const todayBD = () => todayDhaka();
+const daysLeft = end => Math.max(0, Math.round((Date.parse(end + 'T23:59:59+06:00') - Date.now()) / 86400000));
+let glData = null;
+async function glLoad() {
+  const { data: goals } = await sb.from('yg_goals').select('*').eq('active', true).order('sort');
+  const g = goals || []; if (!g.length) return { goals: [], logs: [] };
+  const from = g.map(x => x.start_date).sort()[0];
+  const { data: logs } = await sb.from('yg_goal_logs').select('*').gte('day', from).order('created_at', { ascending: false }).limit(2000);
+  return (glData = { goals: g, logs: logs || [] });
+}
+const achieved = (goal, logs) => {
+  const t = todayBD();
+  return logs.filter(l => l.metric === goal.metric && (goal.period === 'daily' ? l.day === t : (l.day >= goal.start_date && l.day <= goal.end_date))).reduce((a, l) => a + Number(l.amount || 0), 0);
+};
+function row(goal, logs) {
+  const a = achieved(goal, logs), t = Number(goal.target), pct = Math.min(100, t ? a / t * 100 : 0), left = Math.max(0, t - a);
+  return '<div class="gl-r"><div class="gl-l"><b>' + esc(goal.label) + '</b><span>' + fmt(a, goal.unit) + ' / ' + fmt(t, goal.unit) + (left > 0 ? ' · বাকি ' + fmt(left, goal.unit) : ' · 🎉 পূরণ!') + '</span></div><div class="gl-b"><i data-w="' + pct.toFixed(1) + '"' + (pct >= 100 ? ' class="done"' : '') + '></i></div></div>';
+}
+async function glHome() {
+  try {
+    if (!state.profile || document.getElementById('hgl')) return;
+    const hero = document.querySelector('.hero'); if (!hero) return;
+    if (!document.getElementById('glcss')) document.head.insertAdjacentHTML('beforeend', GL_CSS);
+    hero.insertAdjacentHTML('beforeend', '<div class="gl" id="hgl" data-noi18n><h3>🎯 কোম্পানির টার্গেট<small>লোড হচ্ছে…</small></h3></div>');
+    const { goals, logs } = await glLoad();
+    const box = document.getElementById('hgl'); if (!box) return;
+    if (!goals.length) { box.remove(); return; }
+    const main = goals.filter(g => g.grp === 'main'), ph = goals.filter(g => g.grp !== 'main');
+    const mEnd = main.length ? main[0].end_date : null, pEnd = ph.length ? ph[0].end_date : null;
+    const endTxt = d => { const [, m, dd] = d.split('-').map(Number); return bnN(dd) + ' ' + ['জানুয়ারি','ফেব্রুয়ারি','মার্চ','এপ্রিল','মে','জুন','জুলাই','আগস্ট','সেপ্টেম্বর','অক্টোবর','নভেম্বর','ডিসেম্বর'][m - 1]; };
+    box.innerHTML = '<h3>🎯 ' + (mEnd ? endTxt(mEnd) + ' পর্যন্ত টার্গেট' : 'কোম্পানির টার্গেট') + (mEnd ? '<small>⏳ ' + bnN(daysLeft(mEnd)) + ' দিন বাকি</small>' : '') + '</h3>'
+      + '<div class="gl-g">' + main.map(g => row(g, logs)).join('') + '</div>'
+      + (ph.length ? '<div class="gl-p"><h4><span>🚀 প্রথম ১০ দিনের টার্গেট</span><small>' + (daysLeft(pEnd) ? '⏳ ' + bnN(daysLeft(pEnd)) + ' দিন বাকি' : 'সময় শেষ') + '</small></h4><div class="gl-g">' + ph.map(g => row(g, logs)).join('') + '</div></div>' : '')
+      + (isAdmin() ? '<div class="gl-a"><button id="gladd">＋ অর্জন যোগ করুন</button><button class="gh" id="glhis">🧾 হিসাব / এডিট</button></div>' : '');
+    requestAnimationFrame(() => setTimeout(() => box.querySelectorAll('.gl-b i').forEach(i => i.style.width = i.dataset.w + '%'), 60));
+    const ad = document.getElementById('gladd'); if (ad) ad.onclick = glAdd;
+    const hs = document.getElementById('glhis'); if (hs) hs.onclick = glHistory;
+  } catch (e) { const b = document.getElementById('hgl'); if (b) b.remove(); }
+}
+const METRICS = [['student', '🎓 স্টুডেন্ট (জন)'], ['visa', '🛂 ভিসা (টি)'], ['ticket', '✈️ এয়ার টিকিট (টি)'], ['pakulla', '🏪 পাকুল্লা অফিসের সেল (৳)']];
+function glAdd() {
+  sheet('<h3>＋ অর্জন যোগ করুন</h3><label>কোনটা</label><select class="in" id="glm">' + METRICS.map(m => '<option value="' + m[0] + '">' + m[1] + '</option>').join('') + '</select>'
+    + '<label>কতটা (সংখ্যা বা টাকা)</label><input class="in" id="gla" type="number" inputmode="decimal" placeholder="যেমন ১ বা ২৫০০">'
+    + '<label>তারিখ</label><input class="in" id="gld" type="date" value="' + todayBD() + '">'
+    + '<label>নোট (ঐচ্ছিক — ক্লায়েন্টের নাম ইত্যাদি)</label><input class="in" id="gln" maxlength="200">'
+    + '<button class="btn" id="glok">যোগ করুন</button>', (el, close) => {
+    el.querySelector('#glok').onclick = async () => {
+      const amount = Number(el.querySelector('#gla').value);
+      if (!amount || amount < 0) return toast('সঠিক সংখ্যা দিন');
+      const { error } = await sb.from('yg_goal_logs').insert({ metric: el.querySelector('#glm').value, amount, day: el.querySelector('#gld').value || todayBD(), note: el.querySelector('#gln').value.trim() || null });
+      if (error) return toast(friendlyError(error));
+      close(); toast('যোগ হয়েছে ✓ টার্গেট আপডেট হলো'); const b = document.getElementById('hgl'); if (b) b.remove(); glHome();
+    };
+  });
+}
+async function glHistory() {
+  const { goals, logs } = await glLoad(); await loadPeople();
+  const ml = k => (METRICS.find(m => m[0] === k) || [k, k])[1];
+  sheet('<h3>🧾 অর্জনের হিসাব</h3>' + (logs.length ? logs.slice(0, 60).map(l => '<div class="card" style="margin-top:6px;padding:9px 12px;display:flex;justify-content:space-between;gap:8px;align-items:center"><span style="font-size:13px"><b>' + ml(l.metric) + '</b> +' + bnN(l.amount) + '<small style="display:block;color:#64748b">' + esc(l.day) + (l.note ? ' · ' + esc(l.note) : '') + ' · ' + esc((ui.people[l.created_by] || {}).full_name || '') + '</small></span><button class="btn sm ghost" data-del="' + l.id + '" style="margin:0">🗑️</button></div>').join('') : '<div class="empty">এখনো কিছু যোগ হয়নি</div>')
+    + '<div class="sec" style="margin-top:14px">🎯 টার্গেট এডিট</div>' + goals.map(g => '<div class="card" style="margin-top:6px;padding:9px 12px"><b style="font-size:13px">' + esc(g.label) + ' <small style="color:#64748b">(' + (g.grp === 'main' ? 'মূল' : '১০ দিন') + (g.period === 'daily' ? ', দৈনিক' : '') + ')</small></b><div class="two" style="margin-top:6px"><input class="in" data-gt="' + g.id + '" type="number" value="' + g.target + '" style="margin-top:0"><input class="in" data-ge="' + g.id + '" type="date" value="' + g.end_date + '" style="margin-top:0"></div></div>').join('')
+    + '<button class="btn" id="glsv">টার্গেট সেভ করুন</button>', (el, close) => {
+    el.querySelectorAll('[data-del]').forEach(b => b.onclick = async () => { if (!confirm('এই এন্ট্রি মুছে ফেলবেন?')) return; const { error } = await sb.from('yg_goal_logs').delete().eq('id', b.dataset.del); if (error) return toast(friendlyError(error)); b.closest('.card').remove(); toast('মুছে ফেলা হয়েছে'); });
+    el.querySelector('#glsv').onclick = async () => {
+      for (const g of goals) {
+        const t = Number(el.querySelector('[data-gt="' + g.id + '"]').value), e = el.querySelector('[data-ge="' + g.id + '"]').value;
+        if (t !== Number(g.target) || e !== g.end_date) { const { error } = await sb.from('yg_goals').update({ target: t, end_date: e }).eq('id', g.id); if (error) return toast(friendlyError(error)); }
+      }
+      close(); toast('সেভ হয়েছে ✓'); const b = document.getElementById('hgl'); if (b) b.remove(); glHome();
+    };
+  });
+}
+const _vhGl = viewHome;
+viewHome = async function () { const pr = _vhGl(); setTimeout(glHome, 800); return pr; };
+if (document.querySelector('.qgrid')) setTimeout(glHome, 800);
+}
