@@ -2,9 +2,9 @@
 {
 const I = {
   cam: '<svg viewBox="0 0 24 24"><path d="M3 7.5A2.5 2.5 0 0 1 5.5 5h8A2.5 2.5 0 0 1 16 7.5v1.3l3.6-2.3c.7-.4 1.4 0 1.4.8v9.4c0 .8-.7 1.2-1.4.8L16 15.2v1.3a2.5 2.5 0 0 1-2.5 2.5h-8A2.5 2.5 0 0 1 3 16.5z"/></svg>',
-  camOff: '<svg viewBox="0 0 24 24"><path d="M3 7.5A2.5 2.5 0 0 1 5.5 5h8A2.5 2.5 0 0 1 16 7.5v1.3l3.6-2.3c.7-.4 1.4 0 1.4.8v9.4c0 .8-.7 1.2-1.4.8L16 15.2v1.3a2.5 2.5 0 0 1-2.5 2.5h-8A2.5 2.5 0 0 1 3 16.5z"/><path d="M3 3l18 18" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" fill="none" class="sl"/></svg>',
+  camOff: '<svg viewBox="0 0 24 24"><path d="M3 7.5A2.5 2.5 0 0 1 5.5 5h8A2.5 2.5 0 0 1 16 7.5v1.3l3.6-2.3c.7-.4 1.4 0 1.4.8v9.4c0 .8-.7 1.2-1.4.8L16 15.2v1.3a2.5 2.5 0 0 1-2.5 2.5h-8A2.5 2.5 0 0 1 3 16.5z"/><path d="M3 3l18 18" stroke="#fff" stroke-width="5.5" stroke-linecap="round" fill="none"/><path d="M3 3l18 18" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" fill="none"/></svg>',
   mic: '<svg viewBox="0 0 24 24"><path d="M12 14.5a3.5 3.5 0 0 0 3.5-3.5V6a3.5 3.5 0 1 0-7 0v5a3.5 3.5 0 0 0 3.5 3.5z"/><path d="M18.5 11a6.5 6.5 0 0 1-13 0M12 17.5V21m-3.5 0h7" stroke="currentColor" stroke-width="2" stroke-linecap="round" fill="none"/></svg>',
-  micOff: '<svg viewBox="0 0 24 24"><path d="M12 14.5a3.5 3.5 0 0 0 3.5-3.5V6a3.5 3.5 0 1 0-7 0v5a3.5 3.5 0 0 0 3.5 3.5z"/><path d="M18.5 11a6.5 6.5 0 0 1-13 0M12 17.5V21m-3.5 0h7" stroke="currentColor" stroke-width="2" stroke-linecap="round" fill="none"/><path d="M3 3l18 18" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" fill="none" class="sl"/></svg>',
+  micOff: '<svg viewBox="0 0 24 24"><path d="M12 14.5a3.5 3.5 0 0 0 3.5-3.5V6a3.5 3.5 0 1 0-7 0v5a3.5 3.5 0 0 0 3.5 3.5z"/><path d="M18.5 11a6.5 6.5 0 0 1-13 0M12 17.5V21m-3.5 0h7" stroke="currentColor" stroke-width="2" stroke-linecap="round" fill="none"/><path d="M3 3l18 18" stroke="#fff" stroke-width="5.5" stroke-linecap="round" fill="none"/><path d="M3 3l18 18" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" fill="none"/></svg>',
   spk: '<svg viewBox="0 0 24 24"><path d="M4 9.5h3.2L12 5.2v13.6l-4.8-4.3H4z"/><path d="M15.5 8.5a5 5 0 0 1 0 7M18 6a8.5 8.5 0 0 1 0 12" stroke="currentColor" stroke-width="2" stroke-linecap="round" fill="none"/></svg>',
   spkLow: '<svg viewBox="0 0 24 24"><path d="M4 9.5h3.2L12 5.2v13.6l-4.8-4.3H4z"/><path d="M15.5 9.5a3.6 3.6 0 0 1 0 5" stroke="currentColor" stroke-width="2" stroke-linecap="round" fill="none"/></svg>',
   flip: '<svg viewBox="0 0 24 24"><path d="M4 8.5A2.5 2.5 0 0 1 6.5 6H8l1.5-2h5L16 6h1.5A2.5 2.5 0 0 1 20 8.5v8a2.5 2.5 0 0 1-2.5 2.5h-11A2.5 2.5 0 0 1 4 16.5z"/><path d="M9 12.5a3 3 0 0 1 5.2-2M15 12.5a3 3 0 0 1-5.2 2M14.2 8.6v2h-2M9.8 16.4v-2h2" stroke="#fff" stroke-width="1.5" stroke-linecap="round" fill="none"/></svg>',
@@ -38,7 +38,7 @@ const CSS = `<style id="cuicss">
 .cu-b.on{background:#fff;color:#2563EB}
 .cu-b.end{background:#EF4444;width:62px;height:62px}
 .cu-b.end svg{width:32px;height:32px}
-.cu-b[hidden]{display:none}
+.cu-b[hidden],.cu-w[hidden]{display:none!important}
 .cu-l{font-size:10.5px;text-align:center;margin-top:4px;opacity:.9}
 .cu-w{display:flex;flex-direction:column;align-items:center}
 /*pill*/.cu-pill{position:fixed;right:12px;bottom:calc(84px + env(safe-area-inset-bottom,0px));z-index:65;background:#16A34A;color:#fff;border-radius:28px;padding:10px 16px;display:flex;align-items:center;gap:8px;font-weight:700;font-size:14px;box-shadow:0 10px 24px rgba(0,0,0,.3);animation:cuPulse 2s infinite}
