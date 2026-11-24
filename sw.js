@@ -1,5 +1,5 @@
 // Service worker: installable app shell + phone notifications
-const CACHE = 'yaqeen-shell-v48';
+const CACHE = 'yaqeen-shell-v49';
 const SHELL = ['./', './index.html', './manifest.json', './icon-192.png', './icon-512.png', './mark.jpg', './logo-full.jpg'];
 self.addEventListener('install', e => {
   e.waitUntil(caches.open(CACHE).then(c => c.addAll(SHELL)).then(() => self.skipWaiting()));
@@ -21,16 +21,32 @@ self.addEventListener('push', e => {
   let d = {};
   try { d = e.data ? e.data.json() : {}; } catch (err) { d = { body: e.data && e.data.text() }; }
   const isCall = String(d.tag || '').startsWith('call-');
-  e.waitUntil(self.registration.showNotification(d.title || 'Yaqeen Group', {
+  const tag = d.tag || 'yg';
+  const opts = () => ({
     body: d.body || 'নতুন আপডেট আছে',
     icon: 'icon-192.png',
     badge: 'icon-192.png',
-    tag: d.tag || 'yg',
+    tag,
     renotify: true,
+    silent: false,
     requireInteraction: isCall,
-    vibrate: isCall ? [500, 250, 500, 250, 500] : [200, 100, 200],
+    vibrate: isCall ? [800, 300, 800, 300, 800, 300, 800] : [200, 100, 200],
     data: { url: d.url || './' }
-  }));
+  });
+  const title = d.title || 'Yaqeen Group';
+  const wait = ms => new Promise(r => setTimeout(r, ms));
+  /* calls ring again 2 more times (like a phone ringing) unless the person already tapped or closed it */
+  const ring = async () => {
+    await self.registration.showNotification(title, opts());
+    if (!isCall) return;
+    for (let i = 0; i < 2; i++) {
+      await wait(12000);
+      const still = await self.registration.getNotifications({ tag });
+      if (!still.length) return;
+      await self.registration.showNotification('📞 ' + title.replace(/^📞\s*/, ''), opts());
+    }
+  };
+  e.waitUntil(ring());
 });
 self.addEventListener('notificationclick', e => {
   e.notification.close();

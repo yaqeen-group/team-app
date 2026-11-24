@@ -178,3 +178,33 @@ drawCallGrid = function () {
 const _leave = leaveCall;
 leaveCall = async function (silent) { const p = document.getElementById('uxcallpill'); if (p) p.hidden = true; return _leave(silent === true); };
 }
+
+/* 🔔 Ringtone for incoming calls (phone-style double ring, loops until answered/declined) */
+{
+let rCtx = null, rLoop = null, rVib = null;
+const getCtx = () => { try { if (!rCtx) rCtx = new (window.AudioContext || window.webkitAudioContext)(); if (rCtx.state === 'suspended') rCtx.resume(); } catch (e) {} return rCtx; };
+/* browsers only allow sound after the user has touched the app once — unlock early */
+['pointerdown', 'touchstart', 'keydown'].forEach(ev => document.addEventListener(ev, () => getCtx(), { capture: true, passive: true }));
+function tone(ctx, t0, dur) {
+  [440, 480].forEach(f => {
+    const o = ctx.createOscillator(), g = ctx.createGain();
+    o.type = 'sine'; o.frequency.value = f;
+    g.gain.setValueAtTime(0, t0); g.gain.linearRampToValueAtTime(0.22, t0 + 0.03);
+    g.gain.setValueAtTime(0.22, t0 + dur - 0.05); g.gain.linearRampToValueAtTime(0, t0 + dur);
+    o.connect(g); g.connect(ctx.destination); o.start(t0); o.stop(t0 + dur + 0.02);
+  });
+}
+function ringOnce() {
+  const ctx = getCtx(); if (!ctx) return;
+  const t = ctx.currentTime + 0.05;
+  tone(ctx, t, 0.4); tone(ctx, t + 0.6, 0.4);           /* tring-tring */
+}
+ringTone = function (on) {
+  clearInterval(rLoop); rLoop = null; clearInterval(rVib); rVib = null;
+  try { navigator.vibrate && navigator.vibrate(0); } catch (e) {}
+  if (!on) return;
+  ringOnce(); rLoop = setInterval(ringOnce, 2600);
+  const vib = () => { try { navigator.vibrate && navigator.vibrate([700, 300, 700]); } catch (e) {} };
+  vib(); rVib = setInterval(vib, 2600);
+};
+}
