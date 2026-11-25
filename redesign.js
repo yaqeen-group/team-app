@@ -6,7 +6,7 @@ let icN = 0;
 const EM = { 'clipboard-text': '✅', 'bell-simple-ringing': '🔔', 'clock-countdown': '⏰', 'lightning': '⚡', 'calendar-check': '🎙️', 'chart-line-up': '📈', 'squares-four': '🧩', 'target': '🎯', 'users-three': '🕒', 'tree-structure': '🏢', 'shield-star': '🛡️', 'chart-donut': '📊', 'identification-card': '👥', 'hourglass-medium': '📌', 'clipboard': '🗓️', 'strategy': '📝', 'database': '💾', 'toolbox': '🛠️', 'sparkle': '✨', 'folders': '📁' };
 const I = (n, c1, c2, tint, anim) => '<span class="x-ic" style="--tint:' + (tint || 'color-mix(in srgb,' + c1 + ' 15%,#fff)') + '"><em class="a-' + (anim || 'float') + '" style="--d:' + ((icN++ % 9) * 0.27).toFixed(2) + 's">' + (EM[n] || '•') + '</em></span>';
 /* the app's own original icon (tile .ic / quick .qic), copied with its colours, plus a soft animation */
-const CL = (el, anim) => { if (!el) return ''; const c = el.cloneNode(true), cs = getComputedStyle(el); c.removeAttribute('id'); c.classList.add('x-oic', 'lk', 'a-' + (anim || 'float')); c.style.background = cs.backgroundImage && cs.backgroundImage !== 'none' ? cs.backgroundImage : cs.backgroundColor; c.style.setProperty('--d', ((icN++ % 9) * 0.27).toFixed(2) + 's'); return c.outerHTML; };
+const CL = (el, anim) => { if (!el) return ''; const c = el.cloneNode(true), cs = getComputedStyle(el); c.removeAttribute('id'); c.classList.add('x-oic', 'lk', 'a-' + (anim || 'float')); if (cs.backgroundImage && cs.backgroundImage !== 'none') c.style.background = cs.backgroundImage; c.style.setProperty('--d', ((icN++ % 9) * 0.27).toFixed(2) + 's'); return c.outerHTML; };
 const GI = (emo, a, b, anim) => '<span class="x-oic a-' + (anim || 'float') + '" style="--d:' + ((icN++ % 9) * 0.27).toFixed(2) + 's;background:linear-gradient(140deg,' + a + ',' + b + ')">' + emo + '</span>';
 const boss = () => (typeof isAdmin === 'function' && isAdmin()) || !!(state.profile && state.profile.observer);
 const bn = n => Number(n || 0).toLocaleString('bn-BD');
@@ -84,7 +84,14 @@ const CSS = `<style id="xcss">
 .tb[data-t="admin"].on::before{content:"";position:absolute;inset:0 6px;border-radius:16px;background:linear-gradient(140deg,#1a56db,#0B2A6F);z-index:-1;box-shadow:0 6px 14px rgba(26,86,219,.35)}
 .tb[data-t="admin"]{z-index:0}
 </style>`;
-const css = () => { if (!document.getElementById('xcss')) document.head.insertAdjacentHTML('beforeend', CSS); };
+/* reuse the app's own icon styling (look.js) for copied icons */
+let lkCopied = false;
+function copyLk() {
+  if (lkCopied) return; const out = [];
+  try { for (const sh of document.styleSheets) { let rs; try { rs = sh.cssRules; } catch (e) { continue; } for (const r of rs) { const st = r.selectorText || ''; if (/\.tile \.ic\.lkm|\.qi \.qic\.lk/.test(st)) out.push(st.replace(/\.tile \.ic\.lkm/g, '.x-t .x-oic').replace(/\.qi \.qic\.lk/g, '.x-t .x-oic') + '{' + r.style.cssText + '}'); } } } catch (e) {}
+  if (out.length) { lkCopied = true; document.head.insertAdjacentHTML('beforeend', '<style id="xlkcss">' + out.join('\n').replace(/!important/g, '') + '</style>'); }
+}
+const css = () => { if (!document.getElementById('xcss')) document.head.insertAdjacentHTML('beforeend', CSS); copyLk(); };
 
 /* Kuala Lumpur skyline (drawn) */
 const SKY = '<svg class="sky" viewBox="0 0 330 170" xmlns="http://www.w3.org/2000/svg"><defs><linearGradient id="xsk" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#BFD7FF" stop-opacity=".55"/><stop offset="1" stop-color="#7FA8F5" stop-opacity=".25"/></linearGradient><linearGradient id="xsk2" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#E6EFFF" stop-opacity=".85"/><stop offset="1" stop-color="#9CBCF7" stop-opacity=".45"/></linearGradient></defs>'
