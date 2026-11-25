@@ -49,7 +49,9 @@ function place() {
     const after = [...box.children].find(c => g.ids.indexOf(c.id) > order && order >= 0);
     box.insertBefore(t, after || null);
   });
-  wrap.querySelectorAll('.mg').forEach(s => s.hidden = !s.querySelector('.tile'));
+  /* attendance only for people who work from the office (admins/managers keep it to see the team) */
+  try { const at = document.getElementById('m-att'); if (at) { const show = state.profile.work_mode === 'office' || isMgr(); at.hidden = !show; at.style.display = show ? '' : 'none'; } } catch (e) {}
+  wrap.querySelectorAll('.mg').forEach(s => s.hidden = !s.querySelector('.tile:not([hidden])'));
 }
 const _vmMg = viewMenu;
 viewMenu = function () { const r = _vmMg(); try { build(); setTimeout(place, 300); setTimeout(place, 1200); } catch (e) {} return r; };
