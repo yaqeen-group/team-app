@@ -278,6 +278,15 @@ viewAdmin = async function () {
   } catch (e) {}
 };
 
+/* ---------------- Tasks: admins have no own tasks → no "My tasks" tab ---------------- */
+const _vtX = viewTasks;
+viewTasks = async function () {
+  if (boss()) { try { if (taskFilter === 'mine') taskFilter = 'all'; } catch (e) {} }
+  const r = await _vtX.apply(this, arguments);
+  if (boss()) document.querySelectorAll('.chip[data-f="mine"]').forEach(c => c.remove());
+  return r;
+};
+
 /* ---------------- bottom bar: Admin tab for admins only ---------------- */
 const _goX = go;
 go = function (tab) {
