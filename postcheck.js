@@ -158,10 +158,11 @@ async function openCheck(id) {
 if (typeof handleDeepLink === 'function') {
   const _hdl = handleDeepLink;
   handleDeepLink = function (href) {
-    try { const u = new URL(href || location.href); const pc = u.searchParams.get('pc'); if (pc) { if (location.search) history.replaceState(null, '', location.pathname); setTimeout(() => openCheck(pc), 400); return; } } catch (e) {}
+    try { const u = new URL(href || location.href); const iss = u.searchParams.get('iss'); if (iss) { if (location.search) history.replaceState(null, '', location.pathname); setTimeout(() => { if (iss === 'a' && window.issueDashboard) issueDashboard(); else if (window.reportSheet) reportSheet(); }, 400); return; } const pc = u.searchParams.get('pc'); if (pc) { if (location.search) history.replaceState(null, '', location.pathname); setTimeout(() => openCheck(pc), 400); return; } } catch (e) {}
     return _hdl.apply(this, arguments);
   };
 }
+try { const q0 = new URLSearchParams(location.search), is0 = q0.get('iss'); if (is0) { history.replaceState(null, '', location.pathname); setTimeout(() => { if (is0 === 'a' && window.issueDashboard) issueDashboard(); else if (window.reportSheet) reportSheet(); }, 2500); } } catch (e) {}
 try { const pc0 = new URLSearchParams(location.search).get('pc'); if (pc0) { history.replaceState(null, '', location.pathname); setTimeout(() => openCheck(pc0), 2500); } } catch (e) {}
 
 const _vmPc = viewMenu;

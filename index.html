@@ -894,7 +894,10 @@ async function viewNotif() {
     if (!n.read_at) { n.read_at = new Date().toISOString(); sb.from('yg_notifications').update({ read_at: n.read_at }).eq('id', n.id).then(() => {}); }
     const href = new URL(n.url || './', location.href).href;
     if (n.kind === 'award' && window.ygSpotlight) ygSpotlight(new URL(href).searchParams.get('aw'));
-    else if (/[?&](c|t|n|crm|call)=/.test(href)) handleDeepLink(href);
+    else if (/[?&](c|t|n|crm|call|pc|iss)=/.test(href)) handleDeepLink(href);
+    else if (/AI চেক/.test(n.title || '') && window.ygPostReport) ygPostReport();
+    else if (/নতুন সমস্যা/.test(n.title || '') && window.issueDashboard) issueDashboard();
+    else if (/সমস্যা/.test(n.title || '') && window.reportSheet) reportSheet();
     else if (n.kind === 'notice') go('notices');
     else if (n.kind === 'remind') go('home');
     else { b.classList.remove('new'); const d = b.querySelector('.nf-dot'); if (d) d.remove(); }
@@ -3223,7 +3226,7 @@ window.viewPerfTeam = viewPerfTeam;
 <script src="callui.js?v=3"></script>
 <script src="sounds.js?v=1"></script>
 <script src="issues.js?v=2"></script>
-<script src="postcheck.js?v=3"></script>
+<script src="postcheck.js?v=4"></script>
 <script src="menu2.js?v=4"></script>
 </body>
 </html>
