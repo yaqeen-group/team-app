@@ -3,24 +3,25 @@
 const PH = n => 'https://cdn.jsdelivr.net/npm/@phosphor-icons/core@2.1.1/assets/duotone/' + n + '-duotone.svg';
 let icN = 0;
 /* animated gradient duotone icon; anim: float | ring | pulse | spin | grow | wave */
-const I = (n, c1, c2, tint, anim) => '<span class="x-ic" style="--tint:' + (tint || 'rgba(26,115,232,.10)') + '"><i class="a-' + (anim || 'float') + '" style="--d:' + ((icN++ % 9) * 0.27).toFixed(2) + 's;background:linear-gradient(140deg,' + c1 + ',' + c2 + ');-webkit-mask-image:url(' + PH(n) + ');mask-image:url(' + PH(n) + ')"></i></span>';
+const I = (n, c1, c2, tint, anim) => '<span class="x-ic" style="--tint:' + (tint || 'color-mix(in srgb,' + c1 + ' 15%,#fff)') + '"><i class="a-' + (anim || 'float') + '" style="--d:' + ((icN++ % 9) * 0.27).toFixed(2) + 's;background:linear-gradient(140deg,' + c1 + ',' + c2 + ');-webkit-mask-image:url(' + PH(n) + ');mask-image:url(' + PH(n) + ')"></i></span>';
 const boss = () => (typeof isAdmin === 'function' && isAdmin()) || !!(state.profile && state.profile.observer);
 const bn = n => Number(n || 0).toLocaleString('bn-BD');
 const txt = id => { const e = document.getElementById(id); return e ? e.textContent.trim() : ''; };
 
 const CSS = `<style id="xcss">
 .x-ic{width:46px;height:46px;border-radius:15px;display:flex;align-items:center;justify-content:center;background:var(--tint);box-shadow:inset 0 1px 0 rgba(255,255,255,.7);flex:0 0 auto}
-.x-ic i{width:30px;height:30px;display:block;-webkit-mask-size:contain;mask-size:contain;-webkit-mask-repeat:no-repeat;mask-repeat:no-repeat;-webkit-mask-position:center;mask-position:center;filter:drop-shadow(0 2px 2px rgba(0,0,0,.08))}
+.x-ic i{width:31px;height:31px;display:block;-webkit-mask-size:contain;mask-size:contain;-webkit-mask-repeat:no-repeat;mask-repeat:no-repeat;-webkit-mask-position:center;mask-position:center;filter:drop-shadow(0 2px 2px rgba(0,0,0,.08))}
 .a-float{animation:xFloat 3.4s ease-in-out infinite;animation-delay:var(--d)}@keyframes xFloat{0%,100%{transform:translateY(0)}50%{transform:translateY(-3px)}}
 .a-ring{animation:xRing 4s ease-in-out infinite;animation-delay:var(--d);transform-origin:50% 10%}@keyframes xRing{0%,70%,100%{transform:rotate(0)}74%{transform:rotate(14deg)}78%{transform:rotate(-12deg)}82%{transform:rotate(8deg)}86%{transform:rotate(-4deg)}}
 .a-pulse{animation:xPulse 2.6s ease-in-out infinite;animation-delay:var(--d)}@keyframes xPulse{0%,100%{transform:scale(1)}50%{transform:scale(1.1)}}
 .a-spin{animation:xSpin 9s linear infinite}@keyframes xSpin{to{transform:rotate(360deg)}}
 .a-grow{animation:xGrow 3s ease-in-out infinite;animation-delay:var(--d);transform-origin:50% 100%}@keyframes xGrow{0%,100%{transform:scaleY(1)}50%{transform:scaleY(1.12)}}
 .a-wave{animation:xWave 3.2s ease-in-out infinite;animation-delay:var(--d)}@keyframes xWave{0%,100%{transform:rotate(0)}25%{transform:rotate(-7deg)}75%{transform:rotate(7deg)}}
+.view:has(#xhero) #hmt,.view:has(#xhero) #hqw,.view:has(#xhero) #hpf,.view:has(#xhero) .qgrid{display:none!important}
 .x-tap{transition:transform .15s}.x-tap:active{transform:scale(.93)}
 .x-hero{position:relative;overflow:hidden;margin:0 0 0;padding:16px 18px 64px;border-radius:0 0 30px 30px;color:#fff;background:linear-gradient(160deg,#0B2A6F 0%,#123E9C 55%,#1E5BD8 100%);box-shadow:0 14px 34px rgba(11,42,111,.28)}
-.x-hero .sky{position:absolute;right:-10px;bottom:0;width:78%;max-width:330px;opacity:.95;pointer-events:none}
-.x-hero .glow{position:absolute;width:220px;height:220px;border-radius:50%;background:radial-gradient(circle,rgba(255,255,255,.22),transparent 65%);top:-80px;right:-40px;animation:xGlow 7s ease-in-out infinite}@keyframes xGlow{50%{transform:translate(-20px,15px)}}
+.x-ahead .sky,.x-hero .sky{position:absolute;right:-10px;bottom:0;width:78%;max-width:330px;opacity:.95;pointer-events:none}
+.x-ahead .glow,.x-hero .glow{position:absolute;width:220px;height:220px;border-radius:50%;background:radial-gradient(circle,rgba(255,255,255,.22),transparent 65%);top:-80px;right:-40px;animation:xGlow 7s ease-in-out infinite}@keyframes xGlow{50%{transform:translate(-20px,15px)}}
 .x-top{display:flex;align-items:center;justify-content:space-between;position:relative;z-index:1}
 .x-brand{display:flex;align-items:center;gap:10px}.x-brand img{width:42px;height:42px;border-radius:12px;background:#fff;padding:3px;box-shadow:0 4px 12px rgba(0,0,0,.2)}
 .x-brand b{display:block;font-size:19px;letter-spacing:.2px}.x-brand small{display:block;font-size:10.5px;letter-spacing:4px;opacity:.85}
@@ -102,6 +103,8 @@ function homeBuild() {
       + '<button class="x-st x-tap" id="xs3">' + I('clock-countdown', '#7C3AED', '#A78BFA', 'rgba(124,58,237,.12)', 'pulse') + '<span><b id="xs3v">–</b><small>Overdue</small></span></button></div>');
     pad.style.marginTop = '0';
     const hst = document.getElementById('xstats'); hst.style.marginBottom = '14px';
+    const keepTop = () => { if (pad.firstElementChild !== hst && document.body.contains(hst)) pad.prepend(hst); };
+    new MutationObserver(keepTop).observe(pad, { childList: true }); keepTop();
     document.getElementById('xbell').onclick = () => go('notif');
     document.getElementById('xav').onclick = () => renderProfile();
     document.getElementById('xs1').onclick = () => go('tasks');
@@ -109,11 +112,13 @@ function homeBuild() {
     document.getElementById('xs3').onclick = () => (window.viewOverdue ? viewOverdue() : go('tasks'));
     const sync = () => {
       if (!document.getElementById('xhero')) return clearInterval(t);
-      const a = txt('k1'), n = txt('lknfv'), o = txt('lkodv');
+      const a = txt('k2'), n = txt('lknfv'), o = txt('lkodv');
       if (a) document.getElementById('xs1v').textContent = a;
       if (n) { document.getElementById('xs2v').textContent = n; const b = document.getElementById('xbellb'); const nn = parseInt(n.replace(/[০-৯]/g, d => '০১২৩৪৫৬৭৮৯'.indexOf(d)), 10) || 0; b.hidden = !nn; b.textContent = n; }
       if (o) document.getElementById('xs3v').textContent = o;
       const pv = document.getElementById('xpv1'); if (pv && a) pv.textContent = a;
+      const hm = document.getElementById('hmt'), ms = document.getElementById('xmts');
+      if (hm && ms) { const ls = hm.innerText.split('\n').map(x => x.trim()).filter(Boolean).filter(x => !/today'?s meeting|আজকের মিটিং|tap to|চাপ দিন/i.test(x)); ms.textContent = ls.join(' · ') || 'হাজিরা দেখুন'; }
     };
     const t = setInterval(sync, 1200); sync();
 
@@ -141,8 +146,8 @@ function homeBuild() {
       const hmt = document.getElementById('hmt'); let mt = 'Morning Meeting', ms = '';
       if (hmt) { const lines = hmt.innerText.split('\n').map(s => s.trim()).filter(Boolean); mt = lines[0] || mt; ms = lines.slice(1, 3).join(' · '); hmt.style.display = 'none'; }
       const rr = /(\d+|[০-৯]+)\s*\/\s*(\d+|[০-৯]+)/.exec(txt('ob-r'));
-      document.getElementById('xqg').insertAdjacentHTML('afterend', '<div class="x-two"><button class="x-card x-tap" id="xmt"><h4>' + I('calendar-check', '#2563EB', '#60A5FA', 'rgba(37,99,235,.12)', 'float') + "Today's Meeting ›</h4><div class=\"r\"><span><b>" + esc(mt) + '</b><small>' + esc(ms) + '</small></span></div></button>'
-        + '<button class="x-card x-tap" id="xpf"><h4>' + I('chart-line-up', '#16A34A', '#22D3EE', 'rgba(22,163,74,.12)', 'grow') + (isB ? 'Team Performance' : 'My Performance') + '</h4><div class="nums"><span><b id="xpv1">' + esc(txt('k1') || '–') + '</b><small>Active Tasks</small></span>'
+      document.getElementById('xqg').insertAdjacentHTML('afterend', '<div class="x-two"><button class="x-card x-tap" id="xmt"><h4>' + I('calendar-check', '#2563EB', '#60A5FA', 'rgba(37,99,235,.12)', 'float') + "Today's Meeting ›</h4><div class=\"r\"><span><b>" + (new Date().getHours() >= 17 ? 'Night Meeting' : 'Morning Meeting') + '</b><small id="xmts">' + esc(ms) + '</small></span></div></button>'
+        + '<button class="x-card x-tap" id="xpf"><h4>' + I('chart-line-up', '#16A34A', '#22D3EE', 'rgba(22,163,74,.12)', 'grow') + (isB ? 'Team Performance' : 'My Performance') + '</h4><div class="nums"><span><b id="xpv1">' + esc(txt('k2') || '–') + '</b><small>Active Tasks</small></span>'
         + (isB ? '<span><b>' + (rr ? esc(rr[1] + '/' + rr[2]) : '–') + '</b><small>Reports</small></span>' : '<span><b>' + esc(txt('lkodv') || '0') + '</b><small>Overdue</small></span>') + '</div></button></div>');
       document.getElementById('xmt').onclick = () => (hmt ? hmt.click() : (window.viewMeetings ? viewMeetings() : go('home')));
       document.getElementById('xpf').onclick = () => (isB ? (window.ygReportDash ? ygReportDash() : go('home')) : (typeof viewPerfPerson === 'function' ? viewPerfPerson(state.profile.id) : go('tasks')));
@@ -190,7 +195,7 @@ viewAdmin = async function () {
     const list = s[2].filter(x => x[0].startsWith('@') || holder.querySelector('#' + x[0]));
     if (k === 'org') extra.forEach(t => list.push([t.id, (t.querySelector('b') || {}).textContent || t.id, 'folders', '#64748B', '#CBD5E1', 'float']));
     return '<div class="x-box ' + (cl.has(k) ? 'closed' : '') + '" data-k="' + k + '"><div class="hd"><h3>' + s[1] + s[0] + '</h3><span class="chev">▾</span></div><div class="x-grid">'
-      + list.map(x => '<button class="x-t x-tap" data-go="' + x[0] + '">' + I(x[2], x[3], x[4], 'rgba(148,163,184,.10)', x[5]) + '<span class="l">' + esc(x[1]) + '</span>' + (x[0] === 'x-ap' && pend && pend !== '0' ? '<span class="x-n">' + esc(pend) + '</span>' : '') + (x[0] === 'x-rp' && flag && flag !== '0' ? '<span class="x-n">' + esc(flag) + '</span>' : '') + '</button>').join('') + '</div></div>';
+      + list.map(x => '<button class="x-t x-tap" data-go="' + x[0] + '">' + I(x[2], x[3], x[4], null, x[5]) + '<span class="l">' + esc(x[1]) + '</span>' + (x[0] === 'x-ap' && pend && pend !== '0' ? '<span class="x-n">' + esc(pend) + '</span>' : '') + (x[0] === 'x-rp' && flag && flag !== '0' ? '<span class="x-n">' + esc(flag) + '</span>' : '') + '</button>').join('') + '</div></div>';
   };
   frame('<div class="x-ahead"><div class="glow"></div>' + SKY.replace('class="sky"', 'class="sky" style="opacity:.5"') + '<div class="row1"><div class="ttl">' + I('shield-star', '#F6D365', '#D4AF37', 'rgba(255,255,255,.14)', 'pulse') + '<div><b>Yaqeen Group</b><small>Admin Panel</small></div></div><button class="x-gear x-tap" id="xgear"><i></i></button></div></div>'
     + '<div class="x-tabs">' + tabs.map(([k, l, ic]) => '<button data-xt="' + k + '" class="' + (xTab === k ? 'on' : '') + '"><i style="-webkit-mask-image:url(' + PH(ic) + ');mask-image:url(' + PH(ic) + ')"></i>' + l + '</button>').join('') + '</div>'
