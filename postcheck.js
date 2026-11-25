@@ -113,7 +113,7 @@ const boss = () => isAdmin() || !!(state.profile && state.profile.observer);
 async function detail(c) {
   css(); await loadPeople(); let img = '';
   const nm = id => esc((ui.people[id] || {}).full_name || 'সদস্য');
-  if (c.image_path) { try { const { data } = await sb.storage.from('proofs').createSignedUrl(c.image_path, 900); if (data) img = '<img class="pc-prev" src="' + data.signedUrl + '">'; } catch (e) {} }
+  if (c.image_path) { try { const { data } = await sb.storage.from('proofs').createSignedUrl(c.image_path, 900); if (data) img = '<div class="pc-sec">🖼️ মেম্বারের ব্যানার</div><a href="' + data.signedUrl + '" target="_blank" rel="noopener"><img class="pc-prev" style="max-height:340px;width:100%;object-fit:contain;background:#f8fafc" src="' + data.signedUrl + '"></a><div class="mut" style="font-size:11px">ছবিতে চাপ দিলে বড় করে দেখা যাবে</div>'; } catch (e) {} }
   sheet('<h3>' + (c.user_id ? nm(c.user_id) : '✨ AI চেক') + '</h3><div class="pc-li"><b>' + esc(c.topic || '') + '</b></div>' + img
     + (c.caption ? '<div class="pc-sec">ক্যাপশন (মেম্বারের)</div><div class="pc-cap">' + esc(c.caption) + '</div>' : '') + resultHtml(c.result || c)
     + (c.admin_note ? '<div class="pc-sec">📝 অ্যাডমিনের মন্তব্য</div><div class="pc-li good">' + esc(c.admin_note) + '</div>' : '')
@@ -141,12 +141,28 @@ async function report() {
     const per = {}; (ch || []).forEach(c => { const p = per[c.user_id] = per[c.user_id] || { n: 0, s: 0 }; p.n++; p.s += c.score; });
     const nm = id => esc((ui.people[id] || {}).full_name || 'সদস্য');
     box.innerHTML = '<div class="pc-sec">👥 সদস্য অনুযায়ী</div>' + (Object.keys(per).length ? Object.entries(per).map(([u, p]) => '<div class="pc-li">' + nm(u) + ' — ' + bn(p.n) + 'টা চেক · গড় স্কোর <b>' + (p.s / p.n).toFixed(1) + '</b></div>').join('') : '<div class="empty">আজ কেউ চেক করেনি</div>')
-      + '<div class="pc-sec">🧾 সব চেক (কম স্কোর আগে)</div>' + (ch || []).map((c, i) => '<button class="pc-t" data-x="' + i + '"><span><b>' + nm(c.user_id) + '</b><small>' + esc(c.topic || '') + (c.admin_note ? ' · 📝' : '') + '</small></span><span class="sc pc-' + c.verdict + '">' + bn(c.score) + '</span></button>').join('')
+      + '<div class="pc-sec">🧾 সব চেক (কম স্কোর আগে)</div>' + (ch || []).map((c, i) => '<button class="pc-t" data-x="' + i + '">' + (c.image_path ? '<img data-th="' + esc(c.image_path) + '" style="width:46px;height:46px;border-radius:8px;object-fit:cover;flex:0 0 46px;background:#eef2f7">' : '<span style="width:46px;height:46px;border-radius:8px;flex:0 0 46px;background:#f1f5f9;display:flex;align-items:center;justify-content:center">✍️</span>') + '<span style="flex:1;min-width:0"><b>' + nm(c.user_id) + '</b><small>' + esc(c.topic || '') + (c.admin_note ? ' · 📝' : '') + '</small></span><span class="sc pc-' + c.verdict + '">' + bn(c.score) + '</span></button>').join('')
       + '<div class="pc-sec">⚪ চেক ছাড়াই পোস্ট করেছে (' + bn(miss.length) + ')</div>' + (miss.length ? miss.map(d => '<div class="pc-li low">' + nm(tm[d.task_id].assigned_to) + ' — ' + esc(cleanTopic(d.label)) + '</div>').join('') : '<div class="mut" style="font-size:12.5px;margin-top:6px">সবাই চেক করে পোস্ট দিয়েছে 👍</div>');
     box.querySelectorAll('[data-x]').forEach(b => b.onclick = () => detail(ch[+b.dataset.x]));
+    const ths = [...box.querySelectorAll('[data-th]')];
+    if (ths.length) { try { const { data: su } = await sb.storage.from('proofs').createSignedUrls([...new Set(ths.map(i => i.dataset.th))], 900); const mp = {}; (su || []).forEach(x => { if (x.signedUrl) mp[x.path] = x.signedUrl; }); ths.forEach(i => { if (mp[i.dataset.th]) i.src = mp[i.dataset.th]; }); } catch (e) {} }
   });
 }
 window.ygPostReport = report;
+async function openCheck(id) {
+  for (let i = 0; i < 20 && !(state.profile && state.profile.id); i++) await new Promise(r => setTimeout(r, 300));
+  const { data, error } = await sb.from('yg_post_checks').select('*').eq('id', id).maybeSingle();
+  if (error || !data) return toast('চেকটা খুঁজে পাওয়া যায়নি');
+  detail(data);
+}
+if (typeof handleDeepLink === 'function') {
+  const _hdl = handleDeepLink;
+  handleDeepLink = function (href) {
+    try { const u = new URL(href || location.href); const pc = u.searchParams.get('pc'); if (pc) { if (location.search) history.replaceState(null, '', location.pathname); setTimeout(() => openCheck(pc), 400); return; } } catch (e) {}
+    return _hdl.apply(this, arguments);
+  };
+}
+try { const pc0 = new URLSearchParams(location.search).get('pc'); if (pc0) { history.replaceState(null, '', location.pathname); setTimeout(() => openCheck(pc0), 2500); } } catch (e) {}
 
 const _vmPc = viewMenu;
 viewMenu = function () {
