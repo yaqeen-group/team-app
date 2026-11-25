@@ -851,7 +851,7 @@ async function refreshUnread() {
   if (b) { b.textContent = ui.unread; b.hidden = !ui.unread; }
 }
 function tabbar() {
-  const t = [['home', '🏠', 'Home'], ['chats', '💬', 'Chats'], ['notif', '🔔', 'নোটিফিকেশন'], ['tasks', '✔️', 'Tasks'], ['crm', '📊', 'CRM'], ['menu', '☰', 'Menu']];
+  const t = [['home', '🏠', 'Home'], ['chats', '💬', 'Chats'], ['tasks', '✔️', 'Tasks'], ['crm', '📊', 'CRM'], ['menu', '☰', 'Menu']];
   return `<nav class="tabbar">${t.map(([k, i, l]) => `<button class="tb ${ui.tab === k ? 'on' : ''}" data-t="${k}"><span class="ti">${i}</span>${l}${k === 'notif' ? `<span class="bd" ${ui.nfUnread ? '' : 'hidden'}>${ui.nfUnread > 99 ? '99+' : ui.nfUnread}</span>` : ''}${k === 'chats' ? `<span class="bd" ${ui.unread ? '' : 'hidden'}>${ui.unread}</span>` : ''}</button>`).join('')}</nav>`;
 }
 function frame(inner) {
