@@ -3,13 +3,22 @@
 const PH = n => 'https://cdn.jsdelivr.net/npm/@phosphor-icons/core@2.1.1/assets/duotone/' + n + '-duotone.svg';
 let icN = 0;
 /* animated gradient duotone icon; anim: float | ring | pulse | spin | grow | wave */
-const I = (n, c1, c2, tint, anim) => '<span class="x-ic" style="--tint:' + (tint || 'color-mix(in srgb,' + c1 + ' 15%,#fff)') + '"><i class="a-' + (anim || 'float') + '" style="--d:' + ((icN++ % 9) * 0.27).toFixed(2) + 's;background:linear-gradient(140deg,' + c1 + ',' + c2 + ');-webkit-mask-image:url(' + PH(n) + ');mask-image:url(' + PH(n) + ')"></i></span>';
+const EM = { 'clipboard-text': '✅', 'bell-simple-ringing': '🔔', 'clock-countdown': '⏰', 'lightning': '⚡', 'calendar-check': '🎙️', 'chart-line-up': '📈', 'squares-four': '🧩', 'target': '🎯', 'users-three': '🕒', 'tree-structure': '🏢', 'shield-star': '🛡️', 'chart-donut': '📊', 'identification-card': '👥', 'hourglass-medium': '📌', 'clipboard': '🗓️', 'strategy': '📝', 'database': '💾', 'toolbox': '🛠️', 'sparkle': '✨', 'folders': '📁' };
+const I = (n, c1, c2, tint, anim) => '<span class="x-ic" style="--tint:' + (tint || 'color-mix(in srgb,' + c1 + ' 15%,#fff)') + '"><em class="a-' + (anim || 'float') + '" style="--d:' + ((icN++ % 9) * 0.27).toFixed(2) + 's">' + (EM[n] || '•') + '</em></span>';
+/* the app's own original icon (tile .ic / quick .qic), copied with its colours, plus a soft animation */
+const CL = (el, anim) => { if (!el) return ''; const c = el.cloneNode(true), cs = getComputedStyle(el); c.removeAttribute('id'); c.className = 'x-oic a-' + (anim || 'float'); c.style.background = cs.backgroundImage && cs.backgroundImage !== 'none' ? cs.backgroundImage : cs.backgroundColor; c.style.setProperty('--d', ((icN++ % 9) * 0.27).toFixed(2) + 's'); return c.outerHTML; };
+const GI = (emo, a, b, anim) => '<span class="x-oic a-' + (anim || 'float') + '" style="--d:' + ((icN++ % 9) * 0.27).toFixed(2) + 's;background:linear-gradient(140deg,' + a + ',' + b + ')">' + emo + '</span>';
 const boss = () => (typeof isAdmin === 'function' && isAdmin()) || !!(state.profile && state.profile.observer);
 const bn = n => Number(n || 0).toLocaleString('bn-BD');
 const txt = id => { const e = document.getElementById(id); return e ? e.textContent.trim() : ''; };
 
 const CSS = `<style id="xcss">
 .x-ic{width:46px;height:46px;border-radius:15px;display:flex;align-items:center;justify-content:center;background:var(--tint);box-shadow:inset 0 1px 0 rgba(255,255,255,.7);flex:0 0 auto}
+.x-ic em{font-style:normal;font-size:25px;line-height:1;display:block}.x-sec h3 .x-ic em,.x-box .hd h3 .x-ic em{font-size:21px}.x-st .x-ic em{font-size:20px}.x-card h4 .x-ic em{font-size:16px}.x-ahead .ttl .x-ic em{font-size:30px}
+.x-oic{width:52px;height:52px;border-radius:17px;display:flex;align-items:center;justify-content:center;font-size:27px;box-shadow:inset 0 -3px 0 rgba(11,42,111,.06),0 3px 8px rgba(11,42,111,.08);overflow:hidden}.x-oic img,.x-oic svg{max-width:70%;max-height:70%}
+.x-hero .kl,.x-ahead .kl{position:absolute;right:0;bottom:0;height:100%;width:auto;max-width:72%;object-fit:cover;object-position:center bottom;-webkit-mask-image:linear-gradient(90deg,transparent,#000 38%);mask-image:linear-gradient(90deg,transparent,#000 38%);pointer-events:none}
+.x-hero .ygbg .ct{display:none}.x-hero>*:not(.ygbg):not(.kl):not(.glow){position:relative;z-index:1}
+.x-tabs button em{font-style:normal;font-size:20px;line-height:1}
 .x-ic i{width:31px;height:31px;display:block;-webkit-mask-size:contain;mask-size:contain;-webkit-mask-repeat:no-repeat;mask-repeat:no-repeat;-webkit-mask-position:center;mask-position:center;filter:drop-shadow(0 2px 2px rgba(0,0,0,.08))}
 .a-float{animation:xFloat 3.4s ease-in-out infinite;animation-delay:var(--d)}@keyframes xFloat{0%,100%{transform:translateY(0)}50%{transform:translateY(-3px)}}
 .a-ring{animation:xRing 4s ease-in-out infinite;animation-delay:var(--d);transform-origin:50% 10%}@keyframes xRing{0%,70%,100%{transform:rotate(0)}74%{transform:rotate(14deg)}78%{transform:rotate(-12deg)}82%{transform:rotate(8deg)}86%{transform:rotate(-4deg)}}
@@ -19,7 +28,7 @@ const CSS = `<style id="xcss">
 .a-wave{animation:xWave 3.2s ease-in-out infinite;animation-delay:var(--d)}@keyframes xWave{0%,100%{transform:rotate(0)}25%{transform:rotate(-7deg)}75%{transform:rotate(7deg)}}
 .view:has(#xhero) #hmt,.view:has(#xhero) #hqw,.view:has(#xhero) #hpf,.view:has(#xhero) .qgrid{display:none!important}
 .x-tap{transition:transform .15s}.x-tap:active{transform:scale(.93)}
-.x-hero{position:relative;overflow:hidden;margin:0 0 0;padding:16px 18px 64px;border-radius:0 0 30px 30px;color:#fff;background:linear-gradient(160deg,#0B2A6F 0%,#123E9C 55%,#1E5BD8 100%);box-shadow:0 14px 34px rgba(11,42,111,.28)}
+.x-hero{position:relative;overflow:hidden;margin:0 0 0;padding:16px 18px 64px;border-radius:0 0 30px 30px;color:#fff;background:linear-gradient(160deg,#0B2A6F 0%,#1A4AB0 55%,#2B5FC4 100%);box-shadow:0 14px 34px rgba(11,42,111,.28)}
 .x-ahead .sky,.x-hero .sky{position:absolute;right:-10px;bottom:0;width:78%;max-width:330px;opacity:.95;pointer-events:none}
 .x-ahead .glow,.x-hero .glow{position:absolute;width:220px;height:220px;border-radius:50%;background:radial-gradient(circle,rgba(255,255,255,.22),transparent 65%);top:-80px;right:-40px;animation:xGlow 7s ease-in-out infinite}@keyframes xGlow{50%{transform:translate(-20px,15px)}}
 .x-top{display:flex;align-items:center;justify-content:space-between;position:relative;z-index:1}
@@ -93,10 +102,11 @@ function homeBuild() {
     const p = state.profile, isB = boss();
     oldHero.style.display = 'none';
     const badge = p.observer ? '<span class="x-badge gold">👑 Admin Account</span>' : '<span class="x-badge">' + esc(p.designation || p.role || '') + '</span>';
-    oldHero.insertAdjacentHTML('beforebegin', '<div class="x-hero" id="xhero"><div class="glow"></div>' + SKY
+    oldHero.insertAdjacentHTML('beforebegin', '<div class="x-hero" id="xhero"><img class="kl" src="kl-skyline.jpg" alt=""><div class="glow"></div>'
       + '<div class="x-top"><div class="x-brand"><img src="icon-192.png" alt=""><div><b>Yaqeen Group</b><small>TEAM</small></div></div>'
       + '<div class="x-tr"><button class="x-bell x-tap" id="xbell"><i></i><span class="x-bd" id="xbellb" hidden></span></button><button class="x-av x-tap" id="xav">' + avatar(p.full_name, p.id, 46) + '<span class="dot"></span></button></div></div>'
       + '<div class="x-hi">Assalamualaikum,</div><div class="x-name">' + esc(p.full_name) + '</div>' + badge + '</div>');
+    { const bg = oldHero.querySelector('.ygbg'), xh = document.getElementById('xhero'); if (bg && xh) xh.prepend(bg.cloneNode(true)); }
     pad.insertAdjacentHTML('afterbegin', '<div class="x-stats" id="xstats">'
       + '<button class="x-st x-tap" id="xs1">' + I('clipboard-text', '#2563EB', '#60A5FA', 'rgba(37,99,235,.12)', 'float') + '<span><b id="xs1v">–</b><small>Open Tasks</small></span></button>'
       + '<button class="x-st x-tap" id="xs2">' + I('bell-simple-ringing', '#F59E0B', '#FBBF24', 'rgba(245,158,11,.14)', 'ring') + '<span><b id="xs2v">–</b><small>Notifications</small></span></button>'
@@ -127,15 +137,16 @@ function homeBuild() {
     if (qg) {
       const qi = [...qg.children], find = re => qi.find(x => re.test(x.className + ' ' + x.textContent));
       const gpt = find(/gptq/), gptIc = gpt && gpt.querySelector('img,svg') ? gpt.querySelector('img,svg').outerHTML : '';
+      const oq = re => { const o = find(re); return o ? CL(o.querySelector('.qic'), 'float') : ''; };
       const items = [
-        ['xq-ch', 'Chats', I('chats-circle', '#16A34A', '#4ADE80', 'rgba(22,163,74,.12)', 'wave'), () => go('chats')],
-        ['xq-no', 'Notices', I('megaphone', '#F97316', '#FDBA74', 'rgba(249,115,22,.13)', 'wave'), () => go('notices')],
-        ['xq-tk', 'Tasks', I('check-square', '#2563EB', '#60A5FA', 'rgba(37,99,235,.12)', 'pulse'), () => go('tasks')],
-        ['xq-cr', 'CRM', I('chart-bar', '#E11D48', '#FB7185', 'rgba(225,29,72,.11)', 'grow'), () => go('crm')],
-        ['xq-gp', 'ChatGPT', gptIc ? '<span class="x-ic" style="--tint:rgba(16,163,127,.12)"><span class="a-float" style="--d:.4s;display:block;width:30px;height:30px">' + gptIc.replace(/(width|height)="[^"]*"/g, '') + '</span></span>' : I('sparkle', '#10A37F', '#34D399', 'rgba(16,163,127,.12)', 'spin'), () => { const o = find(/gptq/); o ? o.click() : window.open('https://chatgpt.com/', '_blank'); }],
-        ['xq-gg', 'Google', '<span class="x-ic" style="--tint:rgba(66,133,244,.10)"><i class="a-float" style="--d:.8s;background:conic-gradient(from -45deg,#EA4335 0 25%,#4285F4 0 50%,#34A853 0 75%,#FBBC05 0);-webkit-mask-image:url(' + PH('google-logo') + ');mask-image:url(' + PH('google-logo') + ')"></i></span>', () => { const o = find(/ggq/); o && o.click(); }],
-        ['xq-fb', 'Facebook', I('facebook-logo', '#1877F2', '#3B82F6', 'rgba(24,119,242,.12)', 'pulse'), () => { const o = find(/fbq/); o && o.click(); }],
-        ['xq-mo', 'More', I('squares-four', '#8B5CF6', '#C4B5FD', 'rgba(139,92,246,.12)', 'spin'), () => go('menu')]
+        ['xq-ch', 'Chats', oq(/Chats/) || I('chats-circle', '#16A34A', '#4ADE80'), () => go('chats')],
+        ['xq-no', 'Notices', oq(/Notices/) || I('megaphone', '#F97316', '#FDBA74'), () => go('notices')],
+        ['xq-tk', 'Tasks', oq(/Tasks/) || I('check-square', '#2563EB', '#60A5FA'), () => go('tasks')],
+        ['xq-cr', 'CRM', oq(/CRM/) || I('chart-bar', '#E11D48', '#FB7185'), () => go('crm')],
+        ['xq-gp', 'ChatGPT', oq(/gptq/) || I('sparkle', '#10A37F', '#34D399'), () => { const o = find(/gptq/); o ? o.click() : window.open('https://chatgpt.com/', '_blank'); }],
+        ['xq-gg', 'Google', oq(/ggq/) || I('sparkle', '#4285F4', '#34A853'), () => { const o = find(/ggq/); o && o.click(); }],
+        ['xq-fb', 'Facebook', oq(/fbq/) || I('facebook-logo', '#1877F2', '#3B82F6'), () => { const o = find(/fbq/); o && o.click(); }],
+        ['xq-mo', 'More', GI('🧩', '#E9D5FF', '#C4B5FD', 'wave'), () => go('menu')]
       ];
       qg.style.display = 'none';
       qg.insertAdjacentHTML('beforebegin', '<div class="x-sec"><h3>' + I('lightning', '#2563EB', '#22D3EE', 'transparent', 'pulse') + 'Quick Access</h3><button class="lnk" id="xqall">See All →</button></div><div class="x-grid" id="xqg">'
@@ -176,6 +187,7 @@ const AD = {
 };
 const SPECIAL = { '@rdash': () => window.ygReportDash && ygReportDash(), '@pchk': () => window.ygPostReport && ygPostReport(), '@appeal': () => window.viewAppeals && viewAppeals(), '@sc': () => handleDeepLink(new URL('./?sc=1', location.href).href), '@issues': () => window.issueDashboard && issueDashboard() };
 let xTab = 'dash';
+const SPI = { '@rdash': ['📊', '#CCFBF1', '#5EEAD4'], '@pchk': ['✨', '#EDE9FE', '#C4B5FD'], '@appeal': ['⚖️', '#E0E7FF', '#A5B4FC'], '@sc': ['📜', '#FEE2E2', '#FCA5A5'], '@issues': ['🧰', '#FFE4E6', '#FDA4AF'] };
 const closedSet = () => { try { return new Set(JSON.parse(localStorage.getItem('yg_adm_closed') || '[]')); } catch (e) { return new Set(); } };
 const _vaX = viewAdmin;
 viewAdmin = async function () {
@@ -186,7 +198,7 @@ viewAdmin = async function () {
   [...document.querySelectorAll('.tile')].forEach(t => holder.appendChild(t));
   const pend = txt('a2'), flag = txt('a3');
   ui.tab = 'admin';
-  const tabs = [['dash', 'Dashboard', 'gauge'], ['mgmt', 'Management', 'stack'], ['rep', 'Reports', 'chart-bar'], ['set', 'Settings', 'sliders-horizontal']];
+  const tabs = [['dash', 'Dashboard', '🧭'], ['mgmt', 'Management', '🗂️'], ['rep', 'Reports', '📑'], ['set', 'Settings', '⚙️']];
   const show = { dash: ['biz', 'att', 'org'], mgmt: ['org', 'att'], rep: ['biz'] };
   const cl = closedSet();
   const known = new Set(Object.values(AD).flatMap(s => s[2].map(x => x[0])));
@@ -195,10 +207,10 @@ viewAdmin = async function () {
     const list = s[2].filter(x => x[0].startsWith('@') || holder.querySelector('#' + x[0]));
     if (k === 'org') extra.forEach(t => list.push([t.id, (t.querySelector('b') || {}).textContent || t.id, 'folders', '#64748B', '#CBD5E1', 'float']));
     return '<div class="x-box ' + (cl.has(k) ? 'closed' : '') + '" data-k="' + k + '"><div class="hd"><h3>' + s[1] + s[0] + '</h3><span class="chev">▾</span></div><div class="x-grid">'
-      + list.map(x => '<button class="x-t x-tap" data-go="' + x[0] + '">' + I(x[2], x[3], x[4], null, x[5]) + '<span class="l">' + esc(x[1]) + '</span>' + (x[0] === 'x-ap' && pend && pend !== '0' ? '<span class="x-n">' + esc(pend) + '</span>' : '') + (x[0] === 'x-rp' && flag && flag !== '0' ? '<span class="x-n">' + esc(flag) + '</span>' : '') + '</button>').join('') + '</div></div>';
+      + list.map(x => '<button class="x-t x-tap" data-go="' + x[0] + '">' + (SPI[x[0]] ? GI(SPI[x[0]][0], SPI[x[0]][1], SPI[x[0]][2], x[5]) : (CL(holder.querySelector('#' + x[0] + ' .ic'), x[5] === 'spin' ? 'float' : x[5]) || I(x[2], x[3], x[4], null, x[5]))) + '<span class="l">' + esc(x[1]) + '</span>' + (x[0] === 'x-ap' && pend && pend !== '0' ? '<span class="x-n">' + esc(pend) + '</span>' : '') + (x[0] === 'x-rp' && flag && flag !== '0' ? '<span class="x-n">' + esc(flag) + '</span>' : '') + '</button>').join('') + '</div></div>';
   };
-  frame('<div class="x-ahead"><div class="glow"></div>' + SKY.replace('class="sky"', 'class="sky" style="opacity:.5"') + '<div class="row1"><div class="ttl">' + I('shield-star', '#F6D365', '#D4AF37', 'rgba(255,255,255,.14)', 'pulse') + '<div><b>Yaqeen Group</b><small>Admin Panel</small></div></div><button class="x-gear x-tap" id="xgear"><i></i></button></div></div>'
-    + '<div class="x-tabs">' + tabs.map(([k, l, ic]) => '<button data-xt="' + k + '" class="' + (xTab === k ? 'on' : '') + '"><i style="-webkit-mask-image:url(' + PH(ic) + ');mask-image:url(' + PH(ic) + ')"></i>' + l + '</button>').join('') + '</div>'
+  frame('<div class="x-ahead"><img class="kl" src="kl-skyline.jpg" alt="" style="opacity:.55"><div class="glow"></div>' + '<div class="row1"><div class="ttl">' + I('shield-star', '#F6D365', '#D4AF37', 'rgba(255,255,255,.14)', 'pulse') + '<div><b>Yaqeen Group</b><small>Admin Panel</small></div></div><button class="x-gear x-tap" id="xgear"><i></i></button></div></div>'
+    + '<div class="x-tabs">' + tabs.map(([k, l, ic]) => '<button data-xt="' + k + '" class="' + (xTab === k ? 'on' : '') + '"><em>' + ic + '</em>' + l + '</button>').join('') + '</div>'
     + '<div class="pad" style="padding-top:4px">'
     + (xTab === 'dash' ? '<div class="x-box"><div class="hd"><h3>' + I('chart-donut', '#2563EB', '#22D3EE', 'transparent', 'spin') + 'System Summary</h3><span class="x-pill">This Month</span></div><div class="x-sum">'
       + '<div class="x-sm" style="background:#ECFDF5">' + I('identification-card', '#16A34A', '#4ADE80', 'rgba(22,163,74,.12)', 'float') + '<span><b id="xm1">–</b><small>Team Members</small></span></div>'
