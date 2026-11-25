@@ -4,7 +4,7 @@ const GROUPS = [
   { k: 'work', t: 'Work & Productivity', ic: '🎯', c: '#DC2626', ids: ['m-tg', 'm-tgt', 'm-notes', 'm-pf2'] },
   { k: 'comm', t: 'Communication & Tools', ic: '💬', c: '#4F46E5', ids: ['m-wa', 'm-gpt', 'm-gg', 'm-fb', 'm-notices'] },
   { k: 'hr', t: 'Team & HR', ic: '👥', c: '#7C3AED', ids: ['m-att', 'm-lv', 'm-team', 'm-rep', 'm-aw', 'm-fame', 'm-ap', 'm-sc', 'm-rb'] },
-  { k: 'set', t: 'Settings & Administration', ic: '⚙️', c: '#0B2A6F', ids: ['m-edit', 'm-lang', 'm-push', 'm-snd', 'm-adm', 'm-grp'] },
+  { k: 'set', t: 'Settings & Administration', ic: '⚙️', c: '#0B2A6F', ids: ['m-edit', 'm-lang', 'm-push', 'm-snd', 'm-issue', 'm-issues', 'm-adm', 'm-grp'] },
   { k: 'more', t: 'অন্যান্য', ic: '✨', c: '#0891B2', ids: [] }
 ];
 const CSS = `<style id="mgcss">
