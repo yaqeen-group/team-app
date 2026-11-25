@@ -1,5 +1,5 @@
 // Service worker: installable app shell + phone notifications
-const CACHE = 'yaqeen-shell-v62';
+const CACHE = 'yaqeen-shell-v63';
 const SHELL = ['./', './index.html', './manifest.json', './icon-192.png', './icon-512.png', './mark.jpg', './logo-full.jpg'];
 self.addEventListener('install', e => {
   e.waitUntil(caches.open(CACHE).then(c => c.addAll(SHELL)).then(() => self.skipWaiting()));
@@ -48,7 +48,7 @@ self.addEventListener('push', e => {
     const opts = () => ({
       body: d.body || 'নতুন আপডেট আছে', icon: 'icon-192.png', badge: 'icon-192.png', tag, renotify: true, silent,
       requireInteraction: isCall, vibrate: silent ? undefined : (isCall ? [800, 300, 800, 300, 800, 300, 800] : [200, 100, 200]),
-      data: { url: d.url || './' }
+      data: { url: d.url || './', tag: String(d.tag || ''), title: String(d.title || ''), kind: String(d.kind || '') }
     });
     await self.registration.showNotification(title, opts());
     if (!isCall || visible) return;
@@ -64,7 +64,10 @@ self.addEventListener('push', e => {
 });
 self.addEventListener('notificationclick', e => {
   e.notification.close();
-  const target = new URL((e.notification.data && e.notification.data.url) || './', self.registration.scope).href;
+  const nd = e.notification.data || {};
+  const tu = new URL(nd.url || './', self.registration.scope);
+  if (!tu.search) { if (nd.tag) tu.searchParams.set('yt', String(nd.tag).slice(0, 120)); if (nd.title || e.notification.title) tu.searchParams.set('yh', String(nd.title || e.notification.title).slice(0, 120)); if (nd.kind) tu.searchParams.set('yk', nd.kind); }
+  const target = tu.href;
   e.waitUntil(self.clients.matchAll({ type: 'window', includeUncontrolled: true }).then(list => {
     for (const c of list) { if (c.url.startsWith(self.registration.scope) && 'focus' in c) { c.postMessage({ type: 'open', url: target }); return c.focus(); } }
     return self.clients.openWindow(target);
