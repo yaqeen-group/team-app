@@ -89,6 +89,7 @@ const CSS = `<style id="xcss">
 @media (max-width:370px){.x-st .x-ic{display:none}.x-st{justify-content:center;text-align:center}}
 .x-hero,.x-ahead{max-width:100%}.view:has(#xhero){overflow-x:hidden}
 @media (max-width:390px){.x-st .x-ic{width:32px;height:32px}.x-st .x-ic em{font-size:17px}.x-st b{font-size:18px}.x-st small{font-size:10px}.x-name{font-size:20px}.x-oic{width:46px;height:46px}.x-t span.l{font-size:11px}}
+.tabbar.x-6 .tb{font-size:10.5px;min-width:0}
 </style>`;
 /* reuse the app's own icon styling (look.js) for copied icons */
 let lkCopied = false;
@@ -273,9 +274,9 @@ function patchBar() {
   if (!state.profile || !boss()) return;
   document.querySelectorAll('.tabbar').forEach(nav => {
     const m = nav.querySelector('.tb[data-t="menu"]'); if (!m || nav.querySelector('.tb[data-t="admin"]')) return;
-    m.dataset.t = 'admin'; m.innerHTML = '<span class="x-tbi"></span>Admin';
-    m.classList.toggle('on', ui.tab === 'admin');
-    m.onclick = () => go('admin');
+    const b = document.createElement('button'); b.className = 'tb' + (ui.tab === 'admin' ? ' on' : ''); b.dataset.t = 'admin';
+    b.innerHTML = '<span class="x-tbi"></span>Admin'; b.onclick = () => go('admin');
+    m.after(b); nav.classList.add('x-6');
   });
 }
 css();
