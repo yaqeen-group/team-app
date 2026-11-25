@@ -63,7 +63,7 @@ async function checkLevelUp() {
 window.ygCelebrate = celebrate;
 
 /* ---------------- problem reports ---------------- */
-const CATS = ['🔗 লিংক জমা', '🕒 হাজিরা', '✅ টাস্ক', '🔔 নোটিফিকেশন/সাউন্ড', '📞 কল', '💬 চ্যাট', '🧩 অন্যান্য'];
+const CATS = ['📝 টপিক পরিবর্তন / পরামর্শ', '🔗 লিংক জমা', '🕒 হাজিরা', '✅ টাস্ক', '🔔 নোটিফিকেশন/সাউন্ড', '📞 কল', '💬 চ্যাট', '🧩 অন্যান্য'];
 const ST = { open: ['🟡', 'নতুন'], in_progress: ['🔵', 'কাজ চলছে'], solved: ['🟢', 'সমাধান হয়েছে'] };
 const ICSS = '<style id="isscss">.iss-cats{display:flex;flex-wrap:wrap;gap:6px;margin:6px 0 2px}.iss-cats button{border:1.5px solid #dbe3ef;background:#fff;border-radius:16px;padding:6px 11px;font-size:13px}.iss-cats button.on{border-color:#1a73e8;background:#e8f0fe;color:#1a56db;font-weight:700}.iss{border:1px solid #e8eef6;border-radius:16px;padding:11px 12px;margin-top:8px;background:#fff}.iss .h{display:flex;justify-content:space-between;gap:8px;font-size:12.5px;color:#64748b}.iss .h b{color:#0B2A6F;font-size:13.5px}.iss p{font-size:13.5px;margin-top:5px;line-height:1.55;white-space:pre-wrap}.iss .rp{margin-top:8px;background:#F0FDF4;border-radius:10px;padding:8px 10px;font-size:13px}.iss .act{display:flex;gap:6px;margin-top:8px;flex-wrap:wrap}.iss .act button{border-radius:10px;padding:7px 10px;font-size:12.5px;font-weight:700;background:#EEF2FF;color:#3730A3}.iss .act button.ok{background:#DCFCE7;color:#166534}.iss .stars button{font-size:22px;background:none;padding:0 2px}.iss-tabs{display:flex;gap:6px;margin-top:8px}.iss-tabs button{flex:1;border-radius:12px;padding:8px;font-size:12.5px;font-weight:700;background:#F1F5F9;color:#475569}.iss-tabs button.on{background:#0B2A6F;color:#fff}.iss-badge{position:absolute;top:6px;right:8px;background:#E11D48;color:#fff;font-size:10.5px;font-weight:800;border-radius:9px;padding:1px 6px}</style>';
 const is = () => { if (!document.getElementById('isscss')) document.head.insertAdjacentHTML('beforeend', ICSS); };
@@ -74,7 +74,7 @@ function reportSheet() {
   is(); let cat = CATS[0];
   sheet('<h3>🛠️ অ্যাপের সমস্যা জানান</h3><p class="mut" style="margin:0">কী সমস্যা হচ্ছে লিখুন — অ্যাডমিন দেখে সমাধান করে আপনাকে জানাবেন।</p>'
     + '<label>কোন ধরনের সমস্যা</label><div class="iss-cats">' + CATS.map((c, i) => '<button type="button" data-c="' + i + '" class="' + (i ? '' : 'on') + '">' + c + '</button>').join('') + '</div>'
-    + '<label>সমস্যাটা লিখুন</label><textarea class="in" id="isb" maxlength="2000" placeholder="যেমন: ২৬ নভেম্বরের টাস্কে ৫ নম্বর ঘরে লিংক দিলে এরর আসছে…"></textarea>'
+    + '<label>সমস্যাটা লিখুন</label><textarea class="in" id="isb" maxlength="2000" placeholder="যেমন: ২৭ নভেম্বরের ৩ নম্বর টপিকটা আমাদের সার্ভিসের সাথে মিলছে না — বদলে দেওয়া যায়? / ৫ নম্বর ঘরে লিংক দিলে এরর আসছে…"></textarea>'
     + '<label>স্ক্রিনশট (ঐচ্ছিক)</label><input class="in" id="isf" type="file" accept="image/*,application/pdf">'
     + '<button class="btn" id="iss">📨 পাঠান</button><div class="sec" style="margin-top:16px">আমার পাঠানো সমস্যা</div><div id="ismine"><div class="cen"><div class="spin dark"></div></div></div>',
   (el, close) => {
