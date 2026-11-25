@@ -90,6 +90,7 @@ const CSS = `<style id="xcss">
 .x-hero,.x-ahead{max-width:100%}.view:has(#xhero){overflow-x:hidden}
 @media (max-width:390px){.x-st .x-ic{width:32px;height:32px}.x-st .x-ic em{font-size:17px}.x-st b{font-size:18px}.x-st small{font-size:10px}.x-name{font-size:20px}.x-oic{width:46px;height:46px}.x-t span.l{font-size:11px}}
 .tabbar.x-6 .tb{font-size:10.5px;min-width:0}
+.x-dl{display:flex;align-items:center;gap:12px;margin-top:12px}.x-dl b{display:block;font-size:15px;color:#0B2A6F}.x-dl small{display:block;font-size:12px;color:#64748b;margin-top:2px}.x-dl span{flex:1;min-width:0}.x-dl em{font-style:normal;font-size:24px;color:#94A3B8}
 </style>`;
 /* reuse the app's own icon styling (look.js) for copied icons */
 let lkCopied = false;
@@ -166,6 +167,12 @@ function homeBuild() {
         + items.map(([id, l, ic]) => '<button class="x-t x-tap" id="' + id + '">' + ic + '<span class="l">' + l + '</span></button>').join('') + '</div>');
       items.forEach(([id, , , fn]) => { const b = document.getElementById(id); if (b) b.onclick = fn; });
       document.getElementById('xqall').onclick = () => go('menu');
+      /* management: one-tap download of everyone's daily full report */
+      const dfo = find(/lkdf/);
+      if (dfo || (isB && typeof dfSheet === 'function')) {
+        document.getElementById('xqg').insertAdjacentHTML('afterend', '<button class="x-card x-tap x-dl" id="xqdf">' + (dfo ? CL(dfo.querySelector('.qic'), 'float') : GI('📥', '#DCFCE7', '#86EFAC', 'float')) + '<span><b>Daily Full Report</b><small>সবার ডেইলি রিপোর্ট একসাথে দেখুন ও ডাউনলোড করুন</small></span><em>›</em></button>');
+        document.getElementById('xqdf').onclick = () => (dfo ? dfo.click() : dfSheet());
+      }
       /* meeting + performance */
       const hmt = document.getElementById('hmt'); let mt = 'Morning Meeting', ms = '';
       if (hmt) { const lines = hmt.innerText.split('\n').map(s => s.trim()).filter(Boolean); mt = lines[0] || mt; ms = lines.slice(1, 3).join(' · '); hmt.style.display = 'none'; }
