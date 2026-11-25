@@ -16,7 +16,7 @@ const CSS = `<style id="xcss">
 .x-ic{width:46px;height:46px;border-radius:15px;display:flex;align-items:center;justify-content:center;background:var(--tint);box-shadow:inset 0 1px 0 rgba(255,255,255,.7);flex:0 0 auto}
 .x-ic em{font-style:normal;font-size:25px;line-height:1;display:block}.x-sec h3 .x-ic em,.x-box .hd h3 .x-ic em{font-size:21px}.x-st .x-ic em{font-size:20px}.x-card h4 .x-ic em{font-size:16px}.x-ahead .ttl .x-ic em{font-size:30px}
 .x-oic{width:52px;height:52px;border-radius:17px;display:flex;align-items:center;justify-content:center;font-size:27px;box-shadow:inset 0 -3px 0 rgba(11,42,111,.06),0 3px 8px rgba(11,42,111,.08);overflow:hidden}.x-oic{background:var(--lkg,linear-gradient(135deg,#E2EDFF,#C4DAFF));box-shadow:0 8px 18px var(--lks,rgba(11,42,111,.12)),inset 0 -3px 0 rgba(0,0,0,.08)!important;position:relative}.x-oic img{max-width:70%;max-height:70%}.x-oic svg{width:30px;height:30px;max-width:none;max-height:none}
-.x-hero .kl,.x-ahead .kl{position:absolute;right:0;bottom:0;height:100%;width:auto;max-width:72%;object-fit:cover;object-position:center bottom;-webkit-mask-image:linear-gradient(90deg,transparent,#000 38%);mask-image:linear-gradient(90deg,transparent,#000 38%);pointer-events:none}
+.x-hero .kl,.x-ahead .kl{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;object-position:70% 45%;pointer-events:none}
 .x-hero .ygbg .ct{display:none}.x-hero>*:not(.ygbg):not(.kl):not(.glow){position:relative;z-index:1}
 .x-tabs button em{font-style:normal;font-size:20px;line-height:1}
 .x-ic i{width:31px;height:31px;display:block;-webkit-mask-size:contain;mask-size:contain;-webkit-mask-repeat:no-repeat;mask-repeat:no-repeat;-webkit-mask-position:center;mask-position:center;filter:drop-shadow(0 2px 2px rgba(0,0,0,.08))}
@@ -28,7 +28,7 @@ const CSS = `<style id="xcss">
 .a-wave{animation:xWave 3.2s ease-in-out infinite;animation-delay:var(--d)}@keyframes xWave{0%,100%{transform:rotate(0)}25%{transform:rotate(-7deg)}75%{transform:rotate(7deg)}}
 .view:has(#xhero) #hmt,.view:has(#xhero) #hqw,.view:has(#xhero) #hpf,.view:has(#xhero) .qgrid{display:none!important}
 .x-tap{transition:transform .15s}.x-tap:active{transform:scale(.93)}
-.x-hero{position:relative;overflow:hidden;margin:0 0 0;padding:16px 18px 64px;border-radius:0 0 30px 30px;color:#fff;background:linear-gradient(160deg,#0B2A6F 0%,#1A4AB0 55%,#2B5FC4 100%);box-shadow:0 14px 34px rgba(11,42,111,.28)}
+.x-hero{position:relative;overflow:hidden;margin:0 0 0;padding:16px 18px 64px;border-radius:0 0 30px 30px;color:#fff;background:#062269;box-shadow:0 14px 34px rgba(11,42,111,.28)}
 .x-ahead .sky,.x-hero .sky{position:absolute;right:-10px;bottom:0;width:78%;max-width:330px;opacity:.95;pointer-events:none}
 .x-ahead .glow,.x-hero .glow{position:absolute;width:220px;height:220px;border-radius:50%;background:radial-gradient(circle,rgba(255,255,255,.22),transparent 65%);top:-80px;right:-40px;animation:xGlow 7s ease-in-out infinite}@keyframes xGlow{50%{transform:translate(-20px,15px)}}
 .x-top{display:flex;align-items:center;justify-content:space-between;position:relative;z-index:1}
@@ -59,7 +59,7 @@ const CSS = `<style id="xcss">
 .x-card .r{display:flex;align-items:center;gap:8px;margin-top:10px}.x-card .r b{font-size:13.5px;color:#0f172a;display:block}.x-card .r small{font-size:12px;color:#1a56db;font-weight:600}
 .x-card .nums{display:flex;gap:14px;margin-top:10px;align-items:flex-end}.x-card .nums b{display:block;font-size:22px;color:#0B2A6F}.x-card .nums small{font-size:11.5px;color:#64748b}
 /* admin */
-.x-ahead{position:relative;overflow:hidden;padding:16px 18px 54px;border-radius:0 0 30px 30px;color:#fff;background:linear-gradient(160deg,#0A1F55,#123E9C 60%,#1E5BD8)}
+.x-ahead{position:relative;overflow:hidden;padding:16px 18px 54px;border-radius:0 0 30px 30px;color:#fff;background:#062269}
 .x-ahead .row1{display:flex;align-items:center;justify-content:space-between;position:relative;z-index:1}.x-ahead .ttl{display:flex;align-items:center;gap:12px}
 .x-ahead .ttl .x-ic{width:52px;height:52px;border-radius:16px;background:rgba(255,255,255,.14)}.x-ahead .ttl .x-ic i{width:36px;height:36px}
 .x-ahead b{display:block;font-size:20px}.x-ahead small{display:block;font-size:14px;opacity:.85}
@@ -109,7 +109,7 @@ function homeBuild() {
     const p = state.profile, isB = boss();
     oldHero.style.display = 'none';
     const badge = p.observer ? '<span class="x-badge gold">👑 Admin Account</span>' : '<span class="x-badge">' + esc(p.designation || p.role || '') + '</span>';
-    oldHero.insertAdjacentHTML('beforebegin', '<div class="x-hero" id="xhero"><img class="kl" src="kl-skyline.jpg" alt=""><div class="glow"></div>'
+    oldHero.insertAdjacentHTML('beforebegin', '<div class="x-hero" id="xhero"><img class="kl" src="hero-islamic.jpg" alt=""><div class="glow"></div>'
       + '<div class="x-top"><div class="x-brand"><img src="icon-192.png" alt=""><div><b>Yaqeen Group</b><small>TEAM</small></div></div>'
       + '<div class="x-tr"><button class="x-bell x-tap" id="xbell"><i></i><span class="x-bd" id="xbellb" hidden></span></button><button class="x-av x-tap" id="xav">' + avatar(p.full_name, p.id, 46) + '<span class="dot"></span></button></div></div>'
       + '<div class="x-hi">Assalamualaikum,</div><div class="x-name">' + esc(p.full_name) + '</div>' + badge + '</div>');
@@ -216,7 +216,7 @@ viewAdmin = async function () {
     return '<div class="x-box ' + (cl.has(k) ? 'closed' : '') + '" data-k="' + k + '"><div class="hd"><h3>' + s[1] + s[0] + '</h3><span class="chev">▾</span></div><div class="x-grid">'
       + list.map(x => '<button class="x-t x-tap" data-go="' + x[0] + '">' + (SPI[x[0]] ? GI(SPI[x[0]][0], SPI[x[0]][1], SPI[x[0]][2], x[5]) : (CL(holder.querySelector('#' + x[0] + ' .ic'), x[5] === 'spin' ? 'float' : x[5]) || I(x[2], x[3], x[4], null, x[5]))) + '<span class="l">' + esc(x[1]) + '</span>' + (x[0] === 'x-ap' && pend && pend !== '0' ? '<span class="x-n">' + esc(pend) + '</span>' : '') + (x[0] === 'x-rp' && flag && flag !== '0' ? '<span class="x-n">' + esc(flag) + '</span>' : '') + '</button>').join('') + '</div></div>';
   };
-  frame('<div class="x-ahead"><img class="kl" src="kl-skyline.jpg" alt="" style="opacity:.55"><div class="glow"></div>' + '<div class="row1"><div class="ttl">' + I('shield-star', '#F6D365', '#D4AF37', 'rgba(255,255,255,.14)', 'pulse') + '<div><b>Yaqeen Group</b><small>Admin Panel</small></div></div><button class="x-gear x-tap" id="xgear"><i></i></button></div></div>'
+  frame('<div class="x-ahead"><img class="kl" src="hero-islamic.jpg" alt="" style="opacity:.7"><div class="glow"></div>' + '<div class="row1"><div class="ttl">' + I('shield-star', '#F6D365', '#D4AF37', 'rgba(255,255,255,.14)', 'pulse') + '<div><b>Yaqeen Group</b><small>Admin Panel</small></div></div><button class="x-gear x-tap" id="xgear"><i></i></button></div></div>'
     + '<div class="x-tabs">' + tabs.map(([k, l, ic]) => '<button data-xt="' + k + '" class="' + (xTab === k ? 'on' : '') + '"><em>' + ic + '</em>' + l + '</button>').join('') + '</div>'
     + '<div class="pad" style="padding-top:4px">'
     + (xTab === 'dash' ? '<div class="x-box"><div class="hd"><h3>' + I('chart-donut', '#2563EB', '#22D3EE', 'transparent', 'spin') + 'System Summary</h3><span class="x-pill">This Month</span></div><div class="x-sum">'
