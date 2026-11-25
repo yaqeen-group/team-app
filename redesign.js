@@ -277,4 +277,7 @@ function patchBar() {
 }
 css();
 new MutationObserver(() => patchBar()).observe(document.body, { childList: true, subtree: true });
+/* the first screen may have been drawn before this file loaded */
+const firstPaint = () => { try { if (state.profile && (!ui.tab || ui.tab === 'home') && document.querySelector('.view > .hero') && !document.getElementById('xhero')) homeBuild(); patchBar(); } catch (e) {} };
+[0, 600, 1500, 3000, 6000].forEach(t => setTimeout(firstPaint, t));
 }
