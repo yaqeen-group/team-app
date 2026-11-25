@@ -15,7 +15,7 @@ const PC_CSS = '<style id="pccss">'
 + '.pc-t b{font-size:13.5px;color:#0B2A6F}.pc-t small{display:block;color:#64748b;font-size:12px;margin-top:2px}.pc-t .sc{font-size:18px;font-weight:800}'
 + '</style>';
 const css = () => { if (!document.getElementById('pccss')) document.head.insertAdjacentHTML('beforeend', PC_CSS); };
-const VL = { ok: ['✅', 'পোস্ট করা যাবে'], fix: ['🟠', 'একটু ঠিক করতে হবে'], redo: ['❌', 'আবার বানাতে হবে'] };
+const VL = { ok: ['✅', 'পোস্ট করা যাবে (৭+)'], fix: ['⛔', 'পোস্ট করা যাবে না — ঠিক করে আবার চেক করুন'], redo: ['❌', 'পোস্ট করা যাবে না — নতুন করে বানাতে হবে'] };
 const bn = n => Number(n).toLocaleString('bn-BD');
 const cleanTopic = l => String(l || '').replace(/^[^·]*·\s*/, '').trim() || String(l || '');
 
@@ -27,10 +27,13 @@ async function shrink(file) {
     return await new Promise(r => c.toBlob(b => r(b || file), 'image/jpeg', 0.86));
   } catch (e) { return file; }
 }
+const PASS = 7;
 function resultHtml(r) {
+  r.verdict = Number(r.score) >= PASS ? 'ok' : (Number(r.score) >= 4 ? 'fix' : 'redo');
   const v = VL[r.verdict] || VL.fix;
   const li = (a, cls) => (a || []).map(x => '<div class="pc-li ' + (cls || x.severity || 'low') + '">' + (x.where ? (x.where === 'banner' ? '🖼️ ' : '✍️ ') : '') + esc(typeof x === 'string' ? x : x.text) + '</div>').join('');
   return '<div class="pc-res"><div class="pc-score ' + r.verdict + '"><b>' + bn(r.score) + '/১০</b><span>' + v[0] + ' ' + v[1] + '<br>' + esc(r.summary || '') + '</span></div>'
+    + (r.verdict !== 'ok' ? '<div class="pc-li high" style="margin-top:8px"><b>⛔ নিয়ম: ৭/১০-এর নিচে স্কোর হলে পোস্ট করা যাবে না।</b> নিচের পরামর্শ মতো ঠিক করে আবার চেক করুন — ৭ বা তার বেশি পেলে তবেই পোস্ট করুন। এই অবস্থায় টাস্কে লিংক জমা হবে না।</div>' : '<div class="pc-li good" style="margin-top:8px">✅ ৭+ পেয়েছেন — পোস্ট করতে পারেন। ছোটখাটো পরামর্শ থাকলে ঠিক করে নিলে আরও ভালো।</div>')
     + '<div class="mut" style="font-size:12px;margin-top:6px">' + (r.banner_match === false ? '🖼️ ব্যানার টপিকের সাথে মিলছে না · ' : r.banner_match ? '🖼️ ব্যানার টপিকের সাথে মিলছে · ' : '') + (r.caption_match === false ? '✍️ ক্যাপশন টপিকের সাথে মিলছে না' : '✍️ ক্যাপশন টপিকের সাথে মিলছে') + '</div>'
     + (r.issues && r.issues.length ? '<div class="pc-sec">⚠️ যা ঠিক করতে হবে</div>' + li(r.issues) : '')
     + (r.spelling && r.spelling.length ? '<div class="pc-sec">🔤 বানান</div>' + r.spelling.map(s => '<div class="pc-li medium"><s>' + esc(s.wrong) + '</s> → <b>' + esc(s.right) + '</b></div>').join('') : '')
@@ -89,10 +92,10 @@ async function decorate(taskId) {
   const mine = pcCache.t.assigned_to === state.profile.id;
   pcCache.items.filter(i => i.need_link).forEach(i => {
     const b = box.querySelector('[data-ck="' + i.id + '"]'); if (!b) return;
-    const c = pcCache.last[i.id], done = b.classList.contains('on');
+    const c = pcCache.last[i.id], done = b.classList.contains('on'); if (c) c.verdict = Number(c.score) >= PASS ? 'ok' : (Number(c.score) >= 4 ? 'fix' : 'redo');
     if (!c && (!mine || done)) { if (isMgr() && done) b.insertAdjacentHTML('afterend', '<div class="pc-row"><small class="pc-fix">⚪ AI চেক করা হয়নি</small></div>'); return; }
     b.insertAdjacentHTML('afterend', '<div class="pc-row">' + (mine && !done ? '<button data-pc="' + i.id + '">✨ পোস্টের আগে চেক</button>' : '')
-      + (c ? '<small class="pc-' + c.verdict + '">' + VL[c.verdict][0] + ' শেষ চেক: ' + bn(c.score) + '/১০</small>' + (c.result ? ' <button data-pv="' + i.id + '" style="background:#fff">' + (c.admin_note ? '📝 মন্তব্য দেখুন' : 'বিস্তারিত') + '</button>' : '') : '') + '</div>');
+      + (c ? '<small class="pc-' + c.verdict + '">' + VL[c.verdict][0] + ' শেষ চেক: ' + bn(c.score) + '/১০' + (c.verdict !== 'ok' && !done ? ' — পোস্ট করা যাবে না' : '') + '</small>' + (c.result ? ' <button data-pv="' + i.id + '" style="background:#fff">' + (c.admin_note ? '📝 মন্তব্য দেখুন' : 'বিস্তারিত') + '</button>' : '') : '') + '</div>');
   });
   box.querySelectorAll('[data-pv]').forEach(btn => btn.onclick = e => { e.stopPropagation(); const c = pcCache.last[btn.dataset.pv]; if (c) detail(c); });
   box.querySelectorAll('[data-pc]').forEach(btn => btn.onclick = e => {
@@ -141,7 +144,7 @@ async function report() {
     const per = {}; (ch || []).forEach(c => { const p = per[c.user_id] = per[c.user_id] || { n: 0, s: 0 }; p.n++; p.s += c.score; });
     const nm = id => esc((ui.people[id] || {}).full_name || 'সদস্য');
     box.innerHTML = '<div class="pc-sec">👥 সদস্য অনুযায়ী</div>' + (Object.keys(per).length ? Object.entries(per).map(([u, p]) => '<div class="pc-li">' + nm(u) + ' — ' + bn(p.n) + 'টা চেক · গড় স্কোর <b>' + (p.s / p.n).toFixed(1) + '</b></div>').join('') : '<div class="empty">আজ কেউ চেক করেনি</div>')
-      + '<div class="pc-sec">🧾 সব চেক (কম স্কোর আগে)</div>' + (ch || []).map((c, i) => '<button class="pc-t" data-x="' + i + '">' + (c.image_path ? '<img data-th="' + esc(c.image_path) + '" style="width:46px;height:46px;border-radius:8px;object-fit:cover;flex:0 0 46px;background:#eef2f7">' : '<span style="width:46px;height:46px;border-radius:8px;flex:0 0 46px;background:#f1f5f9;display:flex;align-items:center;justify-content:center">✍️</span>') + '<span style="flex:1;min-width:0"><b>' + nm(c.user_id) + '</b><small>' + esc(c.topic || '') + (c.admin_note ? ' · 📝' : '') + '</small></span><span class="sc pc-' + c.verdict + '">' + bn(c.score) + '</span></button>').join('')
+      + '<div class="pc-sec">🧾 সব চেক (কম স্কোর আগে)</div>' + (ch || []).map((c, i) => '<button class="pc-t" data-x="' + i + '">' + (c.image_path ? '<img data-th="' + esc(c.image_path) + '" style="width:46px;height:46px;border-radius:8px;object-fit:cover;flex:0 0 46px;background:#eef2f7">' : '<span style="width:46px;height:46px;border-radius:8px;flex:0 0 46px;background:#f1f5f9;display:flex;align-items:center;justify-content:center">✍️</span>') + '<span style="flex:1;min-width:0"><b>' + nm(c.user_id) + '</b><small>' + esc(c.topic || '') + (c.admin_note ? ' · 📝' : '') + '</small></span><span class="sc pc-' + (Number(c.score) >= PASS ? 'ok' : 'redo') + '">' + bn(c.score) + '</span></button>').join('')
       + '<div class="pc-sec">⚪ চেক ছাড়াই পোস্ট করেছে (' + bn(miss.length) + ')</div>' + (miss.length ? miss.map(d => '<div class="pc-li low">' + nm(tm[d.task_id].assigned_to) + ' — ' + esc(cleanTopic(d.label)) + '</div>').join('') : '<div class="mut" style="font-size:12.5px;margin-top:6px">সবাই চেক করে পোস্ট দিয়েছে 👍</div>');
     box.querySelectorAll('[data-x]').forEach(b => b.onclick = () => detail(ch[+b.dataset.x]));
     const ths = [...box.querySelectorAll('[data-th]')];

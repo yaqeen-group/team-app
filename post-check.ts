@@ -58,7 +58,7 @@ const RULES = `তুমি "Yaqeen Group"-এর সিনিয়র সো�
 11. অভ্যন্তরীণ/গোপন ব্যবসায়িক তথ্য (কমিশন, ভেতরের দাম, ক্লায়েন্টের ব্যক্তিগত তথ্য) থাকলে high issue।
 12. Malaysia-র ভিসা/নিয়ম সম্পর্কে স্পষ্ট ভুল তথ্য থাকলে ধরো; নিশ্চিত না হলে "যাচাই করে নিন" বলো — নিজে নতুন তথ্য বানাবে না।
 
-স্কোর ০–১০। verdict: "ok" (৮+ এবং কোনো high issue নেই — পোস্ট করা যাবে), "fix" (ছোটখাটো ঠিক করতে হবে), "redo" (টপিকের সাথে মেলে না বা high issue আছে)।
+স্কোর ০–১০। verdict: "ok" (৭+ — পোস্ট করা যাবে), "fix" (৪–৬ — পোস্ট করা যাবে না, ঠিক করতে হবে), "redo" (০–৩ — নতুন করে বানাতে হবে)। কোম্পানির নিয়ম: ৭-এর নিচে স্কোর মানে পোস্ট করা যাবে না, তাই স্কোর সাবধানে ও ন্যায্যভাবে দাও। ভিসা গ্যারান্টি, নারীর ছবি, দুই ব্র্যান্ড মেশানো, গোপন তথ্য বা টপিকের সাথে একদম না মেলা — এগুলোর যেকোনোটা থাকলে স্কোর অবশ্যই ৬ বা তার নিচে দেবে।
 ফিডব্যাক (summary, issues, tips, good) সহজ বাংলায় লেখো (প্রয়োজনে ইংরেজি শব্দ রাখো)। কিন্তু improved_caption আর spelling-এর \"right\" অবশ্যই মূল লেখার ভাষাতেই হবে — English ক্যাপশন হলে ঠিক করা ক্যাপশনও English-এ। ভদ্র, উৎসাহ দেওয়ার মতো, কিন্তু সৎ।
 
 শুধু এই JSON দাও:
@@ -106,7 +106,7 @@ Deno.serve(async (req) => {
     }
     if (!out) return json({ error: "AI এখন ব্যস্ত বা লিমিট শেষ — কিছুক্ষণ পরে আবার চেষ্টা করুন", detail: lastErr.slice(0, 900), groq_models: GROQ_ALL, providers: { groq: !!GROQ, mistral: !!MISTRAL, gemini: !!GEM } }, 503);
     const score = Math.max(0, Math.min(10, Math.round(Number(out.score) || 0)));
-    const verdict = ["ok", "fix", "redo"].includes(out.verdict) ? out.verdict : (score >= 8 ? "ok" : score >= 5 ? "fix" : "redo");
+    const verdict = score >= 7 ? "ok" : score >= 4 ? "fix" : "redo";
     out.score = score; out.verdict = verdict;
     const { data: row } = await admin.from("yg_post_checks").insert({ user_id: user.id, task_id: b.task_id || null, item_id: b.item_id || null, topic, caption, image_path: path, model: used, score, verdict, result: out }).select("id").single();
     return json({ id: row && row.id, model: used, ...out });
