@@ -80,7 +80,7 @@ async function decorate(taskId) {
     if (!t || !/পোস্ট|post/i.test(t.title)) { pcCache = { task: taskId, skip: true }; return; }
     const { data: items } = await sb.from('yg_task_items').select('id,label,need_link,done').eq('task_id', taskId).order('pos');
     const ids = (items || []).map(i => i.id);
-    const { data: ch } = ids.length ? await sb.from('yg_post_checks').select('item_id,score,verdict,created_at').in('item_id', ids).order('created_at', { ascending: false }) : { data: [] };
+    const { data: ch } = ids.length ? await sb.from('yg_post_checks').select('id,item_id,score,verdict,created_at,admin_note,topic,caption,result').in('item_id', ids).order('created_at', { ascending: false }) : { data: [] };
     const last = {}; (ch || []).forEach(c => { if (!last[c.item_id]) last[c.item_id] = c; });
     pcCache = { task: taskId, t, items: items || [], last };
   }
@@ -92,11 +92,12 @@ async function decorate(taskId) {
     const c = pcCache.last[i.id], done = b.classList.contains('on');
     if (!c && (!mine || done)) { if (isMgr() && done) b.insertAdjacentHTML('afterend', '<div class="pc-row"><small class="pc-fix">⚪ AI চেক করা হয়নি</small></div>'); return; }
     b.insertAdjacentHTML('afterend', '<div class="pc-row">' + (mine && !done ? '<button data-pc="' + i.id + '">✨ পোস্টের আগে চেক</button>' : '')
-      + (c ? '<small class="pc-' + c.verdict + '">' + VL[c.verdict][0] + ' শেষ চেক: ' + bn(c.score) + '/১০</small>' : '') + '</div>');
+      + (c ? '<small class="pc-' + c.verdict + '">' + VL[c.verdict][0] + ' শেষ চেক: ' + bn(c.score) + '/১০</small>' + (c.result ? ' <button data-pv="' + i.id + '" style="background:#fff">' + (c.admin_note ? '📝 মন্তব্য দেখুন' : 'বিস্তারিত') + '</button>' : '') : '') + '</div>');
   });
+  box.querySelectorAll('[data-pv]').forEach(btn => btn.onclick = e => { e.stopPropagation(); const c = pcCache.last[btn.dataset.pv]; if (c) detail(c); });
   box.querySelectorAll('[data-pc]').forEach(btn => btn.onclick = e => {
     e.stopPropagation(); const it = pcCache.items.find(x => x.id === btn.dataset.pc);
-    checkSheet({ topic: cleanTopic(it.label), item_id: it.id, task_id: taskId, title: pcCache.t.title, onDone: r => { pcCache.last[it.id] = { score: r.score, verdict: r.verdict }; const bx = document.getElementById('ckbox'); if (bx) { bx.querySelectorAll('.pc-row').forEach(x => x.remove()); delete bx.dataset.pc; decorate(taskId); } } });
+    checkSheet({ topic: cleanTopic(it.label), item_id: it.id, task_id: taskId, title: pcCache.t.title, onDone: r => { pcCache.last[it.id] = { score: r.score, verdict: r.verdict, result: r }; const bx = document.getElementById('ckbox'); if (bx) { bx.querySelectorAll('.pc-row').forEach(x => x.remove()); delete bx.dataset.pc; decorate(taskId); } } });
   });
 }
 let pcTimer = null;
@@ -107,6 +108,21 @@ viewTask = async function (id) {
   pcTimer = setInterval(() => { const b = document.getElementById('ckbox'); if (!b) { if (!document.getElementById('ss')) clearInterval(pcTimer); return; } if (!b.dataset.pc) decorate(id); }, 800);
   return r;
 };
+
+const boss = () => isAdmin() || !!(state.profile && state.profile.observer);
+async function detail(c) {
+  css(); await loadPeople(); let img = '';
+  const nm = id => esc((ui.people[id] || {}).full_name || 'সদস্য');
+  if (c.image_path) { try { const { data } = await sb.storage.from('proofs').createSignedUrl(c.image_path, 900); if (data) img = '<img class="pc-prev" src="' + data.signedUrl + '">'; } catch (e) {} }
+  sheet('<h3>' + (c.user_id ? nm(c.user_id) : '✨ AI চেক') + '</h3><div class="pc-li"><b>' + esc(c.topic || '') + '</b></div>' + img
+    + (c.caption ? '<div class="pc-sec">ক্যাপশন (মেম্বারের)</div><div class="pc-cap">' + esc(c.caption) + '</div>' : '') + resultHtml(c.result || c)
+    + (c.admin_note ? '<div class="pc-sec">📝 অ্যাডমিনের মন্তব্য</div><div class="pc-li good">' + esc(c.admin_note) + '</div>' : '')
+    + (boss() && c.id ? '<div class="pc-sec">📝 আপনার মন্তব্য / আরও যা ঠিক করতে হবে</div><textarea class="in" id="pcnt" maxlength="1000" style="min-height:70px" placeholder="AI-এর বাইরে আর কী বদলাতে হবে লিখুন — মেম্বারের কাছে নোটিফিকেশন যাবে">' + esc(c.admin_note || '') + '</textarea><button class="btn" id="pcns">📨 মেম্বারকে পাঠান</button>' : ''),
+  (el2, close) => { bindCopy(el2, c.result || {}); const b = el2.querySelector('#pcns'); if (b) b.onclick = async () => {
+    const v = el2.querySelector('#pcnt').value.trim(); if (v.length < 2) return toast('মন্তব্য লিখুন');
+    b.disabled = true; const { error } = await sb.rpc('yg_post_check_note', { p_id: c.id, p_note: v }); b.disabled = false;
+    if (error) return toast(friendlyError(error)); c.admin_note = v; toast('✅ মেম্বারকে পাঠানো হয়েছে'); close(); }; });
+}
 
 /* admin report: today's checks + done post items without a check */
 async function report() {
@@ -125,13 +141,9 @@ async function report() {
     const per = {}; (ch || []).forEach(c => { const p = per[c.user_id] = per[c.user_id] || { n: 0, s: 0 }; p.n++; p.s += c.score; });
     const nm = id => esc((ui.people[id] || {}).full_name || 'সদস্য');
     box.innerHTML = '<div class="pc-sec">👥 সদস্য অনুযায়ী</div>' + (Object.keys(per).length ? Object.entries(per).map(([u, p]) => '<div class="pc-li">' + nm(u) + ' — ' + bn(p.n) + 'টা চেক · গড় স্কোর <b>' + (p.s / p.n).toFixed(1) + '</b></div>').join('') : '<div class="empty">আজ কেউ চেক করেনি</div>')
-      + '<div class="pc-sec">🧾 সব চেক (কম স্কোর আগে)</div>' + (ch || []).map((c, i) => '<button class="pc-t" data-x="' + i + '"><span><b>' + nm(c.user_id) + '</b><small>' + esc(c.topic || '') + '</small></span><span class="sc pc-' + c.verdict + '">' + bn(c.score) + '</span></button>').join('')
+      + '<div class="pc-sec">🧾 সব চেক (কম স্কোর আগে)</div>' + (ch || []).map((c, i) => '<button class="pc-t" data-x="' + i + '"><span><b>' + nm(c.user_id) + '</b><small>' + esc(c.topic || '') + (c.admin_note ? ' · 📝' : '') + '</small></span><span class="sc pc-' + c.verdict + '">' + bn(c.score) + '</span></button>').join('')
       + '<div class="pc-sec">⚪ চেক ছাড়াই পোস্ট করেছে (' + bn(miss.length) + ')</div>' + (miss.length ? miss.map(d => '<div class="pc-li low">' + nm(tm[d.task_id].assigned_to) + ' — ' + esc(cleanTopic(d.label)) + '</div>').join('') : '<div class="mut" style="font-size:12.5px;margin-top:6px">সবাই চেক করে পোস্ট দিয়েছে 👍</div>');
-    box.querySelectorAll('[data-x]').forEach(b => b.onclick = async () => {
-      const c = ch[+b.dataset.x]; let img = '';
-      if (c.image_path) { try { const { data } = await sb.storage.from('proofs').createSignedUrl(c.image_path, 900); if (data) img = '<img class="pc-prev" src="' + data.signedUrl + '">'; } catch (e) {} }
-      sheet('<h3>' + nm(c.user_id) + '</h3><div class="pc-li"><b>' + esc(c.topic || '') + '</b></div>' + img + (c.caption ? '<div class="pc-sec">ক্যাপশন (মেম্বারের)</div><div class="pc-cap">' + esc(c.caption) + '</div>' : '') + resultHtml(c.result || c), el2 => bindCopy(el2, c.result || {}));
-    });
+    box.querySelectorAll('[data-x]').forEach(b => b.onclick = () => detail(ch[+b.dataset.x]));
   });
 }
 window.ygPostReport = report;
@@ -141,7 +153,7 @@ viewMenu = function () {
   const r = _vmPc(); const t = document.querySelector('.tiles');
   if (t && !document.getElementById('m-pchk')) {
     t.insertAdjacentHTML('beforeend', '<button class="tile" id="m-pchk"><span class="ic" style="background:linear-gradient(140deg,#8B5CF6,#4F46E5);font-size:26px">✨</span><b>পোস্ট চেক</b><small>ব্যানার+ক্যাপশন AI যাচাই</small></button>'
-      + (isAdmin() ? '<button class="tile" id="m-pchks"><span class="ic" style="background:linear-gradient(140deg,#0EA5E9,#0369A1);font-size:26px">📋</span><b>পোস্ট চেক রিপোর্ট</b><small>আজ কে কেমন করল</small></button>' : ''));
+      + (boss() ? '<button class="tile" id="m-pchks"><span class="ic" style="background:linear-gradient(140deg,#0EA5E9,#0369A1);font-size:26px">📋</span><b>পোস্ট চেক রিপোর্ট</b><small>আজ কে কেমন করল</small></button>' : ''));
     document.getElementById('m-pchk').onclick = () => checkSheet({});
     const d = document.getElementById('m-pchks'); if (d) d.onclick = report;
   }
