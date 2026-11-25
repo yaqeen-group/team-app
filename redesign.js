@@ -42,18 +42,18 @@ const CSS = `<style id="xcss">
 .x-hi{margin-top:18px;font-size:14.5px;opacity:.9;position:relative;z-index:1}.x-name{font-size:23px;font-weight:800;margin-top:2px;position:relative;z-index:1;max-width:70%}
 .x-badge{display:inline-flex;align-items:center;gap:6px;margin-top:10px;padding:5px 12px;border-radius:20px;font-size:12.5px;font-weight:800;position:relative;z-index:1;background:rgba(255,255,255,.16);border:1px solid rgba(255,255,255,.25)}
 .x-badge.gold{background:linear-gradient(135deg,#F6D365,#D4AF37);color:#3B2A00;border:0;box-shadow:0 4px 14px rgba(212,175,55,.45)}
-.x-stats{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin:-44px 14px 0;position:relative;z-index:2}
+.x-stats{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px;margin:-44px 0 0;position:relative;z-index:2}
 .x-st{background:rgba(255,255,255,.96);border-radius:18px;padding:10px 8px;display:flex;align-items:center;gap:8px;box-shadow:0 10px 24px rgba(11,42,111,.12);text-align:left}
 .x-st .x-ic{width:38px;height:38px;border-radius:12px}.x-st .x-ic i{width:24px;height:24px}
 .x-st b{display:block;font-size:20px;color:#0B2A6F;line-height:1.1}.x-st small{display:block;font-size:11px;color:#64748b;line-height:1.2}
 .x-sec{display:flex;align-items:center;justify-content:space-between;margin:18px 2px 8px}.x-sec h3{display:flex;align-items:center;gap:8px;font-size:17px;color:#0B2A6F}
 .x-sec h3 .x-ic{width:30px;height:30px;border-radius:10px;background:transparent;box-shadow:none}.x-sec h3 .x-ic i{width:24px;height:24px}
 .x-sec a,.x-sec button.lnk{font-size:13px;font-weight:700;color:#1a56db;background:none}
-.x-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:10px}
+.x-grid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:10px}
 .x-t{background:rgba(255,255,255,.92);border-radius:18px;padding:12px 4px 10px;display:flex;flex-direction:column;align-items:center;gap:7px;box-shadow:0 6px 16px rgba(11,42,111,.07);border:1px solid rgba(255,255,255,.8);position:relative}
 .x-t span.l{font-size:12px;font-weight:700;color:#1e293b;text-align:center;line-height:1.25}
 .x-t .x-n{position:absolute;top:6px;right:8px;background:#EF4444;color:#fff;font-size:10.5px;font-weight:800;border-radius:9px;padding:1px 6px}
-.x-two{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:14px}
+.x-two{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px;margin-top:14px}
 .x-card{background:rgba(255,255,255,.94);border-radius:18px;padding:12px;box-shadow:0 8px 20px rgba(11,42,111,.08);text-align:left;width:100%}
 .x-card h4{display:flex;align-items:center;gap:6px;font-size:14px;color:#0B2A6F}.x-card h4 .x-ic{width:28px;height:28px;border-radius:9px}.x-card h4 .x-ic i{width:20px;height:20px}
 .x-card .r{display:flex;align-items:center;gap:8px;margin-top:10px}.x-card .r b{font-size:13.5px;color:#0f172a;display:block}.x-card .r small{font-size:12px;color:#1a56db;font-weight:600}
@@ -64,7 +64,7 @@ const CSS = `<style id="xcss">
 .x-ahead .ttl .x-ic{width:52px;height:52px;border-radius:16px;background:rgba(255,255,255,.14)}.x-ahead .ttl .x-ic i{width:36px;height:36px}
 .x-ahead b{display:block;font-size:20px}.x-ahead small{display:block;font-size:14px;opacity:.85}
 .x-gear{width:42px;height:42px;border-radius:50%;background:rgba(255,255,255,.14);display:flex;align-items:center;justify-content:center}.x-gear i{width:24px;height:24px;display:block;background:#fff;-webkit-mask:url(${PH('gear')}) center/contain no-repeat;mask:url(${PH('gear')}) center/contain no-repeat;animation:xSpin 9s linear infinite}
-.x-tabs{display:grid;grid-template-columns:repeat(4,1fr);gap:4px;margin:-34px 14px 0;position:relative;z-index:2;background:rgba(255,255,255,.96);border-radius:20px;padding:6px;box-shadow:0 10px 24px rgba(11,42,111,.14)}
+.x-tabs{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:4px;margin:-34px 14px 0;position:relative;z-index:2;background:rgba(255,255,255,.96);border-radius:20px;padding:6px;box-shadow:0 10px 24px rgba(11,42,111,.14)}
 .x-tabs button{border-radius:15px;padding:8px 2px;display:flex;flex-direction:column;align-items:center;gap:3px;font-size:11.5px;font-weight:700;color:#334155;background:none}
 .x-tabs button i{width:22px;height:22px;display:block;background:#1a56db;-webkit-mask-size:contain;mask-size:contain;-webkit-mask-repeat:no-repeat;mask-repeat:no-repeat;-webkit-mask-position:center;mask-position:center}
 .x-tabs button.on{background:linear-gradient(140deg,#1a56db,#0B2A6F);color:#fff;box-shadow:0 6px 14px rgba(26,86,219,.35)}.x-tabs button.on i{background:#fff}
@@ -73,7 +73,7 @@ const CSS = `<style id="xcss">
 .x-box .hd h3 .x-ic{width:30px;height:30px;border-radius:10px;background:transparent;box-shadow:none}.x-box .hd h3 .x-ic i{width:24px;height:24px}
 .x-box .chev{font-size:13px;color:#64748b;transition:transform .2s}.x-box.closed .chev{transform:rotate(-90deg)}.x-box.closed .x-grid{display:none}
 .x-box .x-grid{margin-top:10px}.x-box .x-t{background:linear-gradient(180deg,#fff,#F8FAFF);border:1px solid #EEF2FA}
-.x-sum{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:10px}
+.x-sum{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px;margin-top:10px}
 .x-sm{border-radius:16px;padding:12px;display:flex;align-items:center;gap:10px}.x-sm b{display:block;font-size:22px;color:#0B2A6F;line-height:1.1}.x-sm small{font-size:12px;color:#475569}
 .x-pill{font-size:12px;font-weight:700;color:#334155;background:#F1F5F9;border-radius:12px;padding:4px 10px}
 .x-bar{height:7px;border-radius:9px;background:#E8EEF7;overflow:hidden;margin-top:6px}.x-bar i{display:block;height:100%;border-radius:9px;background:linear-gradient(90deg,#1a56db,#60A5FA)}.x-bar.g i{background:linear-gradient(90deg,#16A34A,#4ADE80)}
@@ -83,6 +83,9 @@ const CSS = `<style id="xcss">
 .tb[data-t="admin"].on .x-tbi{background:#fff}
 .tb[data-t="admin"].on::before{content:"";position:absolute;inset:0 6px;border-radius:16px;background:linear-gradient(140deg,#1a56db,#0B2A6F);z-index:-1;box-shadow:0 6px 14px rgba(26,86,219,.35)}
 .tb[data-t="admin"]{z-index:0}
+.x-st{min-width:0;padding:9px 6px;gap:6px}.x-st>span{min-width:0}.x-st small{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.x-hero,.x-ahead{max-width:100%}.view:has(#xhero){overflow-x:hidden}
+@media (max-width:390px){.x-st .x-ic{width:32px;height:32px}.x-st .x-ic em{font-size:17px}.x-st b{font-size:18px}.x-st small{font-size:10px}.x-name{font-size:20px}.x-oic{width:46px;height:46px}.x-t span.l{font-size:11px}}
 </style>`;
 /* reuse the app's own icon styling (look.js) for copied icons */
 let lkCopied = false;
@@ -109,11 +112,10 @@ function homeBuild() {
     const p = state.profile, isB = boss();
     oldHero.style.display = 'none';
     const badge = p.observer ? '<span class="x-badge gold">👑 Admin Account</span>' : '<span class="x-badge">' + esc(p.designation || p.role || '') + '</span>';
-    oldHero.insertAdjacentHTML('beforebegin', '<div class="x-hero" id="xhero"><img class="kl" src="hero-islamic.jpg" alt=""><div class="glow"></div>'
+    oldHero.insertAdjacentHTML('beforebegin', '<div class="x-hero" id="xhero"><img class="kl" src="hero-islamic.jpg" alt="">'
       + '<div class="x-top"><div class="x-brand"><img src="icon-192.png" alt=""><div><b>Yaqeen Group</b><small>TEAM</small></div></div>'
       + '<div class="x-tr"><button class="x-bell x-tap" id="xbell"><i></i><span class="x-bd" id="xbellb" hidden></span></button><button class="x-av x-tap" id="xav">' + avatar(p.full_name, p.id, 46) + '<span class="dot"></span></button></div></div>'
       + '<div class="x-hi">Assalamualaikum,</div><div class="x-name">' + esc(p.full_name) + '</div>' + badge + '</div>');
-    { const bg = oldHero.querySelector('.ygbg'), xh = document.getElementById('xhero'); if (bg && xh) xh.prepend(bg.cloneNode(true)); }
     pad.insertAdjacentHTML('afterbegin', '<div class="x-stats" id="xstats">'
       + '<button class="x-st x-tap" id="xs1">' + I('clipboard-text', '#2563EB', '#60A5FA', 'rgba(37,99,235,.12)', 'float') + '<span><b id="xs1v">–</b><small>Open Tasks</small></span></button>'
       + '<button class="x-st x-tap" id="xs2">' + I('bell-simple-ringing', '#F59E0B', '#FBBF24', 'rgba(245,158,11,.14)', 'ring') + '<span><b id="xs2v">–</b><small>Notifications</small></span></button>'
