@@ -90,7 +90,7 @@ const CSS = `<style id="xcss">
 .x-hero,.x-ahead{max-width:100%}.view:has(#xhero){overflow-x:hidden}
 @media (max-width:390px){.x-st .x-ic{width:32px;height:32px}.x-st .x-ic em{font-size:17px}.x-st b{font-size:18px}.x-st small{font-size:10px}.x-name{font-size:20px}.x-oic{width:46px;height:46px}.x-t span.l{font-size:11px}}
 .tabbar.x-6 .tb{font-size:10.5px;min-width:0}
-.x-dl{display:flex;align-items:center;gap:12px;margin-top:12px}.x-dl b{display:block;font-size:15px;color:#0B2A6F}.x-dl small{display:block;font-size:12px;color:#64748b;margin-top:2px}.x-dl span{flex:1;min-width:0}.x-dl em{font-style:normal;font-size:24px;color:#94A3B8}
+.x-dl .x-oic{flex:0 0 52px;width:52px}.x-dl{display:flex;align-items:center;gap:12px;margin-top:12px}.x-dl b{display:block;font-size:15px;color:#0B2A6F}.x-dl small{display:block;font-size:12px;color:#64748b;margin-top:2px}.x-dl span{flex:1;min-width:0}.x-dl em{font-style:normal;font-size:24px;color:#94A3B8}
 </style>`;
 /* reuse the app's own icon styling (look.js) for copied icons */
 let lkCopied = false;
@@ -141,6 +141,7 @@ function homeBuild() {
       if (n) { document.getElementById('xs2v').textContent = n; const b = document.getElementById('xbellb'); const nn = parseInt(n.replace(/[০-৯]/g, d => '০১২৩৪৫৬৭৮৯'.indexOf(d)), 10) || 0; b.hidden = !nn; b.textContent = n; }
       if (o) document.getElementById('xs3v').textContent = o;
       const pv = document.getElementById('xpv1'); if (pv && a) pv.textContent = a;
+      const p2 = document.getElementById('xpv2'), r2 = /(\d+|[০-৯]+)\s*\/\s*(\d+|[০-৯]+)/.exec(txt('ob-r')); if (p2 && r2) p2.textContent = r2[1] + '/' + r2[2];
       const hm = document.getElementById('hmt'), ms = document.getElementById('xmts');
       if (hm && ms) { const ls = hm.innerText.split('\n').map(x => x.trim()).filter(Boolean).filter(x => !/today'?s meeting|আজকের মিটিং|tap to|চাপ দিন/i.test(x)); ms.textContent = ls.join(' · ') || 'হাজিরা দেখুন'; }
     };
@@ -179,7 +180,7 @@ function homeBuild() {
       const rr = /(\d+|[০-৯]+)\s*\/\s*(\d+|[০-৯]+)/.exec(txt('ob-r'));
       document.getElementById('xqg').insertAdjacentHTML('afterend', '<div class="x-two"><button class="x-card x-tap" id="xmt"><h4>' + I('calendar-check', '#2563EB', '#60A5FA', 'rgba(37,99,235,.12)', 'float') + "Today's Meeting ›</h4><div class=\"r\"><span><b>" + (new Date().getHours() >= 17 ? 'Night Meeting' : 'Morning Meeting') + '</b><small id="xmts">' + esc(ms) + '</small></span></div></button>'
         + '<button class="x-card x-tap" id="xpf"><h4>' + I('chart-line-up', '#16A34A', '#22D3EE', 'rgba(22,163,74,.12)', 'grow') + (isB ? 'Team Performance' : 'My Performance') + '</h4><div class="nums"><span><b id="xpv1">' + esc(txt('k2') || '–') + '</b><small>Active Tasks</small></span>'
-        + (isB ? '<span><b>' + (rr ? esc(rr[1] + '/' + rr[2]) : '–') + '</b><small>Reports</small></span>' : '<span><b>' + esc(txt('lkodv') || '0') + '</b><small>Overdue</small></span>') + '</div></button></div>');
+        + (isB ? '<span><b id="xpv2">' + (rr ? esc(rr[1] + '/' + rr[2]) : '–') + '</b><small>Reports</small></span>' : '<span><b>' + esc(txt('lkodv') || '0') + '</b><small>Overdue</small></span>') + '</div></button></div>');
       document.getElementById('xmt').onclick = () => (hmt ? hmt.click() : (window.viewMeetings ? viewMeetings() : go('home')));
       document.getElementById('xpf').onclick = () => (isB ? (window.ygReportDash ? ygReportDash() : go('home')) : (typeof viewPerfPerson === 'function' ? viewPerfPerson(state.profile.id) : go('tasks')));
     }
