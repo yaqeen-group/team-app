@@ -83,7 +83,10 @@ const CSS = `<style id="xcss">
 .tb[data-t="admin"].on .x-tbi{background:#fff}
 .tb[data-t="admin"].on::before{content:"";position:absolute;inset:0 6px;border-radius:16px;background:linear-gradient(140deg,#1a56db,#0B2A6F);z-index:-1;box-shadow:0 6px 14px rgba(26,86,219,.35)}
 .tb[data-t="admin"]{z-index:0}
-.x-st{min-width:0;padding:9px 6px;gap:6px}.x-st>span{min-width:0}.x-st small{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.x-st{min-width:0;padding:9px 6px;gap:6px}.x-st>span{min-width:0}.x-st small{white-space:normal;line-height:1.1}
+.x-hero::after{content:'';position:absolute;inset:0;z-index:0;pointer-events:none;background:linear-gradient(90deg,rgba(6,34,105,.95) 0,rgba(6,34,105,.75) 38%,rgba(6,34,105,0) 70%)}
+@media (max-width:420px){.x-hero .kl{object-position:82% 45%}}
+@media (max-width:370px){.x-st .x-ic{display:none}.x-st{justify-content:center;text-align:center}}
 .x-hero,.x-ahead{max-width:100%}.view:has(#xhero){overflow-x:hidden}
 @media (max-width:390px){.x-st .x-ic{width:32px;height:32px}.x-st .x-ic em{font-size:17px}.x-st b{font-size:18px}.x-st small{font-size:10px}.x-name{font-size:20px}.x-oic{width:46px;height:46px}.x-t span.l{font-size:11px}}
 </style>`;
