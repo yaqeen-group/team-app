@@ -91,6 +91,12 @@ const CSS = `<style id="xcss">
 @media (max-width:390px){.x-st .x-ic{width:32px;height:32px}.x-st .x-ic em{font-size:17px}.x-st b{font-size:18px}.x-st small{font-size:10px}.x-name{font-size:20px}.x-oic{width:46px;height:46px}.x-t span.l{font-size:11px}}
 .tabbar.x-6 .tb{font-size:10.5px;min-width:0}
 .x-dl .x-oic{flex:0 0 52px;width:52px}.x-dl{display:flex;align-items:center;gap:12px;margin-top:12px}.x-dl b{display:block;font-size:15px;color:#0B2A6F}.x-dl small{display:block;font-size:12px;color:#64748b;margin-top:2px}.x-dl span{flex:1;min-width:0}.x-dl em{font-style:normal;font-size:24px;color:#94A3B8}
+/* full-width pages: small even side margins everywhere */
+.pad{padding-left:8px!important;padding-right:8px!important}
+.view>.pad:first-of-type,.view>.top+.pad{padding-top:10px}
+.mg{padding:12px 8px 13px!important;margin-top:10px!important}
+.x-box{padding:12px 8px}
+.mg-g,.x-grid{gap:6px!important}
 </style>`;
 /* reuse the app's own icon styling (look.js) for copied icons */
 let lkCopied = false;
