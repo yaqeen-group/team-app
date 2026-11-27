@@ -315,7 +315,7 @@ window.ygMemberPreview = function (on) {
   if (on) {
     if (window._ygReal) return;
     window._ygReal = state.profile;
-    state.profile = Object.assign({}, state.profile, { role: 'member', observer: false, work_mode: state.profile.work_mode || 'office' });
+    state.profile = Object.assign({}, state.profile, { role: 'member', observer: false, daily_report: true, work_mode: 'office' });
     document.querySelectorAll('.tb[data-t="admin"]').forEach(b => b.remove()); document.querySelectorAll('.tabbar').forEach(n => n.classList.remove('x-6'));
     if (!document.getElementById('xpvpill')) document.body.insertAdjacentHTML('beforeend', '<button id="xpvpill" style="position:fixed;top:calc(env(safe-area-inset-top,0px) + 8px);left:50%;transform:translateX(-50%);z-index:9999;background:#0B2A6F;color:#fff;border-radius:20px;padding:7px 14px;font-size:12.5px;font-weight:700;box-shadow:0 6px 18px rgba(0,0,0,.25)">👁️ মেম্বার ভিউ চলছে · ✕ বন্ধ করুন</button>');
     document.getElementById('xpvpill').onclick = () => ygMemberPreview(false);
