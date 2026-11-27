@@ -117,11 +117,12 @@ async function issueDashboard() {
       box.innerHTML = data.map(i => '<div class="iss" data-i="' + i.id + '"><div class="h"><b>' + esc((ui.people[i.user_id] || {}).full_name || 'সদস্য') + ' · ' + esc(i.category) + '</b><span>' + when(i.created_at) + '</span></div><p>' + esc(i.body) + '</p>'
         + (i.file_path ? '<div class="act"><button data-f="' + esc(i.file_path) + '">📎 স্ক্রিনশট দেখুন</button></div>' : '')
         + (i.admin_reply ? '<div class="rp">💬 ' + esc(i.admin_reply) + '</div>' : '') + (i.rating ? '<div class="h" style="margin-top:6px">রেটিং: ' + '⭐'.repeat(i.rating) + '</div>' : '')
-        + (i.status !== 'solved' ? '<textarea class="in" placeholder="জবাব / কী সমাধান করলেন (ঐচ্ছিক)" style="min-height:60px;margin-top:8px"></textarea><div class="act">' + (i.status === 'open' ? '<button data-s="in_progress">🔧 কাজ চলছে</button>' : '') + '<button class="ok" data-s="solved">✅ সমাধান হয়েছে</button></div>' : '') + '</div>').join('');
+        + (i.status !== 'solved' ? '<textarea class="in" placeholder="এখানে জবাব লিখুন — তারপর নিচের বাটন চাপুন" style="min-height:60px;margin-top:8px"></textarea><div class="act">' + '<button data-s="' + i.status + '" data-rp="1" style="background:#EEF2FF;color:#3730A3">💬 জবাব পাঠান</button>' + (i.status === 'open' ? '<button data-s="in_progress">🔧 কাজ চলছে</button>' : '') + '<button class="ok" data-s="solved">✅ সমাধান হয়েছে + জবাব পাঠান</button></div><div style="font-size:11.5px;color:#64748b;margin-top:6px">💬 জবাব পাঠান = শুধু উত্তর যাবে, সমস্যা খোলা থাকবে · ✅ = উত্তর যাবে আর সমস্যা বন্ধ হবে</div>' : '') + '</div>').join('');
       box.querySelectorAll('[data-f]').forEach(b => b.onclick = async () => { const u = await fileLink(b.dataset.f); if (!u) return toast('ফাইল খোলা যায়নি'); window.open(u, '_blank', 'noopener'); });
       box.querySelectorAll('[data-s]').forEach(b => b.onclick = async () => {
         const card = b.closest('[data-i]'), reply = (card.querySelector('textarea') || {}).value || '';
         if (b.dataset.s === 'solved' && reply.trim().length < 3 && !confirm('জবাব ছাড়াই সমাধান হয়েছে বলে জানাবেন?')) return;
+        if (b.dataset.rp && reply.trim().length < 2) return toast('আগে জবাবটা লিখুন');
         const { error } = await sb.rpc('yg_issue_update', { p_id: card.dataset.i, p_status: b.dataset.s, p_reply: reply });
         if (error) return toast(friendlyError(error)); toast('আপডেট হয়েছে ✓ সদস্যকে জানানো হলো'); draw(); badge();
       });
