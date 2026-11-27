@@ -921,7 +921,7 @@ async function viewHome() {
   const p = state.profile;
   const quick = [
     ['chats', '💬', 'Chats', '#E3F1F0'], ['notices', '📢', 'Notices', '#FFF3DC'], ['tasks', '✅', 'Tasks', '#E7F5EE'], ['team', '👥', 'Team', '#E8EEFF'], ['crm', '📊', 'CRM', '#FFE4E6'], ['lead', '➕', 'নতুন লিড', '#FFE9D6'],
-    ['report', '📝', 'Daily report', '#F3E8FF'], ['profile', '✏️', 'My profile', '#FCE7EF'],
+    ['report', '📝', 'ডেইলি ফুল রিপোর্ট', '#F3E8FF'], ['profile', '✏️', 'My profile', '#FCE7EF'],
     ...(isAdmin() ? [['admin', '🛡️', 'Admin', '#E2E8F0'], ['group', '➕', 'New group', '#FFEDD5']] : [])
   ];
   frame(`<div class="hero">${logo(true)}<div class="hi">আসসালামু আলাইকুম,<b>${esc(p.full_name)}</b></div>
@@ -1711,7 +1711,7 @@ function taskForm(t) {
 async function viewReport() {
   const today = todayDhaka();
   const { data: r } = await sb.from('daily_reports').select('*').eq('user_id', state.profile.id).eq('report_date', today).maybeSingle();
-  $app.innerHTML = `<div class="top"><button class="back" id="bk">←</button><h1>Daily work report<span class="sub">${fmtDate(today)}</span></h1>${isMgr() ? '<div class="act"><button id="all" title="Team reports">📋</button></div>' : ''}</div>
+  $app.innerHTML = `<div class="top"><button class="back" id="bk">←</button><h1>ডেইলি ফুল রিপোর্ট<span class="sub">${fmtDate(today)}</span></h1>${isMgr() ? '<div class="act"><button id="all" title="Team reports">📋</button></div>' : ''}</div>
   <div class="pad" style="padding-top:6px">
     ${r ? '<div class="msg ok">আজকের রিপোর্ট জমা হয়েছে। চাইলে আপডেট করতে পারেন।</div>' : ''}
     <label>আজকে কী কী কাজ করেছেন *</label><textarea class="in" id="wd" maxlength="5000" placeholder="• ৩টা ভিসা ফাইল জমা&#10;• ২ জন ক্লায়েন্ট ফলো-আপ">${esc(r ? r.work_done : '')}</textarea>
@@ -1764,7 +1764,7 @@ function viewMenu() {
       <button class="tile" id="m-lang" data-noi18n="1" onclick="ygToggleLang()"><span class="ic">🌐</span><b>Language · ভাষা</b><small>${ygLang() === 'en' ? 'English → বাংলা' : 'বাংলা → English'}</small></button>
       <button class="tile" id="m-push"><span class="ic">🔔</span><b>Notifications</b><small>${pushState() === 'granted' ? 'চালু আছে ✓' : pushState() === 'unsupported' ? 'সাপোর্ট নেই' : 'বন্ধ — চালু করুন'}</small></button>
       <button class="tile" id="m-team"><span class="ic">👥</span><b>Team</b><small>সব সদস্য</small></button>
-      <button class="tile" id="m-rep"><span class="ic">📝</span><b>Daily report</b><small>আজকের কাজ</small></button>
+      <button class="tile" id="m-rep"><span class="ic">📝</span><b>ডেইলি ফুল রিপোর্ট</b><small>আজকের কাজ ও পরিকল্পনা</small></button>
       ${isAdmin() ? '<button class="tile" id="m-adm"><span class="ic">🛡️</span><b>Admin panel</b><small>নিয়ন্ত্রণ</small></button>' : ''}
       ${isAdmin() ? '<button class="tile" id="m-grp"><span class="ic">➕</span><b>New group</b><small>গ্রুপ তৈরি</small></button>' : ''}
     </div>
@@ -3221,14 +3221,14 @@ window.viewPerfTeam = viewPerfTeam;
 <script src="crmstaff.js?v=1"></script>
 <script src="look.js?v=3"></script>
 <script src="fb.js?v=1"></script>
-<script src="team.js?v=2"></script>
+<script src="team.js?v=3"></script>
 <script src="goals.js?v=4"></script>
 <script src="gpt.js?v=2"></script>
 <script src="callui.js?v=3"></script>
 <script src="sounds.js?v=1"></script>
 <script src="issues.js?v=2"></script>
 <script src="postcheck.js?v=5"></script>
-<script src="reportdash.js?v=3"></script>
+<script src="reportdash.js?v=4"></script>
 <script src="navfix.js?v=1"></script>
 <script src="redesign.js?v=16"></script>
 <script src="menu2.js?v=6"></script>

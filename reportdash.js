@@ -152,7 +152,7 @@ async function homeRepCard() {
     if (!today || !needRep() || document.getElementById('xdrep')) return;
     const css2 = '<style id="xdrcss">#xdrep{display:flex;align-items:center;gap:12px;width:100%;text-align:left;margin-top:12px;border-radius:20px;padding:14px;background:linear-gradient(135deg,#0B2A6F,#1E4FC2 60%,#2563EB);color:#fff;box-shadow:0 10px 26px rgba(11,42,111,.28);border:0}#xdrep .ic{flex:0 0 50px;height:50px;border-radius:16px;background:rgba(255,255,255,.16);display:flex;align-items:center;justify-content:center;font-size:26px}#xdrep b{display:block;font-size:16px}#xdrep small{display:block;font-size:12.5px;opacity:.9;margin-top:3px;line-height:1.45}#xdrep .st{margin-left:auto;flex:0 0 auto;border-radius:12px;padding:6px 9px;font-size:11.5px;font-weight:800;background:#FDE68A;color:#92400E}#xdrep.ok{background:linear-gradient(135deg,#065F46,#059669)}#xdrep.ok .st{background:#D1FAE5;color:#065F46}</style>';
     if (!document.getElementById('xdrcss')) document.head.insertAdjacentHTML('beforeend', css2);
-    today.insertAdjacentHTML('afterend', '<button id="xdrep" class="x-tap"><span class="ic">📝</span><span><b>আজকের কাজের ডেইলি রিপোর্ট</b><small>আজকের কাজের সকল আপডেট দিন এবং আগামী দিনের পরিকল্পনা জানান</small></span><span class="st">জমা দিন →</span></button>');
+    today.insertAdjacentHTML('afterend', '<button id="xdrep" class="x-tap"><span class="ic">📝</span><span><b>আজকের ডেইলি ফুল রিপোর্ট</b><small>আজকের কাজের সকল আপডেট দিন এবং আগামী দিনের পরিকল্পনা জানান</small></span><span class="st">জমা দিন →</span></button>');
     const el = document.getElementById('xdrep'); el.onclick = () => viewReport();
     const d = todayDhaka();
     if (repDone.d !== d) { const { count } = await sb.from('daily_reports').select('user_id', { count: 'exact', head: true }).eq('user_id', state.profile.id).eq('report_date', d); repDone = { d, v: !!count }; }
@@ -183,6 +183,57 @@ viewReport = async function () {
       repDone = { d: today, v: true };
       toast('রিপোর্ট জমা হয়েছে ✓'); viewReport();
     };
+  } catch (e) {}
+  return r;
+};
+
+/* 📄 member's own Daily Full Report as PDF (today's report + tasks + checklist links + attendance) */
+async function myFullHtml(d) {
+  const me = state.profile, f0 = new Date(d + 'T00:00:00+06:00').getTime(), from = new Date(f0).toISOString().slice(0, 19) + 'Z', to = new Date(f0 + 86400000).toISOString().slice(0, 19) + 'Z';
+  const [{ data: rep }, { data: tk }, { data: att }] = await Promise.all([
+    sb.from('daily_reports').select('*').eq('user_id', me.id).eq('report_date', d).maybeSingle(),
+    sb.from('tasks').select('id,title,status,due_date,completed_at').eq('assigned_to', me.id).or('and(due_date.gte.' + from + ',due_date.lt.' + to + '),and(completed_at.gte.' + from + ',completed_at.lt.' + to + ')'),
+    sb.from('attendance').select('*').eq('user_id', me.id).eq('work_date', d)
+  ]);
+  const ids = (tk || []).map(t => t.id);
+  const { data: its } = ids.length ? await sb.from('yg_task_items').select('task_id,pos,label,done,link,done_at').in('task_id', ids).order('pos') : { data: [] };
+  const T = s => esc(s || ''), L = s => esc(s || '').replace(/\n/g, '<br>');
+  const H = (t, c) => '<div style="margin-top:18px;padding:7px 12px;border-radius:8px;background:' + c + ';color:#fff;font-weight:700;font-size:16px">' + t + '</div>';
+  const box = x => '<div style="margin-top:8px;padding:10px 12px;border:1px solid #dbe3ee;border-radius:8px;font-size:14px;line-height:1.65">' + x + '</div>';
+  const tasks = (tk || []).map(t => {
+    const li = (its || []).filter(i => i.task_id === t.id);
+    return box('<b>' + (t.status === 'completed' ? '✅ ' : '⏳ ') + T(t.title) + '</b>' + (t.completed_at ? ' <span style="color:#64748b">· সম্পন্ন ' + tm(t.completed_at) + '</span>' : '')
+      + li.map(i => '<div style="margin-top:4px;padding-left:10px">' + (i.done ? '☑️ ' : '⬜ ') + T(i.label) + (i.link ? '<br><span style="color:#1D4ED8;font-size:12px;word-break:break-all">' + T(i.link) + '</span>' : '') + '</div>').join(''));
+  }).join('') || box('এই দিনে কোনো টাস্ক নেই');
+  const at = (att || []).sort((a, b) => (a.shift || 1) - (b.shift || 1)).map(a => box((att.length > 1 ? (a.shift === 2 ? 'বিকেল' : 'সকাল') + ': ' : '') + 'ঢোকা ' + tm(a.check_in_at) + ' · বের ' + (a.check_out_at ? tm(a.check_out_at) : '—') + (a.late_minutes ? ' · ' + bn(a.late_minutes) + ' মি দেরি' : '') + (a.early_minutes ? ' · ' + bn(a.early_minutes) + ' মি আগে বের' : ''))).join('') || box('হাজিরা নেই / প্রযোজ্য নয়');
+  return '<div style="width:794px;padding:34px 40px;background:#fff;color:#0f172a;font-family:inherit">'
+    + '<div style="display:flex;justify-content:space-between;align-items:flex-end;border-bottom:3px solid #0B2A6F;padding-bottom:10px"><div><div style="font-size:24px;font-weight:800;color:#0B2A6F">ডেইলি ফুল রিপোর্ট</div><div style="font-size:14px;color:#334155;margin-top:4px">' + T(me.full_name) + (me.designation ? ' · ' + T(me.designation) : '') + '</div></div><div style="text-align:right;font-size:13px;color:#475569"><b>Yaqeen Group</b><br>' + new Date(d + 'T00:00:00').toLocaleDateString('bn-BD', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' }) + '</div></div>'
+    + H('📝 আজকের কাজের সকল আপডেট', '#0B2A6F') + box(rep ? L(rep.work_done) + (rep.leads_count != null ? '<div style="margin-top:6px"><b>Leads / clients:</b> ' + bn(rep.leads_count) + '</div>' : '') : '<span style="color:#b91c1c">রিপোর্ট জমা হয়নি</span>')
+    + H('🗓️ আগামী দিনের পরিকল্পনা', '#2563EB') + box(rep && rep.plan_next ? L(rep.plan_next) : '—')
+    + (rep && rep.issues ? H('⚠️ সমস্যা / সাহায্য দরকার', '#D97706') + box(L(rep.issues)) : '')
+    + (rep && rep.attachment_link ? H('🔗 Drive link', '#475569') + box(T(rep.attachment_link)) : '')
+    + H('✅ টাস্ক ও চেকলিস্ট', '#059669') + tasks
+    + H('🕒 হাজিরা', '#7C3AED') + at
+    + '<div style="margin-top:22px;font-size:11px;color:#94a3b8;text-align:center">Yaqeen Group Team App থেকে তৈরি · ' + (rep && rep.updated_at ? 'রিপোর্ট জমা: ' + new Date(rep.updated_at).toLocaleString('bn-BD', { day: 'numeric', month: 'short', hour: 'numeric', minute: '2-digit' }) : '') + '</div></div>';
+}
+async function myFullPdf(d, share) {
+  try { const html = await myFullHtml(d); const nm = (state.profile.full_name || 'member').replace(/\s+/g, '-'); await exportHtmlPdf(html, 'Daily-Full-Report-' + nm + '-' + d + '.pdf', share ? 'ডেইলি ফুল রিপোর্ট · ' + state.profile.full_name + ' · ' + d : '', share); }
+  catch (e) { toast('PDF বানানো যায়নি'); }
+}
+window.ygMyFullPdf = myFullPdf;
+const _vrPdf = viewReport;
+viewReport = async function () {
+  const r = await _vrPdf.apply(this, arguments);
+  try {
+    const pad = document.querySelector('#app .pad, .pad'); if (!pad || document.getElementById('xfpdf')) return r;
+    const d = todayDhaka();
+    const { count } = await sb.from('daily_reports').select('user_id', { count: 'exact', head: true }).eq('user_id', state.profile.id).eq('report_date', d);
+    if (!count) return r;
+    const ok = pad.querySelector('.msg.ok');
+    const html = '<div id="xfpdf" style="background:#ECFDF5;border:1.5px solid #6EE7B7;border-radius:16px;padding:12px;margin-bottom:12px"><b style="color:#065F46">📄 আজকের ডেইলি ফুল রিপোর্ট জমা হয়েছে</b><div class="mut" style="font-size:12.5px;margin-top:3px">কাজের আপডেট, পরিকল্পনা, টাস্ক-লিংক আর হাজিরা — সব এক PDF-এ</div><div class="two" style="margin-top:8px"><button class="btn" id="xfdl" style="margin-top:0">⬇️ PDF ডাউনলোড</button><button class="btn ghost" id="xfsh" style="margin-top:0">📤 শেয়ার</button></div></div>';
+    if (ok) { ok.insertAdjacentHTML('afterend', html); ok.remove(); } else pad.insertAdjacentHTML('afterbegin', html);
+    document.getElementById('xfdl').onclick = () => myFullPdf(d, false);
+    document.getElementById('xfsh').onclick = () => myFullPdf(d, true);
   } catch (e) {}
   return r;
 };
