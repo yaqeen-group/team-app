@@ -98,7 +98,7 @@ async function loadMine(box) {
   if (!box) return;
   if (!data || !data.length) { box.innerHTML = '<div class="empty">এখনো কোনো সমস্যা পাঠাননি</div>'; return; }
   box.innerHTML = data.map(i => '<div class="iss"><div class="h"><b>' + esc(i.category) + '</b><span>' + ST[i.status][0] + ' ' + ST[i.status][1] + ' · ' + when(i.created_at) + '</span></div><p>' + esc(i.body) + '</p>'
-    + (i.admin_reply ? '<div class="rp">💬 <b>অ্যাডমিনের জবাব:</b> ' + esc(i.admin_reply) + '</div>' : '')
+    + (i.admin_reply ? '<div class="rp">💬 <b>অ্যাডমিনের জবাব' + (i.replied_at ? ' (' + when(i.replied_at) + ')' : '') + ':</b> ' + esc(i.admin_reply) + '</div>' : '')
     + (i.status === 'solved' ? (i.rating ? '<div class="h" style="margin-top:6px">আপনার রেটিং: ' + '⭐'.repeat(i.rating) + '</div>' : '<div class="act stars" data-r="' + i.id + '">সমাধানে খুশি? ' + [1, 2, 3, 4, 5].map(n => '<button data-n="' + n + '">☆</button>').join('') + '</div>') : '') + '</div>').join('');
   box.querySelectorAll('[data-r]').forEach(s => s.querySelectorAll('[data-n]').forEach(b => b.onclick = async () => {
     const { error } = await sb.rpc('yg_issue_rate', { p_id: s.dataset.r, p_rating: +b.dataset.n }); if (error) return toast(friendlyError(error)); toast('ধন্যবাদ! ⭐'); loadMine(box);
@@ -111,12 +111,12 @@ async function issueDashboard() {
     const draw = async () => {
       el.querySelectorAll('[data-t]').forEach(b => b.classList.toggle('on', b.dataset.t === admTab));
       const box = el.querySelector('#isadm');
-      const { data, error } = await sb.from('yg_issues').select('*').eq('status', admTab).order('created_at', { ascending: false }).limit(60);
+      const { data, error } = await sb.from('yg_issues').select('*').eq('status', admTab).order(admTab === 'solved' ? 'updated_at' : 'created_at', { ascending: false }).limit(admTab === 'solved' ? 300 : 60);
       if (error) { box.innerHTML = '<div class="empty">' + esc(friendlyError(error)) + '</div>'; return; }
       if (!data.length) { box.innerHTML = '<div class="empty">এখানে কিছু নেই 👍</div>'; return; }
       box.innerHTML = data.map(i => '<div class="iss" data-i="' + i.id + '"><div class="h"><b>' + esc((ui.people[i.user_id] || {}).full_name || 'সদস্য') + ' · ' + esc(i.category) + '</b><span>' + when(i.created_at) + '</span></div><p>' + esc(i.body) + '</p>'
         + (i.file_path ? '<div class="act"><button data-f="' + esc(i.file_path) + '">📎 স্ক্রিনশট দেখুন</button></div>' : '')
-        + (i.admin_reply ? '<div class="rp">💬 ' + esc(i.admin_reply) + '</div>' : '') + (i.rating ? '<div class="h" style="margin-top:6px">রেটিং: ' + '⭐'.repeat(i.rating) + '</div>' : '')
+        + (i.admin_reply ? '<div class="rp"><div style="font-size:11.5px;color:#166534;font-weight:700;margin-bottom:3px">' + (i.status === 'solved' ? '✅ কী সমাধান দেওয়া হয়েছে' : '💬 দেওয়া জবাব') + ' · ' + esc((ui.people[i.replied_by] || {}).full_name || 'অ্যাডমিন') + (i.replied_at ? ' · ' + when(i.replied_at) : '') + '</div>' + esc(i.admin_reply) + '</div>' : (i.status === 'solved' ? '<div class="rp" style="background:#F8FAFC;color:#64748b">জবাব ছাড়া সমাধান করা হয়েছে</div>' : '')) + (i.rating ? '<div class="h" style="margin-top:6px">রেটিং: ' + '⭐'.repeat(i.rating) + '</div>' : '')
         + (i.status !== 'solved' ? '<textarea class="in" placeholder="এখানে জবাব লিখুন — তারপর নিচের বাটন চাপুন" style="min-height:60px;margin-top:8px"></textarea><div class="act">' + '<button data-s="' + i.status + '" data-rp="1" style="background:#EEF2FF;color:#3730A3">💬 জবাব পাঠান</button>' + (i.status === 'open' ? '<button data-s="in_progress">🔧 কাজ চলছে</button>' : '') + '<button class="ok" data-s="solved">✅ সমাধান হয়েছে + জবাব পাঠান</button></div><div style="font-size:11.5px;color:#64748b;margin-top:6px">💬 জবাব পাঠান = শুধু উত্তর যাবে, সমস্যা খোলা থাকবে · ✅ = উত্তর যাবে আর সমস্যা বন্ধ হবে</div>' : '') + '</div>').join('');
       box.querySelectorAll('[data-f]').forEach(b => b.onclick = async () => { const u = await fileLink(b.dataset.f); if (!u) return toast('ফাইল খোলা যায়নি'); window.open(u, '_blank', 'noopener'); });
       box.querySelectorAll('[data-s]').forEach(b => b.onclick = async () => {
