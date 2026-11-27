@@ -51,6 +51,8 @@ function place() {
   });
   /* attendance only for people who work from the office (admins/managers keep it to see the team) */
   try { const at = document.getElementById('m-att'); if (at) { const show = state.profile.work_mode === 'office' || isMgr(); at.hidden = !show; at.style.display = show ? '' : 'none'; } } catch (e) {}
+  /* admins/observers: hide member-only items (they have the Admin tab for these) */
+  try { if (isAdmin() || state.profile.observer) ['m-tg', 'm-pchk', 'm-att', 'm-lv', 'm-rep', 'm-ap', 'm-sc', 'm-issue', 'm-issues', 'm-adm'].forEach(id => { const t = document.getElementById(id); if (t) { t.hidden = true; t.style.display = 'none'; } }); } catch (e) {}
   wrap.querySelectorAll('.mg').forEach(s => s.hidden = !s.querySelector('.tile:not([hidden])'));
 }
 const _vmMg = viewMenu;

@@ -1,6 +1,7 @@
 <!doctype html>
 <html lang="bn">
 <head>
+<script>/* force 12-hour clock (1:00 PM, not 13:00) on every device */(function(){function f(o){o=Object.assign({},o||{});if(o.hour12===undefined&&!o.hourCycle)o.hour12=true;return o;}var T=Date.prototype.toLocaleTimeString,S=Date.prototype.toLocaleString;Date.prototype.toLocaleTimeString=function(l,o){return T.call(this,l,f(o));};Date.prototype.toLocaleString=function(l,o){return S.call(this,l,f(o));};var D=Intl.DateTimeFormat;function N(l,o){return new D(l,f(o));}N.prototype=D.prototype;N.supportedLocalesOf=D.supportedLocalesOf;try{Intl.DateTimeFormat=N;}catch(e){}})();</script>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <meta name="theme-color" content="#0B2A6F">
@@ -2607,7 +2608,7 @@ async function viewOffices() {
   await loadOffices(true);
   $app.innerHTML = `<div class="top"><button class="back" id="bk">←</button><h1>📍 অফিস লোকেশন</h1></div><div class="pad" style="padding-top:8px">
     <div class="msg info" style="font-size:12.5px">অফিসের ভেতরে দাঁড়িয়ে নিচের বাটন চাপুন। ফোনের বর্তমান লোকেশনটাই অফিস হিসেবে সেভ হবে। একাধিক অফিস (যেমন বাংলাদেশ ও মালয়েশিয়া) যোগ করা যাবে।</div>
-    ${officesCache.map(o => `<div class="card"><div class="row"><span style="font-size:24px">🏢</span><div class="rt"><b>${esc(o.name)}</b><span>ব্যাসার্ধ ${o.radius_m} মি · শুরু ${o.start_time.slice(0, 5)} · ${o.utc_offset_min === 480 ? 'মালয়েশিয়া সময়' : o.utc_offset_min === 360 ? 'বাংলাদেশ সময়' : 'UTC+' + o.utc_offset_min / 60}</span></div><button class="smallbtn red" data-del="${o.id}">মুছুন</button></div>
+    ${officesCache.map(o => `<div class="card"><div class="row"><span style="font-size:24px">🏢</span><div class="rt"><b>${esc(o.name)}</b><span>ব্যাসার্ধ ${o.radius_m} মি · শুরু ${t12(o.start_time)} · ${o.utc_offset_min === 480 ? 'মালয়েশিয়া সময়' : o.utc_offset_min === 360 ? 'বাংলাদেশ সময়' : 'UTC+' + o.utc_offset_min / 60}</span></div><button class="smallbtn red" data-del="${o.id}">মুছুন</button></div>
       <a class="link" style="font-size:12.5px" href="https://maps.google.com/?q=${o.lat},${o.lng}" target="_blank" rel="noopener">🗺️ ম্যাপে দেখুন</a></div>`).join('') || '<div class="hempty"><span>🏢</span>এখনো কোনো অফিস সেট করা হয়নি</div>'}
     <button class="btn" id="oadd">📍 এখানে অফিস সেট করুন</button></div>`;
   document.getElementById('bk').onclick = viewAttendance;
@@ -2634,7 +2635,7 @@ async function viewOffices() {
 /* ---- shift attendance (per-person shifts, e.g. morning + evening) ---- */
 function _attLbl(s) { return ['সকাল', 'বিকেল'][s - 1] || ('শিফট ' + s); }
 function _attMerge(rs) { if (!rs || !rs.length) return null; rs = rs.slice().sort((a, b) => (a.shift || 1) - (b.shift || 1)); const l = rs[rs.length - 1]; return Object.assign({}, rs[0], { check_out_at: l.check_out_at, check_out_selfie: l.check_out_selfie, late_minutes: rs.reduce((a, x) => a + (x.late_minutes || 0), 0), _rs: rs }); }
-function _attTxt(rs) { return rs.map(r => _attLbl(r.shift || 1) + ': ' + fmtTime(r.check_in_at) + '–' + (r.check_out_at ? fmtTime(r.check_out_at) : '…') + (r.late_minutes ? ' (' + lateText(r.late_minutes) + ')' : '')).join(' · '); }
+function _attTxt(rs) { return rs.map(r => _attLbl(r.shift || 1) + ': ' + fmtTime(r.check_in_at) + '–' + (r.check_out_at ? fmtTime(r.check_out_at) : '…') + (r.late_minutes ? ' (' + lateText(r.late_minutes) + ')' : '') + (r.early_minutes ? ' <b style="color:#d97706">⏩ ' + r.early_minutes + ' মি আগে বের</b>' : '') + (r.lunch_flag ? ' <b style="color:#dc2626">🍽️ লাঞ্চে চেক-আউট করেননি</b>' : '')).join(' · '); }
 function _attSelf(rs) { const m = rs.length > 1 || (rs[0] && (rs[0].shift || 1) > 1); return rs.flatMap(r => { const p = m ? _attLbl(r.shift || 1) + ' ' : ''; return [[p + 'ঢোকা', r.check_in_selfie], [p + 'বের', r.check_out_selfie]]; }); }
 {
 const _vaShiftX = viewAttendance;
@@ -2768,7 +2769,7 @@ async function viewAttendanceAdmin(date) {
   const cnt = k => people.filter(x => x.st === k).length;
   const rep = { date, people, ok: cnt('ok'), late: cnt('late'), leave: cnt('leave'), abs: cnt('abs') };
   box.innerHTML = `<div class="trs"><div><b>${rep.ok}</b><span>✅ সময়মতো</span></div><div><b>${rep.late}</b><span>⏰ দেরিতে</span></div><div><b>${rep.leave}</b><span>🏖️ ছুটিতে</span></div><div><b>${rep.abs}</b><span>❌ অনুপস্থিত</span></div></div>
-    ${people.map(x => `<div class="card aadm ${x.st}"><div class="row">${avatar(x.p.full_name, x.p.id, 40)}<div class="rt"><b>${esc(x.p.full_name)}</b><span>${x.r && x.r._rs.length > 1 ? _attTxt(x.r._rs) : x.r ? `ঢোকা ${fmtTime(x.r.check_in_at)}${x.r.late_minutes ? ' · ' + lateText(x.r.late_minutes) : ' · সময়মতো'}${x.r.check_out_at ? ' · বের ' + fmtTime(x.r.check_out_at) : ''}` : x.lv ? `🏖️ ছুটি (${LEAVE_TYPES[x.lv.leave_type][1]})` : x.st === 'off' ? '🕌 শুক্রবার — সাপ্তাহিক ছুটি' : '❌ হাজিরা নেই'}</span></div></div>
+    ${people.map(x => `<div class="card aadm ${x.st}"><div class="row">${avatar(x.p.full_name, x.p.id, 40)}<div class="rt"><b>${esc(x.p.full_name)}</b><span>${x.r && x.r._rs.length > 1 ? _attTxt(x.r._rs) : x.r ? `ঢোকা ${fmtTime(x.r.check_in_at)}${x.r.late_minutes ? ' · ' + lateText(x.r.late_minutes) : ' · সময়মতো'}${x.r.check_out_at ? ' · বের ' + fmtTime(x.r.check_out_at) : ''}${x.r.early_minutes ? ' · <b style="color:#d97706">⏩ ' + x.r.early_minutes + ' মি আগে বের</b>' : ''}` : x.lv ? `🏖️ ছুটি (${LEAVE_TYPES[x.lv.leave_type][1]})` : x.st === 'off' ? '🕌 শুক্রবার — সাপ্তাহিক ছুটি' : '❌ হাজিরা নেই'}</span></div></div>
       ${x.r ? `<div class="selfies">${_attSelf(x.r._rs).filter(s => s[1] && urls[s[1]]).map(([l, s]) => `<a href="${urls[s]}" target="_blank" rel="noopener"><img src="${urls[s]}" alt="${l}"><span>${l}</span></a>`).join('')}<span class="mut" style="font-size:11.5px;align-self:center">📍 অফিস থেকে ${x.r.check_in_dist ?? '–'} মি</span></div>` : ''}</div>`).join('')}`;
   const html = attendancePdfHTML(rep);
   document.getElementById('ashare').onclick = () => exportHtmlPdf(html, `Yaqeen-Attendance-${date}.pdf`, `Yaqeen Group · Attendance · ${date}`, true);
@@ -3227,9 +3228,9 @@ window.viewPerfTeam = viewPerfTeam;
 <script src="sounds.js?v=1"></script>
 <script src="issues.js?v=2"></script>
 <script src="postcheck.js?v=5"></script>
-<script src="reportdash.js?v=1"></script>
+<script src="reportdash.js?v=2"></script>
 <script src="navfix.js?v=1"></script>
-<script src="redesign.js?v=14"></script>
-<script src="menu2.js?v=5"></script>
+<script src="redesign.js?v=15"></script>
+<script src="menu2.js?v=6"></script>
 </body>
 </html>

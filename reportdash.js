@@ -10,6 +10,8 @@ const RD_CSS = '<style id="rdcss">'
 + '.rd-act{display:flex;gap:6px;margin-top:8px;flex-wrap:wrap}.rd-act button{border-radius:10px;padding:7px 11px;font-size:12.5px;font-weight:700;background:#EEF2FF;color:#3730A3}'
 + '.rd-miss{display:flex;align-items:center;justify-content:space-between;gap:8px;background:#fff;border-radius:12px;padding:8px 10px;margin-top:6px;font-size:13.5px}.rd-miss button{border-radius:10px;padding:6px 10px;font-size:12px;font-weight:700;background:#FEF2F2;color:#B91C1C}'
 + '.rd-my{background:#FFF7ED;border:1.5px solid #FDBA74;border-radius:16px;padding:12px;margin-bottom:12px}.rd-my h4{color:#9A3412;font-size:14.5px}'
++ '.rd-days{display:flex;gap:6px;overflow-x:auto;padding:8px 0 2px;scrollbar-width:none}.rd-days::-webkit-scrollbar{display:none}.rd-days button{flex:0 0 auto;border-radius:12px;padding:6px 9px;background:#fff;color:#0B2A6F;font-size:12px;font-weight:700;box-shadow:0 2px 8px rgba(11,42,111,.07);line-height:1.25;text-align:center}.rd-days button small{display:block;font-weight:600;color:#64748b;font-size:10.5px}.rd-days button.on{background:#0B2A6F;color:#fff}.rd-days button.on small{color:#cbd5e1}'
++ '.rd-week td[data-d]{cursor:pointer}.rd-week td.pn{cursor:pointer;color:#1D4ED8;text-decoration:underline dotted}.rd-hb{font-size:12px;font-weight:700;border-radius:10px;padding:6px 10px;background:#F0FDF4;color:#166534}'
 + '</style>';
 const css = () => { if (!document.getElementById('rdcss')) document.head.insertAdjacentHTML('beforeend', RD_CSS); };
 const boss = () => (typeof isMgr === 'function' && isMgr()) || (typeof isAdmin === 'function' && isAdmin()) || !!(state.profile && state.profile.observer);
@@ -26,11 +28,13 @@ async function dashboard(date) {
   rdDate = date || rdDate || todayDhaka();
   $app.innerHTML = '<div class="top"><button class="back" id="bk">←</button><h1>📊 ডেইলি রিপোর্ট ড্যাশবোর্ড</h1></div><div class="pad" style="padding-top:6px">'
     + '<div class="rd-nav"><button id="rdp">‹</button><input class="in" type="date" id="rdd" value="' + rdDate + '" style="margin:0"><button id="rdn">›</button></div>'
+    + '<div class="rd-days" id="rddays">' + Array.from({ length: 14 }, (_, i) => addDay(todayDhaka(), -i)).map((d, i) => '<button data-day="' + d + '" class="' + (d === rdDate ? 'on' : '') + '">' + (i === 0 ? 'আজ' : i === 1 ? 'গতকাল' : new Date(d + 'T00:00:00').toLocaleDateString('bn-BD', { weekday: 'short' })) + '<small>' + dm(d) + '</small></button>').join('') + '</div>'
     + '<div id="rdb"><div class="cen"><div class="spin dark"></div></div></div></div>';
   document.getElementById('bk').onclick = () => go('menu');
   document.getElementById('rdp').onclick = () => dashboard(addDay(rdDate, -1));
   document.getElementById('rdn').onclick = () => dashboard(addDay(rdDate, 1));
   document.getElementById('rdd').onchange = e => dashboard(e.target.value);
+  document.querySelectorAll('#rddays [data-day]').forEach(b => b.onclick = () => dashboard(b.dataset.day));
   const from7 = addDay(rdDate, -6);
   const [{ data: reps, error }, { data: wk }, { data: qa }] = await Promise.all([
     sb.from('daily_reports').select('*').eq('report_date', rdDate),
@@ -47,11 +51,11 @@ async function dashboard(date) {
   const qBy = {}; (qa || []).forEach(q => (qBy[q.report_user] = qBy[q.report_user] || []).push(q));
   box.innerHTML = '<div class="rd-sum"><div><b>' + bn(got.size) + '/' + bn(people.length) + '</b><small>জমা দিয়েছে</small></div><div><b>' + bn(withIssue) + '</b><small>সমস্যা উল্লেখ</small></div><div><b>' + bn(pend) + '</b><small>উত্তর বাকি</small></div></div>'
     + '<div class="sec">🗓️ গত ৭ দিন</div><table class="rd-week"><tr><th>সদস্য</th>' + days.map(d => '<th>' + dm(d) + '</th>').join('') + '</tr>'
-    + people.map(p => '<tr><td>' + esc(p.full_name.split(' ').slice(0, 2).join(' ')) + '</td>' + days.map(d => '<td>' + (has.has(p.id + '|' + d) ? '✅' : (d > todayDhaka() ? '·' : '❌')) + '</td>').join('') + '</tr>').join('') + '</table>'
+    + people.map(p => '<tr><td class="pn" data-hist="' + p.id + '">' + esc(p.full_name.split(' ').slice(0, 2).join(' ')) + '</td>' + days.map(d => '<td data-d="' + d + '">' + (has.has(p.id + '|' + d) ? '✅' : (d > todayDhaka() ? '·' : '❌')) + '</td>').join('') + '</tr>').join('') + '</table>'
     + (missing.length ? '<div class="sec">⏳ এখনো জমা দেননি (' + bn(missing.length) + ')</div>' + missing.map(p => '<div class="rd-miss"><span>' + esc(p.full_name) + '</span>' + (rdDate === todayDhaka() ? '<button data-nudge="' + p.id + '">🔔 মনে করিয়ে দিন</button>' : '') + '</div>').join('') : '')
     + '<div class="sec">📝 জমা দেওয়া রিপোর্ট</div>' + ((reps || []).sort((a, b) => (personName(a.user_id)).localeCompare(personName(b.user_id))).map(r => '<div class="rd-c" data-u="' + r.user_id + '"><div class="rd-h">' + avatar(personName(r.user_id), r.user_id, 40) + '<div><b>' + esc(personName(r.user_id)) + '</b><small>' + (r.updated_at || r.created_at ? 'জমা: ' + tm(r.updated_at || r.created_at) : '') + (r.leads_count != null ? ' · লিড: ' + bn(r.leads_count) : '') + '</small></div></div>'
       + '<div class="rd-w">' + linkify(r.work_done || '') + '</div>' + (r.issues ? '<div class="rd-is">⚠️ <b>সমস্যা/সাহায্য:</b> ' + linkify(r.issues) + '</div>' : '') + (r.attachment_link ? '<div style="margin-top:6px;font-size:13px">' + linkify(r.attachment_link) + '</div>' : '')
-      + (qBy[r.user_id] || []).map(q => qaHtml(q, false)).join('') + '<div class="rd-act"><button data-ask="' + r.user_id + '">❓ প্রশ্ন করুন</button></div></div>').join('') || '<div class="empty">এই দিনে কোনো রিপোর্ট জমা হয়নি</div>');
+      + (qBy[r.user_id] || []).map(q => qaHtml(q, false)).join('') + '<div class="rd-act"><button data-ask="' + r.user_id + '">❓ প্রশ্ন করুন</button><button data-hist="' + r.user_id + '">🗂️ আগের রিপোর্ট</button></div></div>').join('') || '<div class="empty">এই দিনে কোনো রিপোর্ট জমা হয়নি</div>');
   box.querySelectorAll('[data-ask]').forEach(b => b.onclick = () => {
     const u = b.dataset.ask;
     sheet('<h3>❓ ' + esc(personName(u)) + '-কে প্রশ্ন</h3><p class="mut" style="margin:0">' + dm(rdDate) + '-এর রিপোর্ট নিয়ে। উত্তর দিলে আপনি নোটিফিকেশন পাবেন।</p><textarea class="in" id="rdqq" maxlength="1500" placeholder="যেমন: ৩টা ফলো-আপের মধ্যে কয়জন আগ্রহী? কোন ভিসা ফাইল আটকে আছে কেন?"></textarea><button class="btn" id="rdqs">📨 প্রশ্ন পাঠান</button>', (el, close) => {
@@ -62,11 +66,22 @@ async function dashboard(date) {
       };
     });
   });
+  box.querySelectorAll('[data-hist]').forEach(b => b.onclick = () => rdHistory(b.dataset.hist));
+  box.querySelectorAll('.rd-week td[data-d]').forEach(c => c.onclick = () => dashboard(c.dataset.d));
   box.querySelectorAll('[data-nudge]').forEach(b => b.onclick = async () => {
     b.disabled = true; const { error: e } = await sb.rpc('yg_report_nudge', { p_user: b.dataset.nudge, p_date: rdDate });
     if (e) { b.disabled = false; return toast(friendlyError(e)); } b.textContent = '✓ জানানো হয়েছে';
   });
 }
+async function rdHistory(uid) {
+  sheet('<h3>🗂️ ' + esc(personName(uid)) + ' — আগের রিপোর্ট</h3><div id="rdhist"><div class="cen"><div class="spin dark"></div></div></div>', async el => {
+    const { data, error } = await sb.from('daily_reports').select('*').eq('user_id', uid).order('report_date', { ascending: false }).limit(60);
+    const box = el.querySelector('#rdhist'); if (!box) return;
+    if (error) { box.innerHTML = '<div class="msg err">' + esc(friendlyError(error)) + '</div>'; return; }
+    box.innerHTML = (data || []).map(r => '<div class="rd-c"><div class="rd-h"><b>📅 ' + new Date(r.report_date + 'T00:00:00').toLocaleDateString('bn-BD', { weekday: 'short', day: 'numeric', month: 'short' }) + '</b>' + (r.leads_count != null ? '<small style="margin-left:auto">Leads: ' + bn(r.leads_count) + '</small>' : '') + '</div><div class="rd-w">' + linkify(r.work_done || '') + '</div>' + (r.issues ? '<div class="rd-is">⚠️ ' + linkify(r.issues) + '</div>' : '') + (r.attachment_link ? '<div style="margin-top:6px;font-size:13px">' + linkify(r.attachment_link) + '</div>' : '') + '</div>').join('') || '<div class="empty">কোনো রিপোর্ট নেই</div>';
+  });
+}
+window.ygReportHistory = rdHistory;
 window.ygReportDash = dashboard;
 teamReports = function (date) { return dashboard(date); };
 
@@ -74,6 +89,13 @@ teamReports = function (date) { return dashboard(date); };
 const _vrQa = viewReport;
 viewReport = async function () {
   const r = await _vrQa.apply(this, arguments);
+  try {
+    const mine = document.getElementById('mine');
+    if (mine) {
+      const { data: all } = await sb.from('daily_reports').select('*').eq('user_id', state.profile.id).order('report_date', { ascending: false }).limit(30);
+      if (all && all.length && typeof reportCard === 'function') { mine.innerHTML = all.map(x => reportCard(x)).join(''); const sec = mine.previousElementSibling; if (sec && sec.classList.contains('sec')) sec.textContent = 'আমার আগের রিপোর্ট (' + bn(all.length) + ')'; }
+    }
+  } catch (e) {}
   try {
     css();
     const { data: qa } = await sb.from('yg_report_qa').select('*').eq('report_user', state.profile.id).order('created_at', { ascending: false }).limit(15);

@@ -102,7 +102,7 @@ const CSS = `<style id="xcss">
 let lkCopied = false;
 function copyLk() {
   if (lkCopied) return; const out = [];
-  try { for (const sh of document.styleSheets) { let rs; try { rs = sh.cssRules; } catch (e) { continue; } for (const r of rs) { const st = r.selectorText || ''; if (/\.tile \.ic\.lkm|\.qi \.qic\.lk/.test(st)) out.push(st.replace(/\.tile \.ic\.lkm/g, '.x-t .x-oic').replace(/\.qi \.qic\.lk/g, '.x-t .x-oic') + '{' + r.style.cssText + '}'); } } } catch (e) {}
+  try { for (const sh of document.styleSheets) { let rs; try { rs = sh.cssRules; } catch (e) { continue; } for (const r of rs) { const st = r.selectorText || ''; if (/\.tile \.ic\.lkm|\.qi \.qic\.lk/.test(st)) out.push(st.replace(/\.tile \.ic\.lkm/g, '.x-t .x-oic').replace(/\.qi \.qic\.lk/g, '.x-t .x-oic') + '{' + [...r.style].filter(p => !/^animation|^opacity/.test(p)).map(p => p + ':' + r.style.getPropertyValue(p)).join(';') + '}'); } } } catch (e) {}
   if (out.length) { lkCopied = true; document.head.insertAdjacentHTML('beforeend', '<style id="xlkcss">' + out.join('\n').replace(/!important/g, '') + '</style>'); }
 }
 const css = () => { if (!document.getElementById('xcss')) document.head.insertAdjacentHTML('beforeend', CSS); copyLk(); };
@@ -217,13 +217,19 @@ let xTab = 'dash';
 const SPI = { '@rdash': ['📊', '#CCFBF1', '#5EEAD4'], '@pchk': ['✨', '#EDE9FE', '#C4B5FD'], '@appeal': ['⚖️', '#E0E7FF', '#A5B4FC'], '@sc': ['📜', '#FEE2E2', '#FCA5A5'], '@issues': ['🧰', '#FFE4E6', '#FDA4AF'] };
 const closedSet = () => { try { return new Set(JSON.parse(localStorage.getItem('yg_adm_closed') || '[]')); } catch (e) { return new Set(); } };
 const _vaX = viewAdmin;
-viewAdmin = async function () {
-  await _vaX.apply(this, arguments);
-  await new Promise(r => setTimeout(r, 250));
+let xHold = null, xHoldAt = 0, xCnt = { a2: '', a3: '' };
+viewAdmin = async function (fast) {
+  let holder, cached = false;
+  if (fast !== false && xHold && Date.now() - xHoldAt < 15 * 60 * 1000) { holder = xHold; cached = true; cleanupChannels(); }
+  else {
+    await _vaX.apply(this, arguments);
+    await new Promise(r => setTimeout(r, 60));
+    holder = document.createElement('div'); holder.style.display = 'none'; holder.id = 'xhold';
+    [...document.querySelectorAll('.tile')].forEach(t => holder.appendChild(t));
+    xCnt = { a2: txt('a2'), a3: txt('a3') }; xHold = holder; xHoldAt = Date.now();
+  }
   css(); icN = 0;
-  const holder = document.createElement('div'); holder.style.display = 'none'; holder.id = 'xhold';
-  [...document.querySelectorAll('.tile')].forEach(t => holder.appendChild(t));
-  const pend = txt('a2'), flag = txt('a3');
+  const pend = xCnt.a2, flag = xCnt.a3;
   ui.tab = 'admin';
   const tabs = [['dash', 'Dashboard', '🧭'], ['mgmt', 'Management', '🗂️'], ['rep', 'Reports', '📑'], ['set', 'Settings', '⚙️']];
   const show = { dash: ['biz', 'att', 'org'], mgmt: ['org', 'att'], rep: ['biz'] };
@@ -246,15 +252,17 @@ viewAdmin = async function () {
       + '<div class="x-sm" style="background:#FFF7ED">' + I('strategy', '#F97316', '#FDBA74', 'rgba(249,115,22,.13)', 'grow') + '<span><b id="xm4">–</b><small>Reports Today</small></span></div></div></div>' : '')
     + (xTab === 'set' ? '' : (show[xTab] || []).map(k => box(k, AD[k])).join(''))
     + (xTab === 'dash' || xTab === 'set' ? '<div class="x-box x-store" id="xstore"><div class="hd"><h3>' + I('database', '#0EA5E9', '#7DD3FC', 'transparent', 'pulse') + 'System Storage</h3><span class="x-pill">Free Plan</span></div><div id="xstb" class="mut" style="font-size:12.5px;margin-top:8px">লোড হচ্ছে…</div></div>' : '')
-    + (xTab === 'set' ? '<div class="x-box"><div class="hd"><h3>' + I('toolbox', '#475569', '#94A3B8', 'transparent', 'wave') + 'Settings</h3></div><div class="x-grid" style="margin-top:10px"><button class="x-t x-tap" id="xsmenu">' + I('squares-four', '#8B5CF6', '#C4B5FD', 'rgba(139,92,246,.12)', 'spin') + '<span class="l">Full Menu</span></button><button class="x-t x-tap" id="xsprof">' + I('identification-card', '#2563EB', '#60A5FA', 'rgba(37,99,235,.12)', 'float') + '<span class="l">My Profile</span></button></div></div>' : '')
+    + (xTab === 'set' ? '<div class="x-box"><div class="hd"><h3>' + I('toolbox', '#475569', '#94A3B8', 'transparent', 'wave') + 'Settings</h3></div><div class="x-grid" style="margin-top:10px"><button class="x-t x-tap" id="xsmenu">' + I('squares-four', '#8B5CF6', '#C4B5FD', 'rgba(139,92,246,.12)', 'spin') + '<span class="l">Full Menu</span></button><button class="x-t x-tap" id="xsprof">' + I('identification-card', '#2563EB', '#60A5FA', 'rgba(37,99,235,.12)', 'float') + '<span class="l">My Profile</span></button></div><button class="x-tap" id="xprev" style="margin-top:12px;width:100%;text-align:left;font-size:12.5px;color:#64748b;background:#F8FAFC;border:1px dashed #CBD5E1;border-radius:12px;padding:9px 12px">👁️ মেম্বার হিসেবে অ্যাপ দেখুন <small style="display:block;font-size:11px;color:#94a3b8">সাধারণ সদস্যের ফোনে অ্যাপ কেমন দেখায় — শুধু দেখার জন্য</small></button></div>' : '')
     + '</div>');
   document.querySelector('.view').appendChild(holder);
   document.getElementById('xgear').onclick = () => go('menu');
-  document.querySelectorAll('[data-xt]').forEach(b => b.onclick = () => { if (b.dataset.xt === xTab) return; xTab = b.dataset.xt; viewAdmin(); });
+  document.querySelectorAll('[data-xt]').forEach(b => b.onclick = () => { if (b.dataset.xt === xTab) return; xTab = b.dataset.xt; viewAdmin(true); });
   document.querySelectorAll('.x-box[data-k] .hd').forEach(h => h.onclick = () => { const bx = h.parentElement; bx.classList.toggle('closed'); const s = closedSet(); bx.classList.contains('closed') ? s.add(bx.dataset.k) : s.delete(bx.dataset.k); try { localStorage.setItem('yg_adm_closed', JSON.stringify([...s])); } catch (e) {} });
   document.querySelectorAll('[data-go]').forEach(b => b.onclick = () => { const g = b.dataset.go; if (SPECIAL[g]) return SPECIAL[g](); const t = document.getElementById(g); if (t) t.click(); });
   const sm = document.getElementById('xsmenu'); if (sm) sm.onclick = () => go('menu');
   const sp = document.getElementById('xsprof'); if (sp) sp.onclick = () => renderProfile();
+  const pv = document.getElementById('xprev'); if (pv) pv.onclick = () => window.ygMemberPreview && ygMemberPreview(true);
+  if (cached) Promise.all([sb.from('profiles').select('id', { count: 'exact', head: true }).eq('status', 'pending'), sb.from('message_reports').select('id', { count: 'exact', head: true }).eq('status', 'open')]).then(([p, r]) => { xCnt = { a2: String(p.count || 0), a3: String(r.count || 0) }; }).catch(() => {});
   /* numbers */
   try {
     const today = todayDhaka(), mStart = today.slice(0, 8) + '01';
@@ -290,7 +298,7 @@ viewTasks = async function () {
 /* ---------------- bottom bar: Admin tab for admins only ---------------- */
 const _goX = go;
 go = function (tab) {
-  if (tab === 'admin') { cleanupChannels(); ui.openConv = null; ui.tab = 'admin'; return viewAdmin(); }
+  if (tab === 'admin') { cleanupChannels(); ui.openConv = null; ui.tab = 'admin'; return viewAdmin(true); }
   return _goX.apply(this, arguments);
 };
 function patchBar() {
@@ -302,6 +310,24 @@ function patchBar() {
     m.after(b); nav.classList.add('x-6');
   });
 }
+/* ---------------- 👁️ view the app as a normal member (UI only, nothing is saved) ---------------- */
+window.ygMemberPreview = function (on) {
+  if (on) {
+    if (window._ygReal) return;
+    window._ygReal = state.profile;
+    state.profile = Object.assign({}, state.profile, { role: 'member', observer: false, work_mode: state.profile.work_mode || 'office' });
+    document.querySelectorAll('.tb[data-t="admin"]').forEach(b => b.remove()); document.querySelectorAll('.tabbar').forEach(n => n.classList.remove('x-6'));
+    if (!document.getElementById('xpvpill')) document.body.insertAdjacentHTML('beforeend', '<button id="xpvpill" style="position:fixed;top:calc(env(safe-area-inset-top,0px) + 8px);left:50%;transform:translateX(-50%);z-index:9999;background:#0B2A6F;color:#fff;border-radius:20px;padding:7px 14px;font-size:12.5px;font-weight:700;box-shadow:0 6px 18px rgba(0,0,0,.25)">👁️ মেম্বার ভিউ চলছে · ✕ বন্ধ করুন</button>');
+    document.getElementById('xpvpill').onclick = () => ygMemberPreview(false);
+    toast('এখন সাধারণ সদস্যের মতো দেখছেন (শুধু দেখার জন্য)');
+    go('home');
+  } else {
+    if (!window._ygReal) return;
+    state.profile = window._ygReal; window._ygReal = null;
+    const p = document.getElementById('xpvpill'); if (p) p.remove();
+    go('home'); setTimeout(patchBar, 50);
+  }
+};
 css();
 new MutationObserver(() => patchBar()).observe(document.body, { childList: true, subtree: true });
 /* the first screen may have been drawn before this file loaded */
