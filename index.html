@@ -1736,7 +1736,7 @@ async function viewReport() {
 }
 function reportCard(r, showName) {
   return `<div class="card"><div class="meta" style="margin-top:0"><b style="color:var(--navy)">${showName ? esc(personName(r.user_id)) : fmtDate(r.report_date)}</b>${r.leads_count != null ? `<span>Leads: ${r.leads_count}</span>` : ''}</div>
-    <div class="body" style="margin-top:6px">${linkify(r.work_done)}</div>${r.issues ? `<div class="msg info" style="margin-top:8px">⚠️ ${linkify(r.issues)}</div>` : ''}${r.attachment_link ? `<div style="margin-top:6px;font-size:13px">${linkify(r.attachment_link)}</div>` : ''}</div>`;
+    <div class="body" style="margin-top:6px">${linkify(r.work_done)}</div>${r.plan_next ? `<div class="msg info" style="margin-top:8px">🗓️ আগামী দিনের পরিকল্পনা: ${linkify(r.plan_next)}</div>` : ''}${r.issues ? `<div class="msg info" style="margin-top:8px">⚠️ ${linkify(r.issues)}</div>` : ''}${r.attachment_link ? `<div style="margin-top:6px;font-size:13px">${linkify(r.attachment_link)}</div>` : ''}</div>`;
 }
 async function teamReports(date) {
   $app.innerHTML = `<div class="top"><button class="back" id="bk">←</button><h1>Team reports</h1></div>
@@ -3228,7 +3228,7 @@ window.viewPerfTeam = viewPerfTeam;
 <script src="sounds.js?v=1"></script>
 <script src="issues.js?v=2"></script>
 <script src="postcheck.js?v=5"></script>
-<script src="reportdash.js?v=2"></script>
+<script src="reportdash.js?v=3"></script>
 <script src="navfix.js?v=1"></script>
 <script src="redesign.js?v=16"></script>
 <script src="menu2.js?v=6"></script>

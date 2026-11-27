@@ -54,7 +54,7 @@ async function dashboard(date) {
     + people.map(p => '<tr><td class="pn" data-hist="' + p.id + '">' + esc(p.full_name.split(' ').slice(0, 2).join(' ')) + '</td>' + days.map(d => '<td data-d="' + d + '">' + (has.has(p.id + '|' + d) ? '✅' : (d > todayDhaka() ? '·' : '❌')) + '</td>').join('') + '</tr>').join('') + '</table>'
     + (missing.length ? '<div class="sec">⏳ এখনো জমা দেননি (' + bn(missing.length) + ')</div>' + missing.map(p => '<div class="rd-miss"><span>' + esc(p.full_name) + '</span>' + (rdDate === todayDhaka() ? '<button data-nudge="' + p.id + '">🔔 মনে করিয়ে দিন</button>' : '') + '</div>').join('') : '')
     + '<div class="sec">📝 জমা দেওয়া রিপোর্ট</div>' + ((reps || []).sort((a, b) => (personName(a.user_id)).localeCompare(personName(b.user_id))).map(r => '<div class="rd-c" data-u="' + r.user_id + '"><div class="rd-h">' + avatar(personName(r.user_id), r.user_id, 40) + '<div><b>' + esc(personName(r.user_id)) + '</b><small>' + (r.updated_at || r.created_at ? 'জমা: ' + tm(r.updated_at || r.created_at) : '') + (r.leads_count != null ? ' · লিড: ' + bn(r.leads_count) : '') + '</small></div></div>'
-      + '<div class="rd-w">' + linkify(r.work_done || '') + '</div>' + (r.issues ? '<div class="rd-is">⚠️ <b>সমস্যা/সাহায্য:</b> ' + linkify(r.issues) + '</div>' : '') + (r.attachment_link ? '<div style="margin-top:6px;font-size:13px">' + linkify(r.attachment_link) + '</div>' : '')
+      + '<div class="rd-w">' + linkify(r.work_done || '') + '</div>' + (r.plan_next ? '<div class="rd-is" style="background:#EFF6FF;border-color:#3B82F6">🗓️ <b>আগামী দিনের পরিকল্পনা:</b> ' + linkify(r.plan_next) + '</div>' : '') + (r.issues ? '<div class="rd-is">⚠️ <b>সমস্যা/সাহায্য:</b> ' + linkify(r.issues) + '</div>' : '') + (r.attachment_link ? '<div style="margin-top:6px;font-size:13px">' + linkify(r.attachment_link) + '</div>' : '')
       + (qBy[r.user_id] || []).map(q => qaHtml(q, false)).join('') + '<div class="rd-act"><button data-ask="' + r.user_id + '">❓ প্রশ্ন করুন</button><button data-hist="' + r.user_id + '">🗂️ আগের রিপোর্ট</button></div></div>').join('') || '<div class="empty">এই দিনে কোনো রিপোর্ট জমা হয়নি</div>');
   box.querySelectorAll('[data-ask]').forEach(b => b.onclick = () => {
     const u = b.dataset.ask;
@@ -78,7 +78,7 @@ async function rdHistory(uid) {
     const { data, error } = await sb.from('daily_reports').select('*').eq('user_id', uid).order('report_date', { ascending: false }).limit(60);
     const box = el.querySelector('#rdhist'); if (!box) return;
     if (error) { box.innerHTML = '<div class="msg err">' + esc(friendlyError(error)) + '</div>'; return; }
-    box.innerHTML = (data || []).map(r => '<div class="rd-c"><div class="rd-h"><b>📅 ' + new Date(r.report_date + 'T00:00:00').toLocaleDateString('bn-BD', { weekday: 'short', day: 'numeric', month: 'short' }) + '</b>' + (r.leads_count != null ? '<small style="margin-left:auto">Leads: ' + bn(r.leads_count) + '</small>' : '') + '</div><div class="rd-w">' + linkify(r.work_done || '') + '</div>' + (r.issues ? '<div class="rd-is">⚠️ ' + linkify(r.issues) + '</div>' : '') + (r.attachment_link ? '<div style="margin-top:6px;font-size:13px">' + linkify(r.attachment_link) + '</div>' : '') + '</div>').join('') || '<div class="empty">কোনো রিপোর্ট নেই</div>';
+    box.innerHTML = (data || []).map(r => '<div class="rd-c"><div class="rd-h"><b>📅 ' + new Date(r.report_date + 'T00:00:00').toLocaleDateString('bn-BD', { weekday: 'short', day: 'numeric', month: 'short' }) + '</b>' + (r.leads_count != null ? '<small style="margin-left:auto">Leads: ' + bn(r.leads_count) + '</small>' : '') + '</div><div class="rd-w">' + linkify(r.work_done || '') + '</div>' + (r.plan_next ? '<div class="rd-is" style="background:#EFF6FF;border-color:#3B82F6">🗓️ <b>আগামী দিনের পরিকল্পনা:</b> ' + linkify(r.plan_next) + '</div>' : '') + (r.issues ? '<div class="rd-is">⚠️ ' + linkify(r.issues) + '</div>' : '') + (r.attachment_link ? '<div style="margin-top:6px;font-size:13px">' + linkify(r.attachment_link) + '</div>' : '') + '</div>').join('') || '<div class="empty">কোনো রিপোর্ট নেই</div>';
   });
 }
 window.ygReportHistory = rdHistory;
@@ -140,6 +140,50 @@ viewMenu = function () {
     t.insertAdjacentHTML('beforeend', '<button class="tile" id="m-rdash"><span class="ic" style="background:linear-gradient(140deg,#14B8A6,#0F766E);font-size:26px">📊</span><b>রিপোর্ট ড্যাশবোর্ড</b><small>সবার ডেইলি রিপোর্ট</small></button>');
     document.getElementById('m-rdash').onclick = () => dashboard(todayDhaka());
   }
+  return r;
+};
+
+/* 🏠 Home: big "today's daily report" card right under Today's tasks */
+const needRep = () => state.profile && state.profile.daily_report !== false && !state.profile.observer;
+let repDone = { d: null, v: null };
+async function homeRepCard() {
+  try {
+    const today = document.getElementById('today');
+    if (!today || !needRep() || document.getElementById('xdrep')) return;
+    const css2 = '<style id="xdrcss">#xdrep{display:flex;align-items:center;gap:12px;width:100%;text-align:left;margin-top:12px;border-radius:20px;padding:14px;background:linear-gradient(135deg,#0B2A6F,#1E4FC2 60%,#2563EB);color:#fff;box-shadow:0 10px 26px rgba(11,42,111,.28);border:0}#xdrep .ic{flex:0 0 50px;height:50px;border-radius:16px;background:rgba(255,255,255,.16);display:flex;align-items:center;justify-content:center;font-size:26px}#xdrep b{display:block;font-size:16px}#xdrep small{display:block;font-size:12.5px;opacity:.9;margin-top:3px;line-height:1.45}#xdrep .st{margin-left:auto;flex:0 0 auto;border-radius:12px;padding:6px 9px;font-size:11.5px;font-weight:800;background:#FDE68A;color:#92400E}#xdrep.ok{background:linear-gradient(135deg,#065F46,#059669)}#xdrep.ok .st{background:#D1FAE5;color:#065F46}</style>';
+    if (!document.getElementById('xdrcss')) document.head.insertAdjacentHTML('beforeend', css2);
+    today.insertAdjacentHTML('afterend', '<button id="xdrep" class="x-tap"><span class="ic">📝</span><span><b>আজকের কাজের ডেইলি রিপোর্ট</b><small>আজকের কাজের সকল আপডেট দিন এবং আগামী দিনের পরিকল্পনা জানান</small></span><span class="st">জমা দিন →</span></button>');
+    const el = document.getElementById('xdrep'); el.onclick = () => viewReport();
+    const d = todayDhaka();
+    if (repDone.d !== d) { const { count } = await sb.from('daily_reports').select('user_id', { count: 'exact', head: true }).eq('user_id', state.profile.id).eq('report_date', d); repDone = { d, v: !!count }; }
+    if (repDone.v && document.getElementById('xdrep')) { el.classList.add('ok'); el.querySelector('.st').textContent = '✓ জমা হয়েছে'; el.querySelector('small').textContent = 'আজকের রিপোর্ট জমা হয়েছে — চাইলে খুলে আপডেট করতে পারেন'; }
+  } catch (e) {}
+}
+new MutationObserver(() => { if (document.getElementById('today') && !document.getElementById('xdrep')) homeRepCard(); }).observe(document.body, { childList: true, subtree: true });
+
+/* Daily report page: add "tomorrow's plan" and save it with the report */
+const _vrPlan = viewReport;
+viewReport = async function () {
+  const r = await _vrPlan.apply(this, arguments);
+  try {
+    const wd = document.getElementById('wd'), sbb = document.getElementById('sb'); if (!wd || !sbb || document.getElementById('pn')) return r;
+    const today = todayDhaka();
+    const { data: cur } = await sb.from('daily_reports').select('plan_next').eq('user_id', state.profile.id).eq('report_date', today).maybeSingle();
+    wd.insertAdjacentHTML('afterend', '<label>আগামী দিনের পরিকল্পনা *</label><textarea class="in" id="pn" maxlength="3000" style="min-height:70px" placeholder="• কাল সকালে ২টা ভিসা ফাইল রেডি করব&#10;• ৩ জন ক্লায়েন্টকে ফলো-আপ…">' + esc((cur && cur.plan_next) || '') + '</textarea>');
+    const lbl = wd.previousElementSibling; if (lbl && lbl.tagName === 'LABEL') lbl.textContent = 'আজকের কাজের সকল আপডেট *';
+    sbb.onclick = async () => {
+      const work_done = wd.value.trim(); if (!work_done) return toast('আজকের কাজের আপডেট লিখুন');
+      const plan = document.getElementById('pn').value.trim(); if (!plan) return toast('আগামী দিনের পরিকল্পনা লিখুন');
+      const lc = document.getElementById('lc').value;
+      const row = { user_id: state.profile.id, report_date: today, work_done, plan_next: plan, leads_count: lc === '' ? null : Math.max(0, parseInt(lc, 10) || 0), issues: document.getElementById('is').value.trim() || null, attachment_link: document.getElementById('al').value.trim() || null, updated_at: new Date().toISOString() };
+      sbb.disabled = true;
+      const { error } = await sb.from('daily_reports').upsert(row, { onConflict: 'user_id,report_date' });
+      sbb.disabled = false;
+      if (error) return toast(friendlyError(error));
+      repDone = { d: today, v: true };
+      toast('রিপোর্ট জমা হয়েছে ✓'); viewReport();
+    };
+  } catch (e) {}
   return r;
 };
 }
